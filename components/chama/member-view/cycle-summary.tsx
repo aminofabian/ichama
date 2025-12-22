@@ -14,15 +14,12 @@ interface CycleSummaryProps {
 }
 
 export function CycleSummary({ cycle, cycleMember, chamaType }: CycleSummaryProps) {
-  const hasContributed = cycleMember?.contribution_status === 'paid'
-  const isPending = cycleMember?.contribution_status === 'pending'
-
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Current Cycle</CardTitle>
-          <Badge variant={cycle.status === 'active' ? 'success' : 'default'}>
+          <Badge variant={cycle.status === 'active' ? 'default' : 'default'}>
             {cycle.status}
           </Badge>
         </div>
@@ -33,7 +30,7 @@ export function CycleSummary({ cycle, cycleMember, chamaType }: CycleSummaryProp
           <div>
             <p className="text-sm text-muted-foreground">Period</p>
             <p className="font-medium">
-              {formatDate(cycle.start_date)} - {formatDate(cycle.end_date)}
+              {cycle.start_date ? formatDate(cycle.start_date) : 'Not started'} - {cycle.end_date ? formatDate(cycle.end_date) : 'TBD'}
             </p>
           </div>
         </div>
@@ -50,26 +47,11 @@ export function CycleSummary({ cycle, cycleMember, chamaType }: CycleSummaryProp
 
         <div className="rounded-lg border p-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Your Contribution Status</span>
-            {hasContributed ? (
-              <Badge variant="success" className="flex items-center gap-1">
-                <CheckCircle className="h-3 w-3" />
-                Paid
-              </Badge>
-            ) : isPending ? (
-              <Badge variant="warning" className="flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" />
-                Pending
-              </Badge>
-            ) : (
-              <Badge variant="default">Not Set</Badge>
-            )}
+            <span className="text-sm text-muted-foreground">Contribution Amount</span>
           </div>
-          {cycleMember && (
-            <p className="mt-2 text-lg font-semibold">
-              {formatCurrency(cycleMember.contribution_amount || 0)}
-            </p>
-          )}
+          <p className="mt-2 text-lg font-semibold">
+            {formatCurrency(cycle.contribution_amount)}
+          </p>
         </div>
 
         {chamaType !== 'savings' && (
