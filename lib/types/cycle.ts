@@ -1,5 +1,5 @@
 export type CycleFrequency = 'weekly' | 'biweekly' | 'monthly'
-export type CycleStatus = 'pending' | 'active' | 'completed' | 'cancelled'
+export type CycleStatus = 'pending' | 'active' | 'paused' | 'completed' | 'cancelled'
 export type CycleMemberStatus = 'active' | 'defaulted' | 'completed' | 'removed'
 
 export interface Cycle {

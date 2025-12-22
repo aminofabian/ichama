@@ -15,7 +15,7 @@ CREATE TABLE cycles (
     current_period INTEGER DEFAULT 0,
     start_date TEXT,
     end_date TEXT,
-    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'completed', 'cancelled')),
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'paused', 'completed', 'cancelled')),
     created_by TEXT NOT NULL REFERENCES users(id),
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
