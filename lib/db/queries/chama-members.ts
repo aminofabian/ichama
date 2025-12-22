@@ -1,0 +1,96 @@
+import db from '../client'
+import type { ChamaMember } from '../../types/chama'
+
+export async function addChamaMember(
+  chamaId: string,
+  userId: string,
+  role: 'admin' | 'member' = 'member'
+): Promise<ChamaMember> {
+  const now = new Date().toISOString()
+  const result = await db.execute({
+    sql: `INSERT INTO chama_members (chama_id, user_id, role, status, joined_at)
+          VALUES (?, ?, ?, 'active', ?)`,
+    args: [chamaId, userId, role, now],
+  })
+
+  const member = await getChamaMember(chamaId, userId)
+  if (!member) {
+    throw new Error('Failed to add chama member')
+  }
+  return member
+}
+
+export async function getChamaMember(
+  chamaId: string,
+  userId: string
+): Promise<ChamaMember | null> {
+  const result = await db.execute({
+    sql: 'SELECT * FROM chama_members WHERE chama_id = ? AND user_id = ?',
+    args: [chamaId, userId],
+  })
+
+  if (result.rows.length === 0) {
+    return null
+  }
+
+  return result.rows[0] as unknown as ChamaMember
+}
+
+export async function getChamaMembers(chamaId: string): Promise<ChamaMember[]> {
+  const result = await db.execute({
+    sql: 'SELECT * FROM chama_members WHERE chama_id = ? AND status = ?',
+    args: [chamaId, 'active'],
+  })
+
+  return result.rows as unknown as ChamaMember[]
+}
+
+export async function updateChamaMember(
+  id: string,
+  data: Partial<Omit<ChamaMember, 'id' | 'chama_id' | 'user_id' | 'joined_at'>>
+): Promise<ChamaMember> {
+  const updates: string[] = []
+  const args: unknown[] = []
+
+  Object.entries(data).forEach(([key, value]) => {
+    if (value !== undefined) {
+      updates.push(`${key} = ?`)
+      args.push(value)
+    }
+  })
+
+  if (updates.length === 0) {
+    const result = await db.execute({
+      sql: 'SELECT * FROM chama_members WHERE id = ?',
+      args: [id],
+    })
+    if (result.rows.length === 0) {
+      throw new Error('Chama member not found')
+    }
+    return result.rows[0] as unknown as ChamaMember
+  }
+
+  args.push(id)
+
+  await db.execute({
+    sql: `UPDATE chama_members SET ${updates.join(', ')} WHERE id = ?`,
+    args,
+  })
+
+  const result = await db.execute({
+    sql: 'SELECT * FROM chama_members WHERE id = ?',
+    args: [id],
+  })
+  if (result.rows.length === 0) {
+    throw new Error('Chama member not found')
+  }
+  return result.rows[0] as unknown as ChamaMember
+}
+
+export async function removeChamaMember(id: string): Promise<void> {
+  await db.execute({
+    sql: "UPDATE chama_members SET status = 'removed', removed_at = ? WHERE id = ?",
+    args: [new Date().toISOString(), id],
+  })
+}
+
