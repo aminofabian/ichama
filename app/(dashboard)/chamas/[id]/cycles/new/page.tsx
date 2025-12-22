@@ -71,7 +71,7 @@ export default function CreateCyclePage() {
         setChamaData(result.data)
 
         // Select all members by default
-        const allMemberIds = new Set(
+        const allMemberIds = new Set<string>(
           result.data.members.map((m: MemberWithUser) => m.id) // chama_member_id
         )
         setSelectedMemberIds(allMemberIds)
