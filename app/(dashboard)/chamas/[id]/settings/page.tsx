@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Modal } from '@/components/ui/modal'
+import { Modal, ModalContent, ModalHeader, ModalTitle } from '@/components/ui/modal'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
 import { EmptyState } from '@/components/shared/empty-state'
 import { useToast } from '@/components/ui/toast'
@@ -154,12 +154,12 @@ export default function ChamaSettingsPage() {
     <>
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href={`/chamas/${chamaId}`}>
+          <Link href={`/chamas/${chamaId}`}>
+            <Button variant="ghost" size="sm">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Chama
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </div>
 
         <div>
@@ -230,7 +230,7 @@ export default function ChamaSettingsPage() {
                 </p>
               </div>
               <Button
-                variant="destructive"
+                variant="danger"
                 onClick={() => setShowDeleteModal(true)}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -242,31 +242,35 @@ export default function ChamaSettingsPage() {
       </div>
 
       <Modal
-        isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        title="Delete Chama"
+        open={showDeleteModal}
+        onOpenChange={setShowDeleteModal}
       >
-        <div className="space-y-4">
-          <p>
-            Are you sure you want to delete <strong>{data.chama.name}</strong>?
-          </p>
-          <p className="text-sm text-muted-foreground">
-            This action cannot be undone. All chama data, including members, cycles,
-            and contributions will be permanently deleted.
-          </p>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setShowDeleteModal(false)}>
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={isDeleting}
-            >
-              {isDeleting ? 'Deleting...' : 'Delete Permanently'}
-            </Button>
+        <ModalContent>
+          <ModalHeader>
+            <ModalTitle>Delete Chama</ModalTitle>
+          </ModalHeader>
+          <div className="space-y-4">
+            <p>
+              Are you sure you want to delete <strong>{data.chama.name}</strong>?
+            </p>
+            <p className="text-sm text-muted-foreground">
+              This action cannot be undone. All chama data, including members, cycles,
+              and contributions will be permanently deleted.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowDeleteModal(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                onClick={handleDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Permanently'}
+              </Button>
+            </div>
           </div>
-        </div>
+        </ModalContent>
       </Modal>
     </>
   )
