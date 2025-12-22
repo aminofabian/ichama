@@ -42,7 +42,7 @@ export async function DELETE(
       )
     }
 
-    const memberToRemove = result.rows[0] as { role: string; user_id: string }
+    const memberToRemove = result.rows[0] as unknown as { role: string; user_id: string }
 
     // Prevent removing yourself
     if (memberToRemove.user_id === user.id) {
