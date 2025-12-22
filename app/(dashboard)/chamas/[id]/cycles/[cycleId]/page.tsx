@@ -7,6 +7,7 @@ import { CycleSummary } from '@/components/cycle/cycle-summary'
 import { MemberStatusTable } from '@/components/cycle/member-status-table'
 import { PayoutRecipient } from '@/components/cycle/payout-recipient'
 import { AdminControls } from '@/components/cycle/admin-controls'
+import { MyContributionCard } from '@/components/cycle/my-contribution-card'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
 import { EmptyState } from '@/components/shared/empty-state'
 import { Button } from '@/components/ui/button'
@@ -46,6 +47,7 @@ export default function CycleDashboardPage() {
   const [data, setData] = useState<CycleDashboardData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   const fetchCycleData = async () => {
     try {
@@ -69,6 +71,18 @@ export default function CycleDashboardPage() {
       fetchCycleData()
     }
   }, [cycleId])
+
+  useEffect(() => {
+    // Fetch current user ID
+    fetch('/api/auth/session')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.data?.user?.id) {
+          setCurrentUserId(data.data.user.id)
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   if (isLoading) {
     return (
@@ -109,6 +123,13 @@ export default function CycleDashboardPage() {
     (m) => m.turn_order === cycle.current_period
   )
 
+  // Get current user's contribution for the current period
+  const currentUserContribution = currentUserId
+    ? contributions.find(
+        (c) => c.user_id === currentUserId && c.period_number === cycle.current_period
+      )
+    : null
+
   const handleConfirmPayout = async (payoutId: string) => {
     // TODO: Implement payout confirmation
     console.log('Confirm payout:', payoutId)
@@ -145,11 +166,21 @@ export default function CycleDashboardPage() {
         <div className="lg:col-span-2 space-y-6">
           <PeriodTracker cycle={cycle} />
           
-          <MemberStatusTable
-            cycle={cycle}
-            members={membersWithData}
-            isAdmin={isAdmin}
-          />
+          {isAdmin ? (
+            <MemberStatusTable
+              cycle={cycle}
+              members={membersWithData}
+              isAdmin={isAdmin}
+            />
+          ) : (
+            // Member view: Show their contribution card
+            currentUserContribution && (
+              <MyContributionCard
+                contribution={currentUserContribution}
+                onUpdate={fetchCycleData}
+              />
+            )
+          )}
         </div>
 
         {/* Right Column - Payout & Controls */}

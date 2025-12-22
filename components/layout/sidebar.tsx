@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard,
   Users,
@@ -10,9 +10,12 @@ import {
   History,
   Bell,
   Settings,
+  LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Avatar } from '../ui/avatar'
+import { Button } from '../ui/button'
+import { useToast } from '../ui/toast'
 
 export interface SidebarProps {
   user?: {
@@ -34,6 +37,40 @@ const navItems = [
 
 export function Sidebar({ user, collapsed = false }: SidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
+  const { addToast } = useToast()
+  const [isLoggingOut, setIsLoggingOut] = React.useState(false)
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    try {
+      const response = await fetch('/api/auth/signout', {
+        method: 'POST',
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        addToast({
+          variant: 'success',
+          title: 'Signed out',
+          description: 'You have been signed out successfully.',
+        })
+        router.push('/signin')
+        router.refresh()
+      } else {
+        throw new Error(data.error || 'Failed to sign out')
+      }
+    } catch (error) {
+      addToast({
+        variant: 'error',
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to sign out',
+      })
+    } finally {
+      setIsLoggingOut(false)
+    }
+  }
 
   return (
     <aside
@@ -73,7 +110,7 @@ export function Sidebar({ user, collapsed = false }: SidebarProps) {
       {user && (
         <div
           className={cn(
-            'border-t p-4',
+            'border-t p-4 space-y-3',
             collapsed && 'flex flex-col items-center'
           )}
         >
@@ -86,6 +123,19 @@ export function Sidebar({ user, collapsed = false }: SidebarProps) {
               </div>
             )}
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className={cn(
+              'w-full',
+              collapsed && 'px-2'
+            )}
+          >
+            <LogOut className={cn('h-4 w-4', !collapsed && 'mr-2')} />
+            {!collapsed && <span>{isLoggingOut ? 'Signing out...' : 'Sign Out'}</span>}
+          </Button>
         </div>
       )}
     </aside>

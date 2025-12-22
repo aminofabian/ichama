@@ -124,6 +124,24 @@ export async function updateContribution(
   return contribution
 }
 
+export async function getPendingContributions(
+  cycleId: string,
+  periodNumber?: number
+): Promise<Contribution[]> {
+  let sql = 'SELECT * FROM contributions WHERE cycle_id = ? AND status = ?'
+  const args: unknown[] = [cycleId, 'pending']
+
+  if (periodNumber !== undefined) {
+    sql += ' AND period_number = ?'
+    args.push(periodNumber)
+  }
+
+  sql += ' ORDER BY due_date ASC'
+
+  const result = await db.execute({ sql, args })
+  return result.rows as unknown as Contribution[]
+}
+
 export async function getCycleContributionStats(cycleId: string): Promise<{
   totalDue: number
   totalPaid: number
