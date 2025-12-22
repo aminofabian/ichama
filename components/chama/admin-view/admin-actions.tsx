@@ -64,12 +64,12 @@ export function AdminActions({
           <div className="flex flex-wrap gap-3">
             {!hasActiveCycle && (
               <>
-                <Button asChild>
-                  <Link href={`/chamas/${chamaId}/cycles/new`}>
+                <Link href={`/chamas/${chamaId}/cycles/new`}>
+                  <Button>
                     <Plus className="mr-2 h-4 w-4" />
                     Create New Cycle
-                  </Link>
-                </Button>
+                  </Button>
+                </Link>
                 {pendingCycle && (
                   <Button onClick={() => setShowStartCycleModal(true)}>
                     <Play className="mr-2 h-4 w-4" />
