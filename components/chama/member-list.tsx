@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
-import { Modal } from '@/components/ui/modal'
+import { Modal, ModalContent, ModalHeader, ModalTitle } from '@/components/ui/modal'
 import { useToast } from '@/components/ui/toast'
 import { formatDate } from '@/lib/utils/format'
 import type { ChamaMember } from '@/lib/types/chama'
@@ -99,8 +99,8 @@ export function MemberList({ chamaId, members, isAdmin }: MemberListProps) {
                     variant={
                       member.status === 'active'
                         ? 'success'
-                        : member.status === 'suspended'
-                        ? 'warning'
+                        : member.status === 'removed'
+                        ? 'error'
                         : 'default'
                     }
                   >
@@ -136,42 +136,48 @@ export function MemberList({ chamaId, members, isAdmin }: MemberListProps) {
       </Card>
 
       <Modal
-        isOpen={showRemoveModal}
-        onClose={() => {
-          setShowRemoveModal(false)
-          setSelectedMember(null)
+        open={showRemoveModal}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowRemoveModal(false)
+            setSelectedMember(null)
+          }
         }}
-        title="Remove Member"
       >
-        <div className="space-y-4">
-          <p>
-            Are you sure you want to remove{' '}
-            <strong>{selectedMember?.user?.full_name || 'this member'}</strong> from the
-            chama?
-          </p>
-          <p className="text-sm text-muted-foreground">
-            This action cannot be undone. The member will need to rejoin through an
-            invite link.
-          </p>
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowRemoveModal(false)
-                setSelectedMember(null)
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleRemoveMember}
-              disabled={isRemoving}
-            >
-              {isRemoving ? 'Removing...' : 'Remove Member'}
-            </Button>
+        <ModalContent>
+          <ModalHeader>
+            <ModalTitle>Remove Member</ModalTitle>
+          </ModalHeader>
+          <div className="space-y-4">
+            <p>
+              Are you sure you want to remove{' '}
+              <strong>{selectedMember?.user?.full_name || 'this member'}</strong> from the
+              chama?
+            </p>
+            <p className="text-sm text-muted-foreground">
+              This action cannot be undone. The member will need to rejoin through an
+              invite link.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowRemoveModal(false)
+                  setSelectedMember(null)
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                onClick={handleRemoveMember}
+                disabled={isRemoving}
+              >
+                {isRemoving ? 'Removing...' : 'Remove Member'}
+              </Button>
+            </div>
           </div>
-        </div>
+        </ModalContent>
       </Modal>
     </>
   )
