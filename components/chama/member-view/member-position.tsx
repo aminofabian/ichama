@@ -17,8 +17,8 @@ export function MemberPosition({
   totalMembers,
   chamaType,
 }: MemberPositionProps) {
-  const position = cycleMember.position || 0
-  const hasReceived = cycleMember.payout_status === 'paid'
+  const position = cycleMember.turn_order || 0
+  const hasReceived = false // Payout status is tracked separately in Payout entity
 
   if (chamaType === 'savings') {
     return (
