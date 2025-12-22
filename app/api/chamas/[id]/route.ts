@@ -3,6 +3,8 @@ import { requireAuth } from '@/lib/auth/middleware'
 import { getChamaById, updateChama } from '@/lib/db/queries/chamas'
 import { getChamaMember, getChamaMembers } from '@/lib/db/queries/chama-members'
 import { getUserById } from '@/lib/db/queries/users'
+import { getActiveCycle } from '@/lib/db/queries/cycles'
+import { getCycleMembers } from '@/lib/db/queries/cycle-members'
 import db from '@/lib/db/client'
 import type { ApiResponse } from '@/lib/types/api'
 
@@ -48,6 +50,14 @@ export async function GET(
       })
     )
 
+    // Get active cycle if any
+    let activeCycle = await getActiveCycle(id)
+    let cycleMember = null
+    if (activeCycle) {
+      const cycleMembers = await getCycleMembers(activeCycle.id)
+      cycleMember = cycleMembers.find((cm) => cm.user_id === user.id) || null
+    }
+
     return NextResponse.json<ApiResponse>({
       success: true,
       data: {
@@ -55,6 +65,8 @@ export async function GET(
         member,
         members: membersWithUsers,
         isAdmin: member.role === 'admin',
+        activeCycle: activeCycle || null,
+        cycleMember: cycleMember || null,
       },
     })
   } catch (error) {

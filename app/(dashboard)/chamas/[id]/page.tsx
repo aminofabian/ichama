@@ -23,8 +23,11 @@ interface ChamaData {
   member: ChamaMember
   members: MemberWithUser[]
   isAdmin: boolean
-  activeCycle?: Cycle | null
-  cycleMember?: CycleMember | null
+  activeCycle: Cycle | null
+  cycleMember: CycleMember | null
+  cycles?: Cycle[]
+  pendingCycle?: Cycle | null
+  pendingCycleMembers?: (CycleMember & { user?: { full_name: string } })[] | null
 }
 
 export default function ChamaDetailPage() {
@@ -37,14 +40,27 @@ export default function ChamaDetailPage() {
   useEffect(() => {
     async function fetchChama() {
       try {
-        const response = await fetch(`/api/chamas/${chamaId}`)
-        const result = await response.json()
+        const [chamaResponse, cyclesResponse] = await Promise.all([
+          fetch(`/api/chamas/${chamaId}`),
+          fetch(`/api/chamas/${chamaId}/cycles`),
+        ])
 
-        if (!response.ok || !result.success) {
-          throw new Error(result.error || 'Failed to fetch chama')
+        const chamaResult = await chamaResponse.json()
+        const cyclesResult = await cyclesResponse.json()
+
+        if (!chamaResponse.ok || !chamaResult.success) {
+          throw new Error(chamaResult.error || 'Failed to fetch chama')
         }
 
-        setData(result.data)
+        const chamaData = chamaResult.data
+        const cyclesData = cyclesResult.success ? cyclesResult.data : null
+
+        setData({
+          ...chamaData,
+          cycles: cyclesData?.cycles || [],
+          pendingCycle: cyclesData?.pendingCycle || null,
+          pendingCycleMembers: cyclesData?.pendingCycleMembers || null,
+        })
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load chama')
       } finally {
@@ -74,7 +90,7 @@ export default function ChamaDetailPage() {
     )
   }
 
-  const { chama, member, members, isAdmin, activeCycle, cycleMember } = data
+  const { chama, member, members, isAdmin, activeCycle, cycleMember, cycles = [], pendingCycle, pendingCycleMembers } = data
 
   return (
     <div className="space-y-6">
@@ -88,16 +104,20 @@ export default function ChamaDetailPage() {
         <AdminView
           chama={chama}
           members={members}
-          activeCycle={activeCycle || null}
+          activeCycle={data.activeCycle}
           collectionRate={0}
           savingsPot={0}
+          cycles={cycles}
+          pendingCycle={pendingCycle}
+          pendingCycleMembers={pendingCycleMembers}
         />
       ) : (
         <MemberView
           chama={chama}
           member={member}
-          activeCycle={activeCycle || null}
-          cycleMember={cycleMember || null}
+          activeCycle={data.activeCycle}
+          cycleMember={data.cycleMember}
+          cycles={cycles}
           totalMembers={members.length}
         />
       )}

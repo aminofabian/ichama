@@ -2,22 +2,35 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Plus, Users, Copy, Check } from 'lucide-react'
+import { Plus, Users, Copy, Check, Play } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { InviteModal } from '@/components/chama/invite-modal'
+import { StartCycleConfirmation } from '@/components/chama/start-cycle-confirmation'
 import { useToast } from '@/components/ui/toast'
+import type { Cycle } from '@/lib/types/cycle'
+import type { CycleMember } from '@/lib/types/cycle'
 
 interface AdminActionsProps {
   chamaId: string
   hasActiveCycle: boolean
   inviteCode: string
+  pendingCycle?: Cycle | null
+  pendingCycleMembers?: (CycleMember & { user?: { full_name: string } })[] | null
 }
 
-export function AdminActions({ chamaId, hasActiveCycle, inviteCode }: AdminActionsProps) {
+export function AdminActions({
+  chamaId,
+  hasActiveCycle,
+  inviteCode,
+  pendingCycle,
+  pendingCycleMembers,
+}: AdminActionsProps) {
   const { addToast } = useToast()
   const [showInviteModal, setShowInviteModal] = useState(false)
+  const [showStartCycleModal, setShowStartCycleModal] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [isStarting, setIsStarting] = useState(false)
 
   const inviteLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/join/${inviteCode}`
 
@@ -50,12 +63,20 @@ export function AdminActions({ chamaId, hasActiveCycle, inviteCode }: AdminActio
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-3">
             {!hasActiveCycle && (
-              <Button asChild>
-                <Link href={`/chamas/${chamaId}/cycles/new`}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Start New Cycle
-                </Link>
-              </Button>
+              <>
+                <Button asChild>
+                  <Link href={`/chamas/${chamaId}/cycles/new`}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create New Cycle
+                  </Link>
+                </Button>
+                {pendingCycle && (
+                  <Button onClick={() => setShowStartCycleModal(true)}>
+                    <Play className="mr-2 h-4 w-4" />
+                    Start Cycle
+                  </Button>
+                )}
+              </>
             )}
 
             <Button variant="outline" onClick={() => setShowInviteModal(true)}>
@@ -113,6 +134,49 @@ export function AdminActions({ chamaId, hasActiveCycle, inviteCode }: AdminActio
         chamaId={chamaId}
         inviteCode={inviteCode}
       />
+
+      {pendingCycle && pendingCycleMembers && (
+        <StartCycleConfirmation
+          isOpen={showStartCycleModal}
+          onClose={() => setShowStartCycleModal(false)}
+          onConfirm={async () => {
+            setIsStarting(true)
+            try {
+              const response = await fetch(`/api/cycles/${pendingCycle.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'start' }),
+              })
+
+              const result = await response.json()
+
+              if (!response.ok || !result.success) {
+                throw new Error(result.error || 'Failed to start cycle')
+              }
+
+              addToast({
+                variant: 'success',
+                title: 'Cycle started!',
+                description: 'The cycle is now active and members can start contributing.',
+              })
+
+              setShowStartCycleModal(false)
+              window.location.reload()
+            } catch (err) {
+              addToast({
+                variant: 'error',
+                title: 'Failed to start cycle',
+                description: err instanceof Error ? err.message : 'Please try again',
+              })
+            } finally {
+              setIsStarting(false)
+            }
+          }}
+          cycle={pendingCycle}
+          members={pendingCycleMembers}
+          isStarting={isStarting}
+        />
+      )}
     </>
   )
 }

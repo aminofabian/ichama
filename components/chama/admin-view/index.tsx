@@ -3,8 +3,9 @@
 import { AdminActions } from './admin-actions'
 import { QuickStats } from './quick-stats'
 import { MemberList } from '../member-list'
+import { CyclesList } from '../cycles-list'
 import type { Chama, ChamaMember } from '@/lib/types/chama'
-import type { Cycle } from '@/lib/types/cycle'
+import type { Cycle, CycleMember } from '@/lib/types/cycle'
 import type { User } from '@/lib/types/user'
 
 interface MemberWithUser extends ChamaMember {
@@ -21,6 +22,9 @@ interface AdminViewProps {
   activeCycle: Cycle | null
   collectionRate: number
   savingsPot: number
+  cycles?: Cycle[]
+  pendingCycle?: Cycle | null
+  pendingCycleMembers?: (CycleMember & { user?: { full_name: string } })[] | null
 }
 
 export function AdminView({
@@ -29,6 +33,9 @@ export function AdminView({
   activeCycle,
   collectionRate,
   savingsPot,
+  cycles = [],
+  pendingCycle,
+  pendingCycleMembers,
 }: AdminViewProps) {
   return (
     <div className="space-y-6">
@@ -43,7 +50,11 @@ export function AdminView({
         chamaId={chama.id}
         hasActiveCycle={!!activeCycle}
         inviteCode={chama.invite_code}
+        pendingCycle={pendingCycle}
+        pendingCycleMembers={pendingCycleMembers}
       />
+
+      <CyclesList cycles={cycles} chamaId={chama.id} isAdmin={true} />
 
       <MemberList
         chamaId={chama.id}
