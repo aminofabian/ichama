@@ -75,12 +75,12 @@ export default function ChamaMembersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href={`/chamas/${chamaId}`}>
+        <Link href={`/chamas/${chamaId}`}>
+          <Button variant="ghost" size="sm">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Chama
-          </Link>
-        </Button>
+          </Button>
+        </Link>
       </div>
 
       <div>
