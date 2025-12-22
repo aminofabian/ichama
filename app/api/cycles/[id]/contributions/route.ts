@@ -8,8 +8,8 @@ import {
   getPendingContributions,
   getContributionById,
   createContribution,
-  recordContribution,
 } from '@/lib/db/queries/contributions'
+import { recordContribution } from '@/lib/services/contribution-service'
 import type { ApiResponse } from '@/lib/types/api'
 
 export async function GET(
