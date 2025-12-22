@@ -19,6 +19,16 @@ export async function POST(request: NextRequest) {
     }
 
     const normalizedPhone = normalizePhone(phoneNumber)
+
+    // Development bypass: code "000000" always works
+    if (process.env.NODE_ENV !== 'production' && code === '000000') {
+      return NextResponse.json<ApiResponse>({
+        success: true,
+        message: 'OTP verified (dev bypass)',
+        data: { otpToken: `dev-${normalizedPhone}-${Date.now()}` },
+      })
+    }
+
     const otpRecord = await getOTPCode(
       normalizedPhone,
       purpose as 'signup' | 'login' | 'password_reset' | 'phone_change'

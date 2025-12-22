@@ -1,3 +1,4 @@
+import { nanoid } from 'nanoid'
 import db from '../client'
 import type { Session } from '../../types/user'
 
@@ -6,17 +7,24 @@ export async function createSession(
   tokenHash: string,
   expiresAt: string
 ): Promise<Session> {
-  const result = await db.execute({
-    sql: `INSERT INTO sessions (user_id, token_hash, expires_at, created_at)
-          VALUES (?, ?, ?, ?)`,
-    args: [userId, tokenHash, expiresAt, new Date().toISOString()],
+  const id = nanoid()
+  const createdAt = new Date().toISOString()
+
+  await db.execute({
+    sql: `INSERT INTO sessions (id, user_id, token_hash, expires_at, created_at)
+          VALUES (?, ?, ?, ?, ?)`,
+    args: [id, userId, tokenHash, expiresAt, createdAt],
   })
 
-  const session = await getSessionById(result.lastInsertRowid?.toString() || '')
-  if (!session) {
-    throw new Error('Failed to create session')
-  }
-  return session
+  return {
+    id,
+    user_id: userId,
+    token_hash: tokenHash,
+    device_info: null,
+    ip_address: null,
+    expires_at: expiresAt,
+    created_at: createdAt,
+  } as Session
 }
 
 async function getSessionById(id: string): Promise<Session | null> {

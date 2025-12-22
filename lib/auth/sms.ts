@@ -7,6 +7,13 @@ export async function sendOTP(
   phoneNumber: string,
   code: string
 ): Promise<void> {
+  // In development, log the OTP code for testing
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('\n========================================')
+    console.log(`📱 OTP for ${phoneNumber}: ${code}`)
+    console.log('========================================\n')
+  }
+
   if (!SMS_API_URL || !SMS_API_KEY) {
     console.warn('SMS service not configured, skipping OTP send')
     return

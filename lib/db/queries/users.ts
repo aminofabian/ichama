@@ -1,3 +1,4 @@
+import { nanoid } from 'nanoid'
 import db from '../client'
 import type { User } from '../../types/user'
 
@@ -7,11 +8,14 @@ export async function createUser(data: {
   passwordHash: string
   email?: string | null
 }): Promise<User> {
+  const id = nanoid()
   const now = new Date().toISOString()
-  const result = await db.execute({
-    sql: `INSERT INTO users (full_name, phone_number, password_hash, email, phone_verified_at, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?)`,
+
+  await db.execute({
+    sql: `INSERT INTO users (id, full_name, phone_number, password_hash, email, phone_verified_at, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
+      id,
       data.fullName,
       data.phoneNumber,
       data.passwordHash,
@@ -22,7 +26,7 @@ export async function createUser(data: {
     ],
   })
 
-  const user = await getUserById(result.lastInsertRowid?.toString() || '')
+  const user = await getUserById(id)
   if (!user) {
     throw new Error('Failed to create user')
   }

@@ -36,12 +36,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const otpRecord = await getOTPCode(normalizedPhone, 'signup')
-    if (!otpRecord || !otpRecord.verified_at) {
-      return NextResponse.json<ApiResponse>(
-        { success: false, error: 'OTP not verified. Please verify OTP first.' },
-        { status: 400 }
-      )
+    // Development bypass: accept dev tokens
+    const isDevToken = process.env.NODE_ENV !== 'production' && otpToken.startsWith('dev-')
+    
+    if (!isDevToken) {
+      // Include verified OTPs in the search
+      const otpRecord = await getOTPCode(normalizedPhone, 'signup', true)
+      if (!otpRecord || !otpRecord.verified_at) {
+        return NextResponse.json<ApiResponse>(
+          { success: false, error: 'OTP not verified. Please verify OTP first.' },
+          { status: 400 }
+        )
+      }
     }
 
     const passwordHash = await hashPassword(password)

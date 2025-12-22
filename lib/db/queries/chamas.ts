@@ -33,6 +33,19 @@ export async function getChamaById(id: string): Promise<Chama | null> {
   return result.rows[0] as unknown as Chama
 }
 
+export async function getChamaByInviteCode(inviteCode: string): Promise<Chama | null> {
+  const result = await db.execute({
+    sql: 'SELECT * FROM chamas WHERE invite_code = ?',
+    args: [inviteCode],
+  })
+
+  if (result.rows.length === 0) {
+    return null
+  }
+
+  return result.rows[0] as unknown as Chama
+}
+
 export async function createChama(data: {
   name: string
   description: string | null
@@ -42,11 +55,15 @@ export async function createChama(data: {
   is_private: number
   max_members: number
 }): Promise<Chama> {
+  const { nanoid } = await import('nanoid')
+  const id = nanoid()
   const now = new Date().toISOString()
-  const result = await db.execute({
-    sql: `INSERT INTO chamas (name, description, created_by, chama_type, invite_code, is_private, max_members, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+
+  await db.execute({
+    sql: `INSERT INTO chamas (id, name, description, created_by, chama_type, invite_code, is_private, max_members, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
+      id,
       data.name,
       data.description || null,
       data.created_by,
@@ -59,7 +76,7 @@ export async function createChama(data: {
     ],
   })
 
-  const chama = await getChamaById(result.lastInsertRowid?.toString() || '')
+  const chama = await getChamaById(id)
   if (!chama) {
     throw new Error('Failed to create chama')
   }

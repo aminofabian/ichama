@@ -1,3 +1,4 @@
+import { nanoid } from 'nanoid'
 import db from '../client'
 import type { OTPCode } from '../../types/user'
 
@@ -8,24 +9,34 @@ export async function createOTPCode(data: {
   purpose?: 'signup' | 'login' | 'password_reset' | 'phone_change'
   userId?: string | null
 }): Promise<OTPCode> {
-  const result = await db.execute({
-    sql: `INSERT INTO otp_codes (user_id, phone_number, code, purpose, expires_at, created_at)
-          VALUES (?, ?, ?, ?, ?, ?)`,
+  const id = nanoid()
+  const createdAt = new Date().toISOString()
+
+  await db.execute({
+    sql: `INSERT INTO otp_codes (id, user_id, phone_number, code, purpose, expires_at, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?)`,
     args: [
+      id,
       data.userId || null,
       data.phoneNumber,
       data.codeHash,
       data.purpose || 'signup',
       data.expiresAt,
-      new Date().toISOString(),
+      createdAt,
     ],
   })
 
-  const otp = await getOTPCodeById(result.lastInsertRowid?.toString() || '')
-  if (!otp) {
-    throw new Error('Failed to create OTP code')
-  }
-  return otp
+  return {
+    id,
+    user_id: data.userId || null,
+    phone_number: data.phoneNumber,
+    code: data.codeHash,
+    purpose: data.purpose || 'signup',
+    attempts: 0,
+    expires_at: data.expiresAt,
+    verified_at: null,
+    created_at: createdAt,
+  } as OTPCode
 }
 
 async function getOTPCodeById(id: string): Promise<OTPCode | null> {
@@ -43,13 +54,21 @@ async function getOTPCodeById(id: string): Promise<OTPCode | null> {
 
 export async function getOTPCode(
   phoneNumber: string,
-  purpose: 'signup' | 'login' | 'password_reset' | 'phone_change'
+  purpose: 'signup' | 'login' | 'password_reset' | 'phone_change',
+  includeVerified = false
 ): Promise<OTPCode | null> {
+  const sql = includeVerified
+    ? `SELECT * FROM otp_codes 
+       WHERE phone_number = ? AND purpose = ?
+       ORDER BY created_at DESC
+       LIMIT 1`
+    : `SELECT * FROM otp_codes 
+       WHERE phone_number = ? AND purpose = ? AND verified_at IS NULL
+       ORDER BY created_at DESC
+       LIMIT 1`
+
   const result = await db.execute({
-    sql: `SELECT * FROM otp_codes 
-          WHERE phone_number = ? AND purpose = ? AND verified_at IS NULL
-          ORDER BY created_at DESC
-          LIMIT 1`,
+    sql,
     args: [phoneNumber, purpose],
   })
 

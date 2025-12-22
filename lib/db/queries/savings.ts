@@ -1,19 +1,24 @@
+import { nanoid } from 'nanoid'
 import db from '../client'
 import type { SavingsAccount } from '../../types/financial'
 
 export async function createSavingsAccount(userId: string): Promise<SavingsAccount> {
+  const id = nanoid()
   const now = new Date().toISOString()
-  const result = await db.execute({
-    sql: `INSERT INTO savings_accounts (user_id, balance, created_at, updated_at)
-          VALUES (?, 0, ?, ?)`,
-    args: [userId, now, now],
+
+  await db.execute({
+    sql: `INSERT INTO savings_accounts (id, user_id, balance, created_at, updated_at)
+          VALUES (?, ?, 0, ?, ?)`,
+    args: [id, userId, now, now],
   })
 
-  const account = await getSavingsAccount(userId)
-  if (!account) {
-    throw new Error('Failed to create savings account')
-  }
-  return account
+  return {
+    id,
+    user_id: userId,
+    balance: 0,
+    created_at: now,
+    updated_at: now,
+  } as SavingsAccount
 }
 
 export async function getSavingsAccount(userId: string): Promise<SavingsAccount | null> {

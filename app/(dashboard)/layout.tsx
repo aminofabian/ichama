@@ -31,10 +31,19 @@ export default async function DashboardLayout({
     redirect('/signin')
   }
 
+  // Extract only plain properties for Client Components
+  const userData = user
+    ? {
+        id: user.id,
+        full_name: user.full_name,
+        phone_number: user.phone_number,
+      }
+    : null
+
   return (
     <div className="flex min-h-screen">
       <div className="hidden md:block">
-        <Sidebar user={user} />
+        <Sidebar user={userData} />
       </div>
       <div className="flex flex-1 flex-col">
         <main className="flex-1 p-4 md:p-8">

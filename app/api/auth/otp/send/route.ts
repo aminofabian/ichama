@@ -27,32 +27,35 @@ export async function POST(request: NextRequest) {
 
     const normalizedPhone = normalizePhone(phoneNumber)
 
-    const recentOTP = await getOTPCode(
-      normalizedPhone,
-      purpose as 'signup' | 'login' | 'password_reset' | 'phone_change'
-    )
+    // Skip rate limiting in development
+    if (process.env.NODE_ENV === 'production') {
+      const recentOTP = await getOTPCode(
+        normalizedPhone,
+        purpose as 'signup' | 'login' | 'password_reset' | 'phone_change'
+      )
 
-    if (recentOTP) {
-      const createdAt = new Date(recentOTP.created_at)
-      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
+      if (recentOTP) {
+        const createdAt = new Date(recentOTP.created_at)
+        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
 
-      if (createdAt > oneHourAgo) {
-        const attempts = await db.execute({
-          sql: `SELECT COUNT(*) as count FROM otp_codes 
-                WHERE phone_number = ? AND purpose = ? 
-                AND created_at > ?`,
-          args: [normalizedPhone, purpose, oneHourAgo.toISOString()],
-        })
+        if (createdAt > oneHourAgo) {
+          const attempts = await db.execute({
+            sql: `SELECT COUNT(*) as count FROM otp_codes 
+                  WHERE phone_number = ? AND purpose = ? 
+                  AND created_at > ?`,
+            args: [normalizedPhone, purpose, oneHourAgo.toISOString()],
+          })
 
-        const count = attempts.rows[0]?.count || 0
-        if (count >= 3) {
-          return NextResponse.json<ApiResponse>(
-            {
-              success: false,
-              error: 'Too many OTP requests. Please try again later.',
-            },
-            { status: 429 }
-          )
+          const count = (attempts.rows[0]?.count as number) || 0
+          if (count >= 3) {
+            return NextResponse.json<ApiResponse>(
+              {
+                success: false,
+                error: 'Too many OTP requests. Please try again later.',
+              },
+              { status: 429 }
+            )
+          }
         }
       }
     }

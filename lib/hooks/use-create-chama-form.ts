@@ -35,23 +35,7 @@ export function useCreateChamaForm() {
     field: K,
     value: CreateChamaFormData[K]
   ) => {
-    setFormData((prev) => {
-      const updated = { ...prev, [field]: value }
-
-      if (field === 'contributionAmount' && value !== null) {
-        const contribution = value as number
-        const serviceFee = Math.round(contribution * (DEFAULT_SERVICE_FEE_PERCENTAGE / 100))
-        const remaining = contribution - serviceFee
-        const savings = Math.round(remaining * 0.1)
-        const payout = remaining - savings
-
-        updated.serviceFee = serviceFee
-        updated.savingsAmount = savings
-        updated.payoutAmount = payout
-      }
-
-      return updated
-    })
+    setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
   const nextStep = () => {

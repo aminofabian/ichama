@@ -1,3 +1,4 @@
+import { nanoid } from 'nanoid'
 import db from '../client'
 import type { ChamaMember } from '../../types/chama'
 
@@ -6,18 +7,23 @@ export async function addChamaMember(
   userId: string,
   role: 'admin' | 'member' = 'member'
 ): Promise<ChamaMember> {
+  const id = nanoid()
   const now = new Date().toISOString()
-  const result = await db.execute({
-    sql: `INSERT INTO chama_members (chama_id, user_id, role, status, joined_at)
-          VALUES (?, ?, ?, 'active', ?)`,
-    args: [chamaId, userId, role, now],
+
+  await db.execute({
+    sql: `INSERT INTO chama_members (id, chama_id, user_id, role, status, joined_at)
+          VALUES (?, ?, ?, ?, 'active', ?)`,
+    args: [id, chamaId, userId, role, now],
   })
 
-  const member = await getChamaMember(chamaId, userId)
-  if (!member) {
-    throw new Error('Failed to add chama member')
-  }
-  return member
+  return {
+    id,
+    chama_id: chamaId,
+    user_id: userId,
+    role,
+    status: 'active',
+    joined_at: now,
+  } as ChamaMember
 }
 
 export async function getChamaMember(

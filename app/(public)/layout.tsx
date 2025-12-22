@@ -16,7 +16,15 @@ export default async function PublicLayout({
     if (token) {
       const session = await getSession(token)
       if (session) {
-        user = await getUserById(session.user_id)
+        const userData = await getUserById(session.user_id)
+        if (userData) {
+          // Extract only plain properties for Client Components
+          user = {
+            id: userData.id,
+            full_name: userData.full_name,
+            phone_number: userData.phone_number,
+          }
+        }
       }
     }
   } catch (error) {
