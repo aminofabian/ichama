@@ -43,10 +43,10 @@ export function MemberSelector({
             </CardDescription>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={onSelectAll}>
+            <Button variant="default" size="sm" onClick={onSelectAll}>
               Select All
             </Button>
-            <Button variant="outline" size="sm" onClick={onSelectNone}>
+            <Button variant="default" size="sm" onClick={onSelectNone}>
               Select None
             </Button>
           </div>

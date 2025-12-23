@@ -160,7 +160,7 @@ export function MemberList({ chamaId, members, isAdmin }: MemberListProps) {
             </p>
             <div className="flex justify-end gap-2">
               <Button
-                variant="outline"
+                variant="default"
                 onClick={() => {
                   setShowRemoveModal(false)
                   setSelectedMember(null)

@@ -174,7 +174,7 @@ export default function CreateChamaPage() {
 
       <div className="flex justify-between">
         <Button
-          variant="outline"
+          variant="default"
           onClick={prevStep}
           disabled={currentStep === 1}
         >

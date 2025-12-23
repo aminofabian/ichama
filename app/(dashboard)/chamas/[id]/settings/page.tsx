@@ -258,7 +258,7 @@ export default function ChamaSettingsPage() {
               and contributions will be permanently deleted.
             </p>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowDeleteModal(false)}>
+              <Button variant="default" onClick={() => setShowDeleteModal(false)}>
                 Cancel
               </Button>
               <Button

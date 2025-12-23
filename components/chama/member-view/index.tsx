@@ -92,7 +92,7 @@ export function MemberView({
             <Button onClick={() => router.push(`/chamas/${chama.id}/cycles/${activeCycle.id}`)}>
               View Cycle Details
             </Button>
-            <Button variant="outline" onClick={() => router.push(`/chamas/${chama.id}/cycles/${activeCycle.id}`)}>
+            <Button variant="default" onClick={() => router.push(`/chamas/${chama.id}/cycles/${activeCycle.id}`)}>
               View All Contributions
             </Button>
           </div>

@@ -21,7 +21,7 @@ export function HeroSection() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
-          <Button asChild size="lg" variant="outline">
+          <Button asChild size="lg" variant="default">
             <Link href="/join">Join Chama</Link>
           </Button>
         </div>
