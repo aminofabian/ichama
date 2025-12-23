@@ -84,12 +84,12 @@ export function AdminActions({
               Invite Members
             </Button>
 
-            <Button variant="primary" asChild>
-              <Link href={`/chamas/${chamaId}/members`}>
+            <Link href={`/chamas/${chamaId}/members`}>
+              <Button variant="primary">
                 <Users className="mr-2 h-4 w-4" />
                 Manage Members
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           </div>
 
           <div className="rounded-lg border p-4 bg-muted/50">

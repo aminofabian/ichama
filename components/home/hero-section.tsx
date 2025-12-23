@@ -15,15 +15,15 @@ export function HeroSection() {
           financial history for your savings group.
         </p>
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Button asChild size="lg" variant="primary">
-            <Link href="/signup">
+          <Link href="/signup">
+            <Button size="lg" variant="primary">
               Create Chama
               <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild size="lg" variant="primary">
-            <Link href="/join">Join Chama</Link>
-          </Button>
+            </Button>
+          </Link>
+          <Link href="/join">
+            <Button size="lg" variant="primary">Join Chama</Button>
+          </Link>
         </div>
       </div>
     </section>

@@ -55,9 +55,9 @@ export function Header({ user }: HeaderProps) {
               >
                 Sign In
               </Link>
-              <Button asChild variant="primary" size="sm">
-                <Link href="/signup">Sign Up</Link>
-              </Button>
+              <Link href="/signup">
+                <Button variant="primary" size="sm">Sign Up</Button>
+              </Link>
             </>
           )}
         </nav>

@@ -68,7 +68,7 @@ export function PayoutRecipient({
           </Badge>
         )
       default:
-        return <Badge variant="primary">{payout.status}</Badge>
+        return <Badge variant="default">{payout.status}</Badge>
     }
   }
 

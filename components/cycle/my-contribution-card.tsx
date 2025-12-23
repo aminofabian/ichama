@@ -72,7 +72,7 @@ export function MyContributionCard({ contribution, onUpdate }: MyContributionCar
         )
       default:
         return (
-          <Badge variant="primary">
+          <Badge variant="default">
             <Clock className="mr-1 h-3 w-3" />
             Pending
           </Badge>

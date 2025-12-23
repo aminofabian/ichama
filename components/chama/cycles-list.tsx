@@ -71,7 +71,7 @@ export function CyclesList({ cycles, chamaId, isAdmin = false }: CyclesListProps
           </Badge>
         )
       default:
-        return <Badge variant="primary">{status}</Badge>
+        return <Badge variant="default">{status}</Badge>
     }
   }
 
