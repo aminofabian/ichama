@@ -79,42 +79,42 @@ export function ContributionTable({
     switch (status) {
       case 'confirmed':
         return (
-          <Badge variant="default" className="bg-green-500">
+          <Badge variant="success">
             <CheckCircle2 className="mr-1 h-3 w-3" />
             Confirmed
           </Badge>
         )
       case 'paid':
         return (
-          <Badge variant="default" className="bg-blue-500">
+          <Badge variant="info">
             <CheckCircle2 className="mr-1 h-3 w-3" />
             Paid
           </Badge>
         )
       case 'partial':
         return (
-          <Badge variant="outline" className="border-orange-500 text-orange-600">
+          <Badge variant="warning">
             <AlertCircle className="mr-1 h-3 w-3" />
             Partial
           </Badge>
         )
       case 'late':
         return (
-          <Badge variant="outline" className="border-red-500 text-red-600">
+          <Badge variant="error">
             <Clock className="mr-1 h-3 w-3" />
             Late
           </Badge>
         )
       case 'missed':
         return (
-          <Badge variant="outline" className="border-red-500 text-red-600">
+          <Badge variant="error">
             <XCircle className="mr-1 h-3 w-3" />
             Missed
           </Badge>
         )
       default:
         return (
-          <Badge variant="outline">
+          <Badge variant="default">
             <Clock className="mr-1 h-3 w-3" />
             Pending
           </Badge>
@@ -197,7 +197,7 @@ export function ContributionTable({
                     </div>
                   </td>
                   <td className="text-center p-3">
-                    <Badge variant="outline">{contribution.period_number}</Badge>
+                    <Badge variant="default">{contribution.period_number}</Badge>
                   </td>
                   <td className="text-right p-3 font-medium">
                     {formatCurrency(contribution.amount_due)}
