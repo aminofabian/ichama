@@ -102,19 +102,23 @@ export function StepReview({ formData, onEdit }: StepReviewProps) {
             </div>
             <div className="mt-4 rounded-lg border p-3">
               <p className="mb-2 text-sm font-semibold">Breakdown</p>
-              <div className="grid grid-cols-3 gap-4 text-sm">
-                <div>
-                  <p className="text-muted-foreground">Payout</p>
-                  <p className="font-semibold">
-                    {formatCurrency(formData.payoutAmount || 0)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Savings</p>
-                  <p className="font-semibold">
-                    {formatCurrency(formData.savingsAmount || 0)}
-                  </p>
-                </div>
+              <div className={`grid gap-4 text-sm ${formData.chamaType === 'hybrid' ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                {formData.chamaType !== 'savings' && (
+                  <div>
+                    <p className="text-muted-foreground">Payout</p>
+                    <p className="font-semibold">
+                      {formatCurrency(formData.payoutAmount || 0)}
+                    </p>
+                  </div>
+                )}
+                {formData.chamaType !== 'merry_go_round' && (
+                  <div>
+                    <p className="text-muted-foreground">Savings</p>
+                    <p className="font-semibold">
+                      {formatCurrency(formData.savingsAmount || 0)}
+                    </p>
+                  </div>
+                )}
                 <div>
                   <p className="text-muted-foreground">Service Fee</p>
                   <p className="font-semibold">

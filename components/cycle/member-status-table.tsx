@@ -1,10 +1,14 @@
 'use client'
 
+import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar } from '@/components/ui/avatar'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
-import { CheckCircle2, Clock, XCircle, AlertCircle, Gift } from 'lucide-react'
+import { CheckCircle2, Clock, XCircle, AlertCircle, Gift, Edit2, Check, X, EyeOff } from 'lucide-react'
+import { useToast } from '@/components/ui/toast'
 import type { Cycle } from '@/lib/types/cycle'
 import type { CycleMember } from '@/lib/types/cycle'
 import type { Contribution, Payout } from '@/lib/types/contribution'
@@ -21,6 +25,7 @@ interface MemberWithContributions extends CycleMember {
 
 interface MemberStatusTableProps {
   cycle: Cycle
+  chamaType?: 'savings' | 'merry_go_round' | 'hybrid' | null
   members: MemberWithContributions[]
   isAdmin?: boolean
   currentUserId?: string | null
@@ -29,11 +34,85 @@ interface MemberStatusTableProps {
 
 export function MemberStatusTable({
   cycle,
+  chamaType,
   members,
   isAdmin = false,
   currentUserId,
   onMemberAction,
 }: MemberStatusTableProps) {
+  const { addToast } = useToast()
+  const [editingSavings, setEditingSavings] = useState<string | null>(null)
+  const [savingsValue, setSavingsValue] = useState<string>('')
+  const [isSaving, setIsSaving] = useState(false)
+
+  const handleStartEdit = (member: MemberWithContributions) => {
+    const currentAmount = member.custom_savings_amount ?? cycle.savings_amount
+    setEditingSavings(member.id)
+    setSavingsValue(currentAmount.toString())
+  }
+
+  const handleCancelEdit = () => {
+    setEditingSavings(null)
+    setSavingsValue('')
+  }
+
+  const handleSaveSavings = async (member: MemberWithContributions) => {
+    const amount = savingsValue.trim() === '' ? null : parseInt(savingsValue, 10)
+    
+    if (amount !== null && (isNaN(amount) || amount < 0)) {
+      addToast({
+        variant: 'error',
+        title: 'Invalid Amount',
+        description: 'Savings amount must be a positive number or empty to use default.',
+      })
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      const response = await fetch(
+        `/api/chamas/${cycle.chama_id}/cycles/${cycle.id}/members/${member.id}/savings`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            custom_savings_amount: amount,
+          }),
+        }
+      )
+
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to update savings amount')
+      }
+
+      addToast({
+        variant: 'success',
+        title: 'Savings Updated',
+        description: 'Member savings amount has been updated successfully.',
+      })
+
+      setEditingSavings(null)
+      setSavingsValue('')
+      
+      // Refresh the page data
+      if (onMemberAction) {
+        onMemberAction(member.id, 'refresh')
+      } else {
+        window.location.reload()
+      }
+    } catch (error) {
+      addToast({
+        variant: 'error',
+        title: 'Update Failed',
+        description: error instanceof Error ? error.message : 'Failed to update savings amount. Please try again.',
+      })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   const getSavingsAmount = (member: MemberWithContributions) => {
     const savingsAmount = member.custom_savings_amount ?? cycle.savings_amount
     const isHidden = member.hide_savings === 1
@@ -86,7 +165,7 @@ export function MemberStatusTable({
               <tr className="border-b">
                 <th className="text-left p-3 font-semibold">Member</th>
                 <th className="text-center p-3 font-semibold">Turn</th>
-                {cycle.savings_amount > 0 && (
+                {((chamaType === 'savings' || chamaType === 'hybrid') || cycle.savings_amount > 0 || members.some(m => m.custom_savings_amount !== null)) && (
                   <th className="text-center p-3 font-semibold">Savings</th>
                 )}
                 {periods.map((period) => (
@@ -139,33 +218,79 @@ export function MemberStatusTable({
                     <td className="text-center p-3">
                       <Badge variant="default">{member.turn_order}</Badge>
                     </td>
-                    {cycle.savings_amount > 0 && (
+                    {((chamaType === 'savings' || chamaType === 'hybrid') || cycle.savings_amount > 0 || members.some(m => m.custom_savings_amount !== null)) && (
                       <td className="text-center p-3">
-                        <div className="flex flex-col items-center gap-1">
-                          <span className="text-sm font-medium">
-                            {savingsInfo.display}
-                          </span>
-                          {!savingsInfo.isHidden && (
+                        {editingSavings === member.id ? (
+                          <div className="flex flex-col items-center gap-2">
+                            <Input
+                              type="number"
+                              value={savingsValue}
+                              onChange={(e) => setSavingsValue(e.target.value)}
+                              placeholder="Default"
+                              className="w-24 text-center text-sm"
+                              min={0}
+                              disabled={isSaving}
+                            />
                             <div className="flex items-center gap-1">
-                              {savingsInfo.isCustom && (
-                                <Badge variant="info" className="text-xs">
-                                  Custom
-                                </Badge>
-                              )}
-                              {!savingsInfo.isCustom && (
-                                <span className="text-xs text-muted-foreground">Default</span>
-                              )}
-                              {isAdmin && member.hide_savings === 1 && (
-                                <Badge variant="warning" className="text-xs">
-                                  Hidden
-                                </Badge>
+                              <Button
+                                variant="primary"
+                                size="sm"
+                                className="h-6 px-2"
+                                onClick={() => handleSaveSavings(member)}
+                                disabled={isSaving}
+                              >
+                                <Check className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2"
+                                onClick={handleCancelEdit}
+                                disabled={isSaving}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center gap-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium">
+                                {savingsInfo.display}
+                              </span>
+                              {isAdmin && (
+                                <button
+                                  onClick={() => handleStartEdit(member)}
+                                  className="text-primary hover:text-primary/80 transition-colors p-1 rounded hover:bg-primary/10"
+                                  title="Edit savings amount"
+                                  type="button"
+                                >
+                                  <Edit2 className="h-4 w-4" />
+                                </button>
                               )}
                             </div>
-                          )}
-                          {savingsInfo.isHidden && !isAdmin && (
-                            <span className="text-xs text-muted-foreground italic">Hidden</span>
-                          )}
-                        </div>
+                            {!savingsInfo.isHidden && (
+                              <div className="flex items-center gap-1">
+                                {savingsInfo.isCustom && (
+                                  <Badge variant="info" className="text-xs">
+                                    Custom
+                                  </Badge>
+                                )}
+                                {!savingsInfo.isCustom && (
+                                  <span className="text-xs text-muted-foreground">Default</span>
+                                )}
+                                {isAdmin && member.hide_savings === 1 && (
+                                  <Badge variant="warning" className="text-xs flex items-center gap-1">
+                                    <EyeOff className="h-3 w-3" /> Hidden
+                                  </Badge>
+                                )}
+                              </div>
+                            )}
+                            {savingsInfo.isHidden && !isAdmin && (
+                              <span className="text-xs text-muted-foreground italic">Hidden</span>
+                            )}
+                          </div>
+                        )}
                       </td>
                     )}
                     {periods.map((period) => {

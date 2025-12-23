@@ -19,6 +19,10 @@ export function StepContributionRules({
   updateField,
   errors,
 }: StepContributionRulesProps) {
+  const isSavingsOnly = formData.chamaType === 'savings'
+  const isMerryGoRound = formData.chamaType === 'merry_go_round'
+  const isHybrid = formData.chamaType === 'hybrid'
+
   const total =
     (formData.payoutAmount || 0) +
     (formData.savingsAmount || 0) +
@@ -48,41 +52,45 @@ export function StepContributionRules({
         </p>
       </div>
 
-      <div>
-        <Input
-          type="number"
-          label="Payout Amount (KES)"
-          placeholder="Enter payout amount"
-          value={formData.payoutAmount?.toString() || ''}
-          onChange={(e) => {
-            const value = parseInt(e.target.value, 10)
-            updateField('payoutAmount', isNaN(value) ? null : value)
-          }}
-          error={errors.payoutAmount}
-          required
-        />
-        <p className="mt-1 text-sm text-muted-foreground">
-          Amount that goes to the rotating payout pool
-        </p>
-      </div>
+      {!isSavingsOnly && (
+        <div>
+          <Input
+            type="number"
+            label="Payout Amount (KES)"
+            placeholder="Enter payout amount"
+            value={formData.payoutAmount?.toString() || ''}
+            onChange={(e) => {
+              const value = parseInt(e.target.value, 10)
+              updateField('payoutAmount', isNaN(value) ? null : value)
+            }}
+            error={errors.payoutAmount}
+            required={!isSavingsOnly}
+          />
+          <p className="mt-1 text-sm text-muted-foreground">
+            Amount that goes to the rotating payout pool
+          </p>
+        </div>
+      )}
 
-      <div>
-        <Input
-          type="number"
-          label="Savings Amount (KES)"
-          placeholder="Enter savings amount"
-          value={formData.savingsAmount?.toString() || ''}
-          onChange={(e) => {
-            const value = parseInt(e.target.value, 10)
-            updateField('savingsAmount', isNaN(value) ? null : value)
-          }}
-          error={errors.savingsAmount}
-          required
-        />
-        <p className="mt-1 text-sm text-muted-foreground">
-          Amount that goes to member savings
-        </p>
-      </div>
+      {!isMerryGoRound && (
+        <div>
+          <Input
+            type="number"
+            label="Savings Amount (KES)"
+            placeholder="Enter savings amount"
+            value={formData.savingsAmount?.toString() || ''}
+            onChange={(e) => {
+              const value = parseInt(e.target.value, 10)
+              updateField('savingsAmount', isNaN(value) ? null : value)
+            }}
+            error={errors.savingsAmount}
+            required={!isMerryGoRound}
+          />
+          <p className="mt-1 text-sm text-muted-foreground">
+            Amount that goes to member savings
+          </p>
+        </div>
+      )}
 
       <div>
         <Input
@@ -105,19 +113,23 @@ export function StepContributionRules({
       {formData.contributionAmount && (
         <div className="rounded-lg border p-4 space-y-3">
           <h3 className="font-semibold">Breakdown Summary</h3>
-          <div className="grid grid-cols-3 gap-4 text-sm">
-            <div>
-              <p className="text-muted-foreground">Payout</p>
-              <p className="font-semibold">
-                {formatCurrency(formData.payoutAmount || 0)}
-              </p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Savings</p>
-              <p className="font-semibold">
-                {formatCurrency(formData.savingsAmount || 0)}
-              </p>
-            </div>
+          <div className={`grid gap-4 text-sm ${isHybrid ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            {!isSavingsOnly && (
+              <div>
+                <p className="text-muted-foreground">Payout</p>
+                <p className="font-semibold">
+                  {formatCurrency(formData.payoutAmount || 0)}
+                </p>
+              </div>
+            )}
+            {!isMerryGoRound && (
+              <div>
+                <p className="text-muted-foreground">Savings</p>
+                <p className="font-semibold">
+                  {formatCurrency(formData.savingsAmount || 0)}
+                </p>
+              </div>
+            )}
             <div>
               <p className="text-muted-foreground">Service Fee</p>
               <p className="font-semibold">

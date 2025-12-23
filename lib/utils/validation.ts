@@ -71,13 +71,8 @@ export function validateCustomSavingsAmount(
     return { valid: false, error: 'Savings amount cannot be negative' }
   }
 
-  // Cannot exceed contribution amount
-  if (amount > contributionAmount) {
-    return {
-      valid: false,
-      error: `Savings amount cannot exceed contribution amount (${contributionAmount} KES)`,
-    }
-  }
+  // Note: Savings amounts can exceed contribution amount (admin override allowed)
+  // No maximum limit validation
 
   return { valid: true }
 }

@@ -51,7 +51,7 @@ export async function addCycleMembers(
   return cycleMembers
 }
 
-async function getCycleMemberById(id: string): Promise<CycleMember | null> {
+export async function getCycleMemberById(id: string): Promise<CycleMember | null> {
   const result = await db.execute({
     sql: 'SELECT * FROM cycle_members WHERE id = ?',
     args: [id],

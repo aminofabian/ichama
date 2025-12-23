@@ -22,6 +22,7 @@ import type { Contribution, Payout } from '@/lib/types/contribution'
 
 interface CycleDashboardData {
   cycle: Cycle
+  chama?: { chama_type: 'savings' | 'merry_go_round' | 'hybrid' } | null
   members: (CycleMember & {
     user?: {
       id: string
@@ -106,7 +107,7 @@ export default function CycleDashboardPage() {
     )
   }
 
-  const { cycle, members, contributions, payouts, stats, currentPeriodPayout, isAdmin } = data
+  const { cycle, chama, members, contributions, payouts, stats, currentPeriodPayout, isAdmin } = data
 
   // Map contributions and payouts to members
   const membersWithData = members.map((member) => {
@@ -193,9 +194,15 @@ export default function CycleDashboardPage() {
           {isAdmin ? (
             <MemberStatusTable
               cycle={cycle}
+              chamaType={chama?.chama_type}
               members={membersWithData}
               isAdmin={isAdmin}
               currentUserId={currentUserId}
+              onMemberAction={(memberId, action) => {
+                if (action === 'refresh') {
+                  fetchCycleData()
+                }
+              }}
             />
           ) : (
             // Member view: Show their contribution card and savings info

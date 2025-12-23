@@ -64,10 +64,14 @@ export async function GET(
       ? await (await import('@/lib/db/queries/payouts')).getPeriodPayout(id, cycle.current_period)
       : null
 
+    // Get chama to include chama_type
+    const chama = await getChamaById(cycle.chama_id)
+
     return NextResponse.json<ApiResponse>({
       success: true,
       data: {
         cycle,
+        chama: chama ? { chama_type: chama.chama_type } : null,
         members: membersWithUsers,
         contributions,
         payouts,

@@ -141,13 +141,18 @@ export async function POST(
       }
     }
 
+    // Normalize payout_amount and savings_amount based on chama type
+    // Database requires NOT NULL, so we use 0 for savings-only and merry-go-round chamas
+    const normalizedPayoutAmount = chama.chama_type === 'savings' ? 0 : (payout_amount || 0)
+    const normalizedSavingsAmount = chama.chama_type === 'merry_go_round' ? 0 : (savings_amount || 0)
+
     // Create cycle
     const cycle = await createCycle({
       chama_id: id,
       name,
       contribution_amount,
-      payout_amount,
-      savings_amount,
+      payout_amount: normalizedPayoutAmount,
+      savings_amount: normalizedSavingsAmount,
       service_fee,
       frequency,
       start_date,

@@ -87,6 +87,11 @@ export default function CreateChamaPage() {
 
     setIsSubmitting(true)
     try {
+      // Auto-set payout_amount to 0 for savings-only chamas
+      const payoutAmount = formData.chamaType === 'savings' ? 0 : (formData.payoutAmount || 0)
+      // Auto-set savings_amount to 0 for merry-go-round chamas
+      const savingsAmount = formData.chamaType === 'merry_go_round' ? 0 : (formData.savingsAmount || 0)
+
       const response = await fetch('/api/chamas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -96,8 +101,8 @@ export default function CreateChamaPage() {
           chama_type: formData.chamaType,
           is_private: formData.isPrivate ? 1 : 0,
           contribution_amount: formData.contributionAmount,
-          payout_amount: formData.payoutAmount,
-          savings_amount: formData.savingsAmount,
+          payout_amount: payoutAmount,
+          savings_amount: savingsAmount,
           service_fee: formData.serviceFee,
           frequency: formData.frequency,
         }),

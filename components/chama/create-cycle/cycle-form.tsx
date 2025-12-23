@@ -27,6 +27,10 @@ export function CycleForm({
   updateField,
   errors,
 }: CycleFormProps) {
+  const isSavingsOnly = chama.chama_type === 'savings'
+  const isMerryGoRound = chama.chama_type === 'merry_go_round'
+  const isHybrid = chama.chama_type === 'hybrid'
+
   return (
     <div className="space-y-6">
       <div>
@@ -75,33 +79,37 @@ export function CycleForm({
       {formData.contribution_amount && (
         <div className="rounded-lg border p-4 space-y-3">
           <h3 className="font-semibold">Breakdown</h3>
-          <div className="grid grid-cols-3 gap-4 text-sm">
-            <div>
-              <Input
-                type="number"
-                label="Payout Amount"
-                value={formData.payout_amount?.toString() || ''}
-                onChange={(e) => {
-                  const value = parseInt(e.target.value, 10)
-                  updateField('payout_amount', isNaN(value) ? null : value)
-                }}
-                error={errors.payout_amount}
-                required
-              />
-            </div>
-            <div>
-              <Input
-                type="number"
-                label="Savings Amount"
-                value={formData.savings_amount?.toString() || ''}
-                onChange={(e) => {
-                  const value = parseInt(e.target.value, 10)
-                  updateField('savings_amount', isNaN(value) ? null : value)
-                }}
-                error={errors.savings_amount}
-                required
-              />
-            </div>
+          <div className={`grid gap-4 text-sm ${isHybrid ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            {!isSavingsOnly && (
+              <div>
+                <Input
+                  type="number"
+                  label="Payout Amount"
+                  value={formData.payout_amount?.toString() || ''}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value, 10)
+                    updateField('payout_amount', isNaN(value) ? null : value)
+                  }}
+                  error={errors.payout_amount}
+                  required
+                />
+              </div>
+            )}
+            {!isMerryGoRound && (
+              <div>
+                <Input
+                  type="number"
+                  label="Savings Amount"
+                  value={formData.savings_amount?.toString() || ''}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value, 10)
+                    updateField('savings_amount', isNaN(value) ? null : value)
+                  }}
+                  error={errors.savings_amount}
+                  required
+                />
+              </div>
+            )}
             <div>
               <Input
                 type="number"

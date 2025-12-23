@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth/middleware'
 import { getCycleById } from '@/lib/db/queries/cycles'
-import { getCycleMemberByCycleMemberId, updateCycleMember } from '@/lib/db/queries/cycle-members'
+import { updateCycleMember } from '@/lib/db/queries/cycle-members'
 import { getChamaMember } from '@/lib/db/queries/chama-members'
 import { getChamaById } from '@/lib/db/queries/chamas'
 import { validateCustomSavingsAmount } from '@/lib/utils/validation'
@@ -52,9 +52,10 @@ export async function PATCH(
       )
     }
 
-    // Get cycle member
-    const cycleMember = await getCycleMemberByCycleMemberId(cycleId, memberId)
-    if (!cycleMember) {
+    // Get cycle member (memberId is the cycle_member id)
+    const { getCycleMemberById } = await import('@/lib/db/queries/cycle-members')
+    const cycleMember = await getCycleMemberById(memberId)
+    if (!cycleMember || cycleMember.cycle_id !== cycleId) {
       return NextResponse.json<ApiResponse>(
         { success: false, error: 'Cycle member not found' },
         { status: 404 }
@@ -82,7 +83,7 @@ export async function PATCH(
         )
       }
 
-      // Validate amount
+      // Validate amount (no maximum limit - can exceed contribution amount)
       const validation = validateCustomSavingsAmount(
         custom_savings_amount,
         cycle.contribution_amount,
@@ -95,8 +96,9 @@ export async function PATCH(
         )
       }
 
-      // Lock savings amount changes after cycle starts (only allow for pending cycles)
-      if (cycle.status !== 'pending' && custom_savings_amount !== cycleMember.custom_savings_amount) {
+      // Only non-admins are locked from changing savings after cycle starts
+      // Admins can always update savings amounts
+      if (!isAdmin && cycle.status !== 'pending' && custom_savings_amount !== cycleMember.custom_savings_amount) {
         return NextResponse.json<ApiResponse>(
           {
             success: false,

@@ -101,8 +101,15 @@ export default function CreateCyclePage() {
       const newErrors: Record<string, string> = {}
       if (!formData.name) newErrors.name = 'Cycle name is required'
       if (!formData.contribution_amount) newErrors.contribution_amount = 'Required'
-      if (!formData.payout_amount) newErrors.payout_amount = 'Required'
-      if (!formData.savings_amount) newErrors.savings_amount = 'Required'
+      
+      const chamaType = chamaData?.chama.chama_type
+      if (chamaType !== 'savings' && !formData.payout_amount) {
+        newErrors.payout_amount = 'Required'
+      }
+      if (chamaType !== 'merry_go_round' && !formData.savings_amount) {
+        newErrors.savings_amount = 'Required'
+      }
+      
       if (!formData.service_fee) newErrors.service_fee = 'Required'
       if (!formData.frequency) newErrors.frequency = 'Required'
       if (!formData.start_date) newErrors.start_date = 'Required'
@@ -156,11 +163,18 @@ export default function CreateCyclePage() {
         hide_savings: memberHideSavings.get(member.id) ?? 0,
       }))
 
+      // Auto-set payout_amount to 0 for savings-only chamas
+      const payoutAmount = chamaData!.chama.chama_type === 'savings' ? 0 : (formData.payout_amount || 0)
+      // Auto-set savings_amount to 0 for merry-go-round chamas
+      const savingsAmount = chamaData!.chama.chama_type === 'merry_go_round' ? 0 : (formData.savings_amount || 0)
+
       const response = await fetch(`/api/chamas/${chamaId}/cycles`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          payout_amount: payoutAmount,
+          savings_amount: savingsAmount,
           members,
         }),
       })
