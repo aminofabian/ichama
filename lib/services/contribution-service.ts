@@ -1,5 +1,6 @@
 import { getContributionById, updateContribution } from '@/lib/db/queries/contributions'
 import { getCycleById } from '@/lib/db/queries/cycles'
+import { getCycleMemberByCycleMemberId } from '@/lib/db/queries/cycle-members'
 import { getSavingsAccount, updateSavingsBalance, createSavingsTransaction } from '@/lib/db/queries/savings'
 import { createWalletTransaction } from '@/lib/db/queries/wallet'
 import { createNotification } from '@/lib/db/queries/notifications'
@@ -91,9 +92,17 @@ async function processContributionConfirmation(
     description: `Contribution for period ${contribution.period_number}`,
   })
 
-  // 2. Handle savings split if cycle has savings_amount
-  if (cycle.savings_amount > 0) {
-    const savingsAmount = Math.min(cycle.savings_amount, totalAmount)
+  // 2. Handle savings split - use custom savings amount if set, otherwise use cycle default
+  const cycleMember = await getCycleMemberByCycleMemberId(
+    contribution.cycle_id,
+    contribution.cycle_member_id
+  )
+  
+  // Determine savings amount: custom_savings_amount if set, otherwise cycle default
+  const memberSavingsAmount = cycleMember?.custom_savings_amount ?? cycle.savings_amount
+  
+  if (memberSavingsAmount > 0) {
+    const savingsAmount = Math.min(memberSavingsAmount, totalAmount)
     
     // Get or create savings account
     let savingsAccount = await getSavingsAccount(contribution.user_id)

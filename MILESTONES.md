@@ -1291,6 +1291,21 @@ A granular task breakdown for building the Merry Chama platform from start to fi
 
 ---
 
+## M19-M24: Individual Savings Amounts Feature
+
+See [MILESTONES_INDIVIDUAL_SAVINGS.md](./MILESTONES_INDIVIDUAL_SAVINGS.md) for detailed breakdown.
+
+**Summary:** Allow members in Savings and Hybrid chamas to set their own personal savings amount per cycle.
+
+- **M19:** Database & Types Foundation
+- **M20:** Business Logic Implementation
+- **M21:** API Routes
+- **M22:** UI - Cycle Creation Flow
+- **M23:** UI - Cycle Dashboard & Display
+- **M24:** Edge Cases & Polish
+
+---
+
 ## 📅 Estimated Timeline
 
 | Phase | Milestones | Duration |

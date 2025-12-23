@@ -30,5 +30,7 @@ export interface CycleMember {
   turn_order: number | null
   status: CycleMemberStatus
   joined_at: string
+  custom_savings_amount: number | null // NULL = use cycle default
+  hide_savings: number // 0 = visible, 1 = hidden from other members
 }
 

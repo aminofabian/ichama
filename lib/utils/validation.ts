@@ -51,3 +51,34 @@ export function validateRequired(value: unknown): { valid: boolean; error?: stri
   return { valid: true }
 }
 
+export function validateCustomSavingsAmount(
+  amount: number | null | undefined,
+  contributionAmount: number,
+  chamaType: 'savings' | 'merry_go_round' | 'hybrid'
+): { valid: boolean; error?: string } {
+  // Only allow for savings and hybrid chamas
+  if (chamaType === 'merry_go_round') {
+    return { valid: false, error: 'Custom savings is not available for merry-go-round chamas' }
+  }
+
+  // NULL is valid (means use default)
+  if (amount === null || amount === undefined) {
+    return { valid: true }
+  }
+
+  // Must be >= 0
+  if (amount < 0) {
+    return { valid: false, error: 'Savings amount cannot be negative' }
+  }
+
+  // Cannot exceed contribution amount
+  if (amount > contributionAmount) {
+    return {
+      valid: false,
+      error: `Savings amount cannot exceed contribution amount (${contributionAmount} KES)`,
+    }
+  }
+
+  return { valid: true }
+}
+

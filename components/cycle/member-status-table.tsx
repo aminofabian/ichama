@@ -23,6 +23,7 @@ interface MemberStatusTableProps {
   cycle: Cycle
   members: MemberWithContributions[]
   isAdmin?: boolean
+  currentUserId?: string | null
   onMemberAction?: (memberId: string, action: string) => void
 }
 
@@ -30,8 +31,27 @@ export function MemberStatusTable({
   cycle,
   members,
   isAdmin = false,
+  currentUserId,
   onMemberAction,
 }: MemberStatusTableProps) {
+  const getSavingsAmount = (member: MemberWithContributions) => {
+    const savingsAmount = member.custom_savings_amount ?? cycle.savings_amount
+    const isHidden = member.hide_savings === 1
+    const isOwnMember = member.user_id === currentUserId
+    const shouldShow = isAdmin || isOwnMember || !isHidden
+
+    if (!shouldShow) {
+      return { display: '—', isHidden: true, isCustom: false }
+    }
+
+    const isCustom = member.custom_savings_amount !== null
+    return {
+      display: formatCurrency(savingsAmount),
+      isHidden: false,
+      isCustom,
+      amount: savingsAmount,
+    }
+  }
   const getContributionStatus = (member: MemberWithContributions, period: number) => {
     const contribution = member.contributions.find((c) => c.period_number === period)
     if (!contribution) return null
@@ -66,6 +86,9 @@ export function MemberStatusTable({
               <tr className="border-b">
                 <th className="text-left p-3 font-semibold">Member</th>
                 <th className="text-center p-3 font-semibold">Turn</th>
+                {cycle.savings_amount > 0 && (
+                  <th className="text-center p-3 font-semibold">Savings</th>
+                )}
                 {periods.map((period) => (
                   <th key={period} className="text-center p-2 font-semibold text-sm min-w-[80px]">
                     P{period}
@@ -91,6 +114,8 @@ export function MemberStatusTable({
                   0
                 )
 
+                const savingsInfo = getSavingsAmount(member)
+
                 return (
                   <tr key={member.id} className="border-b hover:bg-muted/50">
                     <td className="p-3">
@@ -114,6 +139,35 @@ export function MemberStatusTable({
                     <td className="text-center p-3">
                       <Badge variant="default">{member.turn_order}</Badge>
                     </td>
+                    {cycle.savings_amount > 0 && (
+                      <td className="text-center p-3">
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="text-sm font-medium">
+                            {savingsInfo.display}
+                          </span>
+                          {!savingsInfo.isHidden && (
+                            <div className="flex items-center gap-1">
+                              {savingsInfo.isCustom && (
+                                <Badge variant="info" className="text-xs">
+                                  Custom
+                                </Badge>
+                              )}
+                              {!savingsInfo.isCustom && (
+                                <span className="text-xs text-muted-foreground">Default</span>
+                              )}
+                              {isAdmin && member.hide_savings === 1 && (
+                                <Badge variant="warning" className="text-xs">
+                                  Hidden
+                                </Badge>
+                              )}
+                            </div>
+                          )}
+                          {savingsInfo.isHidden && !isAdmin && (
+                            <span className="text-xs text-muted-foreground italic">Hidden</span>
+                          )}
+                        </div>
+                      </td>
+                    )}
                     {periods.map((period) => {
                       const status = getContributionStatus(member, period)
                       const contribution = member.contributions.find(

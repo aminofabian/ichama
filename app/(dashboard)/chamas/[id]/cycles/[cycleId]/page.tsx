@@ -11,7 +11,12 @@ import { MyContributionCard } from '@/components/cycle/my-contribution-card'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
 import { EmptyState } from '@/components/shared/empty-state'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
+import { formatCurrency } from '@/lib/utils/format'
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import type { Cycle, CycleMember } from '@/lib/types/cycle'
 import type { Contribution, Payout } from '@/lib/types/contribution'
 
@@ -123,6 +128,11 @@ export default function CycleDashboardPage() {
     (m) => m.turn_order === cycle.current_period
   )
 
+  // Get current user's cycle member data
+  const currentUserCycleMember = currentUserId
+    ? members.find((m) => m.user_id === currentUserId)
+    : null
+
   // Get current user's contribution for the current period
   const currentUserContribution = currentUserId
     ? contributions.find(
@@ -185,15 +195,80 @@ export default function CycleDashboardPage() {
               cycle={cycle}
               members={membersWithData}
               isAdmin={isAdmin}
+              currentUserId={currentUserId}
             />
           ) : (
-            // Member view: Show their contribution card
-            currentUserContribution && (
-              <MyContributionCard
-                contribution={currentUserContribution}
-                onUpdate={fetchCycleData}
-              />
-            )
+            // Member view: Show their contribution card and savings info
+            <div className="space-y-6">
+              {currentUserContribution && (
+                <MyContributionCard
+                  contribution={currentUserContribution}
+                  onUpdate={fetchCycleData}
+                />
+              )}
+              {cycle.savings_amount > 0 && currentUserCycleMember && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>My Savings</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Savings Amount</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className="text-lg font-semibold">
+                          {formatCurrency(
+                            currentUserCycleMember.custom_savings_amount ?? cycle.savings_amount
+                          )}
+                        </p>
+                        {currentUserCycleMember.custom_savings_amount !== null && (
+                          <Badge variant="info" className="text-xs">
+                            Custom
+                          </Badge>
+                        )}
+                        {currentUserCycleMember.custom_savings_amount === null && (
+                          <span className="text-xs text-muted-foreground">(Default)</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between border-t pt-3">
+                      <div className="flex items-center gap-2 flex-1">
+                        {currentUserCycleMember.hide_savings === 1 ? (
+                          <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                        )}
+                        <Label htmlFor="hide-savings-cycle" className="text-sm cursor-pointer">
+                          Hide my savings amount from other members
+                        </Label>
+                      </div>
+                      <Switch
+                        id="hide-savings-cycle"
+                        checked={currentUserCycleMember.hide_savings === 1}
+                        onCheckedChange={async (checked) => {
+                          if (!currentUserCycleMember) return
+                          try {
+                            const response = await fetch(
+                              `/api/chamas/${chamaId}/cycles/${cycleId}/members/${currentUserCycleMember.id}/savings`,
+                              {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ hide_savings: checked ? 1 : 0 }),
+                              }
+                            )
+                            const result = await response.json()
+                            if (response.ok && result.success) {
+                              fetchCycleData()
+                            }
+                          } catch (error) {
+                            console.error('Failed to update privacy:', error)
+                          }
+                        }}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           )}
         </div>
 

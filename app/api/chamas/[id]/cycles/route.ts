@@ -155,15 +155,44 @@ export async function POST(
       created_by: user.id,
     })
 
-    // Add cycle members
+    // Add cycle members with optional custom savings amounts
     const cycleMembersInput = members.map(
-      (m: { chama_member_id: string; user_id: string; turn_order: number; assigned_number: number }) => ({
+      (m: {
+        chama_member_id: string
+        user_id: string
+        turn_order: number
+        assigned_number: number
+        custom_savings_amount?: number | null
+        hide_savings?: number
+      }) => ({
         chama_member_id: m.chama_member_id,
         user_id: m.user_id,
         turn_order: m.turn_order,
         assigned_number: m.assigned_number,
+        custom_savings_amount: m.custom_savings_amount ?? null,
+        hide_savings: m.hide_savings ?? 0,
       })
     )
+
+    // Validate custom savings amounts if provided
+    if (chama.chama_type !== 'merry_go_round') {
+      const { validateCustomSavingsAmount } = await import('@/lib/utils/validation')
+      for (const member of cycleMembersInput) {
+        if (member.custom_savings_amount !== null && member.custom_savings_amount !== undefined) {
+          const validation = validateCustomSavingsAmount(
+            member.custom_savings_amount,
+            contribution_amount,
+            chama.chama_type
+          )
+          if (!validation.valid) {
+            return NextResponse.json<ApiResponse>(
+              { success: false, error: validation.error },
+              { status: 400 }
+            )
+          }
+        }
+      }
+    }
 
     await addCycleMembers(cycle.id, id, cycleMembersInput)
 

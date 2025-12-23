@@ -8,6 +8,8 @@ export interface CycleMemberInput {
   chama_member_id: string
   turn_order: number
   assigned_number: number
+  custom_savings_amount?: number | null
+  hide_savings?: number
 }
 
 export async function addCycleMembers(
@@ -24,8 +26,8 @@ export async function addCycleMembers(
     await db.execute({
       sql: `INSERT INTO cycle_members (
         id, cycle_id, chama_member_id, user_id, assigned_number, 
-        turn_order, status, joined_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        turn_order, status, joined_at, custom_savings_amount, hide_savings
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         id,
         cycleId,
@@ -35,6 +37,8 @@ export async function addCycleMembers(
         member.turn_order,
         'active',
         now,
+        member.custom_savings_amount ?? null,
+        member.hide_savings ?? 0,
       ],
     })
 
@@ -67,6 +71,22 @@ export async function getCycleMembers(cycleId: string): Promise<CycleMember[]> {
   })
 
   return result.rows as unknown as CycleMember[]
+}
+
+export async function getCycleMemberByCycleMemberId(
+  cycleId: string,
+  cycleMemberId: string
+): Promise<CycleMember | null> {
+  const result = await db.execute({
+    sql: 'SELECT * FROM cycle_members WHERE cycle_id = ? AND id = ?',
+    args: [cycleId, cycleMemberId],
+  })
+
+  if (result.rows.length === 0) {
+    return null
+  }
+
+  return result.rows[0] as unknown as CycleMember
 }
 
 export async function updateCycleMember(

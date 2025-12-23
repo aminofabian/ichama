@@ -71,6 +71,8 @@ export function MemberView({
               cycle={activeCycle}
               cycleMember={cycleMember}
               chamaType={chama.chama_type}
+              cycleId={activeCycle.id}
+              chamaId={chama.id}
             />
             {cycleMember && (
               <MemberPosition

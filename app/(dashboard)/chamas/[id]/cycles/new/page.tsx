@@ -53,6 +53,8 @@ export default function CreateCyclePage() {
 
   const [selectedMemberIds, setSelectedMemberIds] = useState<Set<string>>(new Set())
   const [turnOrder, setTurnOrder] = useState<Map<string, number>>(new Map())
+  const [memberSavings, setMemberSavings] = useState<Map<string, number | null>>(new Map())
+  const [memberHideSavings, setMemberHideSavings] = useState<Map<string, number>>(new Map())
 
   useEffect(() => {
     async function fetchChama() {
@@ -150,6 +152,8 @@ export default function CreateCyclePage() {
         user_id: member.user_id,
         turn_order: turnOrder.get(member.id) || 0,
         assigned_number: turnOrder.get(member.id) || 0,
+        custom_savings_amount: memberSavings.get(member.id) ?? null,
+        hide_savings: memberHideSavings.get(member.id) ?? 0,
       }))
 
       const response = await fetch(`/api/chamas/${chamaId}/cycles`, {
@@ -279,6 +283,17 @@ export default function CreateCyclePage() {
                 const newSet = new Set(selectedMemberIds)
                 if (newSet.has(memberId)) {
                   newSet.delete(memberId)
+                  // Clear savings when unselected
+                  setMemberSavings((prev) => {
+                    const next = new Map(prev)
+                    next.delete(memberId)
+                    return next
+                  })
+                  setMemberHideSavings((prev) => {
+                    const next = new Map(prev)
+                    next.delete(memberId)
+                    return next
+                  })
                 } else {
                   newSet.add(memberId)
                 }
@@ -288,7 +303,34 @@ export default function CreateCyclePage() {
                 const allIds = new Set(chamaData.members.map((m) => m.id))
                 setSelectedMemberIds(allIds)
               }}
-              onSelectNone={() => setSelectedMemberIds(new Set())}
+              onSelectNone={() => {
+                setSelectedMemberIds(new Set())
+                setMemberSavings(new Map())
+                setMemberHideSavings(new Map())
+              }}
+              chamaType={chamaData.chama.chama_type}
+              defaultSavingsAmount={formData.savings_amount}
+              contributionAmount={formData.contribution_amount}
+              memberSavings={memberSavings}
+              onSavingsChange={(memberId, amount) => {
+                setMemberSavings((prev) => {
+                  const next = new Map(prev)
+                  if (amount === null) {
+                    next.delete(memberId)
+                  } else {
+                    next.set(memberId, amount)
+                  }
+                  return next
+                })
+              }}
+              memberHideSavings={memberHideSavings}
+              onHideSavingsChange={(memberId, hide) => {
+                setMemberHideSavings((prev) => {
+                  const next = new Map(prev)
+                  next.set(memberId, hide)
+                  return next
+                })
+              }}
             />
           )}
 
