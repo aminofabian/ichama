@@ -115,11 +115,9 @@ export function Header({ user }: HeaderProps) {
                 >
                   Sign In
                 </Link>
-                <Button asChild variant="primary" size="sm">
-                  <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
-                    Sign Up
-                  </Link>
-                </Button>
+                <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="primary" size="sm">Sign Up</Button>
+                </Link>
               </>
             )}
           </nav>
