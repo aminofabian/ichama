@@ -66,7 +66,7 @@ export function AdminControls({ cycle, onCycleUpdate }: AdminControlsProps) {
         <div className="space-y-3">
           {canAdvance && (
             <Button
-              variant="default"
+              variant="primary"
               className="w-full"
               onClick={() => handleAction('advance')}
               disabled={isLoading !== null}
@@ -108,7 +108,7 @@ export function AdminControls({ cycle, onCycleUpdate }: AdminControlsProps) {
 
           {canResume && (
             <Button
-              variant="default"
+              variant="primary"
               className="w-full"
               onClick={() => handleAction('resume')}
               disabled={isLoading !== null}
