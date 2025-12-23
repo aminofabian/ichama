@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getInvitationByCode, acceptInvitation } from '@/lib/db/queries/invitations'
 import { getChamaById, getChamaByInviteCode } from '@/lib/db/queries/chamas'
-import { getChamaMember, addChamaMember } from '@/lib/db/queries/chama-members'
+import { getChamaMember, addChamaMember, getChamaMembers } from '@/lib/db/queries/chama-members'
 import { getUserById } from '@/lib/db/queries/users'
 import { getAuthUser } from '@/lib/auth/middleware'
+import { notifyChamaMembers } from '@/lib/services/notification-service'
 import db from '@/lib/db/client'
 import type { ApiResponse } from '@/lib/types/api'
 
@@ -139,6 +140,17 @@ export async function POST(
     if (invitation) {
       await acceptInvitation(invitation.id, user.id)
     }
+
+    // Notify all chama members about the new member
+    await notifyChamaMembers(chama.id, 'member_joined', {
+      title: 'New Member Joined',
+      message: `${user.full_name} has joined the chama "${chama.name}".`,
+      data: {
+        user_id: user.id,
+        user_name: user.full_name,
+        chama_id: chama.id,
+      },
+    })
 
     return NextResponse.json<ApiResponse>({
       success: true,

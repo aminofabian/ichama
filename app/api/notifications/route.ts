@@ -45,6 +45,34 @@ export async function GET(request: NextRequest) {
   }
 }
 
+export async function POST(request: NextRequest) {
+  try {
+    const user = await requireAuth(request)
+
+    // Mark all notifications as read
+    await markAllNotificationsAsRead(user.id)
+    return NextResponse.json<ApiResponse>({
+      success: true,
+      message: 'All notifications marked as read',
+    })
+  } catch (error) {
+    console.error('Mark all notifications as read error:', error)
+    if (error instanceof Error && error.message === 'Authentication required') {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: 'Not authenticated' },
+        { status: 401 }
+      )
+    }
+    return NextResponse.json<ApiResponse>(
+      {
+        success: false,
+        error: 'Failed to mark all notifications as read. Please try again.',
+      },
+      { status: 500 }
+    )
+  }
+}
+
 export async function PATCH(request: NextRequest) {
   try {
     const user = await requireAuth(request)
@@ -56,14 +84,6 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json<ApiResponse>({
         success: true,
         message: 'Notification marked as read',
-      })
-    }
-
-    if (action === 'markAllAsRead') {
-      await markAllNotificationsAsRead(user.id)
-      return NextResponse.json<ApiResponse>({
-        success: true,
-        message: 'All notifications marked as read',
       })
     }
 

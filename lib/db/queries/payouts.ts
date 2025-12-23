@@ -119,3 +119,21 @@ export async function updatePayout(
   return payout
 }
 
+export async function getScheduledPayouts(cycleId: string): Promise<Payout[]> {
+  const result = await db.execute({
+    sql: 'SELECT * FROM payouts WHERE cycle_id = ? AND status IN (?, ?) ORDER BY period_number ASC',
+    args: [cycleId, 'scheduled', 'pending'],
+  })
+
+  return result.rows as unknown as Payout[]
+}
+
+export async function getAllMemberPayouts(userId: string): Promise<Payout[]> {
+  const result = await db.execute({
+    sql: 'SELECT * FROM payouts WHERE user_id = ? ORDER BY created_at DESC',
+    args: [userId],
+  })
+
+  return result.rows as unknown as Payout[]
+}
+

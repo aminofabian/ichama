@@ -87,13 +87,14 @@ export async function startCycle(cycleId: string): Promise<void> {
   // Create payout for period 1 recipient
   const period1Recipient = members.find((m) => m.turn_order === 1)
   if (period1Recipient) {
+    const payoutId = nanoid()
     await db.execute({
       sql: `INSERT INTO payouts (
         id, cycle_id, cycle_member_id, user_id, period_number, amount, 
         status, scheduled_date, created_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
-        nanoid(),
+        payoutId,
         cycleId,
         period1Recipient.id,
         period1Recipient.user_id,
@@ -103,6 +104,23 @@ export async function startCycle(cycleId: string): Promise<void> {
         startDate.toISOString(),
         new Date().toISOString(),
       ],
+    })
+
+    // Notify recipient about scheduled payout
+    const { createNotification } = await import('@/lib/db/queries/notifications')
+    const { formatCurrency } = await import('@/lib/utils/format')
+    await createNotification({
+      user_id: period1Recipient.user_id,
+      type: 'payout_scheduled',
+      title: `Payout Scheduled for "${cycle.name}"`,
+      message: `You are scheduled to receive a payout of ${formatCurrency(cycle.payout_amount)} for period 1. The payout will be processed on ${new Date(startDate).toLocaleDateString()}.`,
+      chama_id: cycle.chama_id,
+      data: JSON.stringify({
+        cycle_id: cycle.id,
+        payout_id: payoutId,
+        amount: cycle.payout_amount,
+        period: 1,
+      }),
     })
   }
 
@@ -201,13 +219,14 @@ export async function advancePeriod(cycleId: string): Promise<void> {
     })
 
     if (existingPayout.rows.length === 0) {
+      const payoutId = nanoid()
       await db.execute({
         sql: `INSERT INTO payouts (
           id, cycle_id, cycle_member_id, user_id, period_number, amount, 
           status, scheduled_date, created_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         args: [
-          nanoid(),
+          payoutId,
           cycleId,
           periodRecipient.id,
           periodRecipient.user_id,
@@ -217,6 +236,23 @@ export async function advancePeriod(cycleId: string): Promise<void> {
           dueDate.toISOString(),
           new Date().toISOString(),
         ],
+      })
+
+      // Notify recipient about scheduled payout
+      const { createNotification } = await import('@/lib/db/queries/notifications')
+      const { formatCurrency } = await import('@/lib/utils/format')
+      await createNotification({
+        user_id: periodRecipient.user_id,
+        type: 'payout_scheduled',
+        title: `Payout Scheduled for "${cycle.name}"`,
+        message: `You are scheduled to receive a payout of ${formatCurrency(cycle.payout_amount)} for period ${nextPeriod}. The payout will be processed on ${dueDate.toLocaleDateString()}.`,
+        chama_id: cycle.chama_id,
+        data: JSON.stringify({
+          cycle_id: cycle.id,
+          payout_id: payoutId,
+          amount: cycle.payout_amount,
+          period: nextPeriod,
+        }),
       })
     }
   }

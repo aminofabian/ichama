@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils'
 import { Avatar } from '../ui/avatar'
 import { Button } from '../ui/button'
 import { useToast } from '../ui/toast'
+import { NotificationBell } from '../notifications/notification-bell'
 
 export interface SidebarProps {
   user?: {
@@ -32,7 +33,7 @@ const navItems = [
   { href: '/wallet', label: 'Wallet', icon: Wallet },
   { href: '/history', label: 'History', icon: History },
   { href: '/notifications', label: 'Notifications', icon: Bell },
-  { href: '/settings', label: 'Settings', icon: Settings },
+  { href: '/profile', label: 'Profile', icon: Settings },
 ]
 
 export function Sidebar({ user, collapsed = false }: SidebarProps) {
@@ -79,8 +80,9 @@ export function Sidebar({ user, collapsed = false }: SidebarProps) {
         collapsed ? 'w-16' : 'w-64'
       )}
     >
-      <div className="flex h-16 items-center border-b px-4">
+      <div className="flex h-16 items-center justify-between border-b px-4">
         {!collapsed && <span className="text-lg font-bold">Merry</span>}
+        {!collapsed && <NotificationBell />}
       </div>
 
       <nav className="flex-1 space-y-1 p-4">

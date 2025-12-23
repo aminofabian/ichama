@@ -131,8 +131,22 @@ export default function CycleDashboardPage() {
     : null
 
   const handleConfirmPayout = async (payoutId: string) => {
-    // TODO: Implement payout confirmation
-    console.log('Confirm payout:', payoutId)
+    try {
+      const response = await fetch(`/api/payouts/${payoutId}/send`, {
+        method: 'POST',
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to send payout')
+      }
+
+      // Refresh cycle data
+      fetchCycleData()
+    } catch (error) {
+      console.error('Failed to send payout:', error)
+    }
   }
 
   return (
