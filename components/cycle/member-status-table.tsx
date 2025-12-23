@@ -70,7 +70,7 @@ export function MemberStatusTable({
                   <th key={period} className="text-center p-2 font-semibold text-sm min-w-[80px]">
                     P{period}
                     {period === cycle.current_period && (
-                      <Badge variant="outline" className="ml-1 text-xs">
+                      <Badge variant="info" className="ml-1 text-xs">
                         Current
                       </Badge>
                     )}
@@ -112,7 +112,7 @@ export function MemberStatusTable({
                       </div>
                     </td>
                     <td className="text-center p-3">
-                      <Badge variant="outline">{member.turn_order}</Badge>
+                      <Badge variant="default">{member.turn_order}</Badge>
                     </td>
                     {periods.map((period) => {
                       const status = getContributionStatus(member, period)
@@ -123,10 +123,9 @@ export function MemberStatusTable({
                       return (
                         <td key={period} className="text-center p-2">
                           {status ? (
-                            <div className="flex flex-col items-center gap-1">
+                            <div className="flex flex-col items-center gap-1" title={status.label}>
                               <status.icon
                                 className={`h-4 w-4 ${status.color}`}
-                                title={status.label}
                               />
                               {contribution && contribution.amount_paid > 0 && (
                                 <span className="text-xs text-muted-foreground">
@@ -155,8 +154,8 @@ export function MemberStatusTable({
                             variant={
                               member.payout.status === 'paid' ||
                               member.payout.status === 'confirmed'
-                                ? 'default'
-                                : 'outline'
+                                ? 'success'
+                                : 'default'
                             }
                             className="text-xs"
                           >
