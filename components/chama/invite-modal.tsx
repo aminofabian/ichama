@@ -87,7 +87,7 @@ export function InviteModal({ isOpen, onClose, chamaId, inviteCode }: InviteModa
                 <code className="text-xs break-all">{inviteLink}</code>
               </div>
               <Button
-                variant="default"
+                variant="primary"
                 size="sm"
                 onClick={handleCopyLink}
               >
@@ -115,7 +115,7 @@ export function InviteModal({ isOpen, onClose, chamaId, inviteCode }: InviteModa
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="default" onClick={handleGenerateNew} disabled={isGenerating}>
+            <Button variant="primary" onClick={handleGenerateNew} disabled={isGenerating}>
               {isGenerating ? (
                 <>
                   <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
