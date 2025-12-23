@@ -37,41 +37,41 @@ export function CyclesList({ cycles, chamaId, isAdmin = false }: CyclesListProps
     switch (status) {
       case 'active':
         return (
-          <Badge variant="default" className="bg-green-500">
+          <Badge variant="success">
             <CheckCircle2 className="mr-1 h-3 w-3" />
             Active
           </Badge>
         )
       case 'pending':
         return (
-          <Badge variant="outline" className="border-yellow-500 text-yellow-600">
+          <Badge variant="warning">
             <Clock className="mr-1 h-3 w-3" />
             Pending
           </Badge>
         )
       case 'completed':
         return (
-          <Badge variant="outline" className="border-gray-500 text-gray-600">
+          <Badge variant="info">
             <CheckCircle2 className="mr-1 h-3 w-3" />
             Completed
           </Badge>
         )
       case 'paused':
         return (
-          <Badge variant="outline" className="border-orange-500 text-orange-600">
+          <Badge variant="warning">
             <AlertCircle className="mr-1 h-3 w-3" />
             Paused
           </Badge>
         )
       case 'cancelled':
         return (
-          <Badge variant="outline" className="border-red-500 text-red-600">
+          <Badge variant="error">
             <AlertCircle className="mr-1 h-3 w-3" />
             Cancelled
           </Badge>
         )
       default:
-        return <Badge variant="outline">{status}</Badge>
+        return <Badge variant="default">{status}</Badge>
     }
   }
 
@@ -84,9 +84,9 @@ export function CyclesList({ cycles, chamaId, isAdmin = false }: CyclesListProps
             <CardDescription>All contribution cycles for this chama</CardDescription>
           </div>
           {isAdmin && (
-            <Button asChild size="sm">
-              <Link href={`/chamas/${chamaId}/cycles/new`}>New Cycle</Link>
-            </Button>
+            <Link href={`/chamas/${chamaId}/cycles/new`}>
+              <Button size="sm">New Cycle</Button>
+            </Link>
           )}
         </div>
       </CardHeader>
@@ -117,7 +117,7 @@ export function CyclesList({ cycles, chamaId, isAdmin = false }: CyclesListProps
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      <span>{formatDate(cycle.start_date)}</span>
+                      <span>{cycle.start_date ? formatDate(cycle.start_date) : 'N/A'}</span>
                     </div>
                     {cycle.end_date && (
                       <div className="flex items-center gap-1">
