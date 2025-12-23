@@ -124,7 +124,7 @@ export function Sidebar({ user, collapsed = false }: SidebarProps) {
             )}
           </div>
           <Button
-            variant="default"
+            variant="primary"
             size="sm"
             onClick={handleLogout}
             disabled={isLoggingOut}

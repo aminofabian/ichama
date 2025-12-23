@@ -114,7 +114,7 @@ export function ContributionTable({
         )
       default:
         return (
-          <Badge variant="default">
+          <Badge variant="primary">
             <Clock className="mr-1 h-3 w-3" />
             Pending
           </Badge>
@@ -197,7 +197,7 @@ export function ContributionTable({
                     </div>
                   </td>
                   <td className="text-center p-3">
-                    <Badge variant="default">{contribution.period_number}</Badge>
+                    <Badge variant="primary">{contribution.period_number}</Badge>
                   </td>
                   <td className="text-right p-3 font-medium">
                     {formatCurrency(contribution.amount_due)}

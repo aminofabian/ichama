@@ -112,7 +112,7 @@ export function MemberStatusTable({
                       </div>
                     </td>
                     <td className="text-center p-3">
-                      <Badge variant="default">{member.turn_order}</Badge>
+                      <Badge variant="primary">{member.turn_order}</Badge>
                     </td>
                     {periods.map((period) => {
                       const status = getContributionStatus(member, period)

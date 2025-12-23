@@ -314,7 +314,7 @@ export default function CreateCyclePage() {
 
       <div className="flex justify-between">
         <Button
-          variant="default"
+          variant="primary"
           onClick={() => setStep(Math.max(1, step - 1))}
           disabled={step === 1}
         >

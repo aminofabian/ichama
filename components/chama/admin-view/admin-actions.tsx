@@ -79,12 +79,12 @@ export function AdminActions({
               </>
             )}
 
-            <Button variant="default" onClick={() => setShowInviteModal(true)}>
+            <Button variant="primary" onClick={() => setShowInviteModal(true)}>
               <Users className="mr-2 h-4 w-4" />
               Invite Members
             </Button>
 
-            <Button variant="default" asChild>
+            <Button variant="primary" asChild>
               <Link href={`/chamas/${chamaId}/members`}>
                 <Users className="mr-2 h-4 w-4" />
                 Manage Members
@@ -101,7 +101,7 @@ export function AdminActions({
                 </p>
               </div>
               <Button
-                variant="default"
+                variant="primary"
                 size="sm"
                 onClick={handleCopyLink}
               >

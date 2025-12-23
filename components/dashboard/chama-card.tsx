@@ -36,7 +36,7 @@ export function ChamaCard({ chama, memberCount }: ChamaCardProps) {
                 <Badge variant={statusColors[chama.status] || 'default'}>
                   {chama.status}
                 </Badge>
-                <Badge variant="default">
+                <Badge variant="primary">
                   {chama.member_role === 'admin' ? 'Admin' : 'Member'}
                 </Badge>
               </div>

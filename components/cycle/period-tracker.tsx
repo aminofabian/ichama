@@ -95,7 +95,7 @@ export function PeriodTracker({ cycle, onPeriodClick }: PeriodTrackerProps) {
                   {period}
                 </span>
                 {status === 'current' && (
-                  <Badge variant="default" className="mt-1 text-xs px-1 py-0">
+                  <Badge variant="primary" className="mt-1 text-xs px-1 py-0">
                     Current
                   </Badge>
                 )}

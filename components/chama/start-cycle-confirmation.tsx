@@ -110,7 +110,7 @@ export function StartCycleConfirmation({
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
-            <Button variant="default" onClick={onClose} disabled={isStarting}>
+            <Button variant="primary" onClick={onClose} disabled={isStarting}>
               Cancel
             </Button>
             <Button onClick={onConfirm} disabled={isStarting}>

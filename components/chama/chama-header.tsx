@@ -50,13 +50,13 @@ export function ChamaHeader({ chama, memberCount, isAdmin }: ChamaHeaderProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="default" size="sm">
+        <Button variant="primary" size="sm">
           <Share2 className="mr-2 h-4 w-4" />
           Share
         </Button>
         {isAdmin && (
           <Link href={`/chamas/${chama.id}/settings`}>
-            <Button variant="default" size="sm">
+            <Button variant="primary" size="sm">
               <Settings className="mr-2 h-4 w-4" />
               Settings
             </Button>

@@ -87,7 +87,7 @@ export function AdminControls({ cycle, onCycleUpdate }: AdminControlsProps) {
 
           {canPause && (
             <Button
-              variant="default"
+              variant="primary"
               className="w-full"
               onClick={() => handleAction('pause')}
               disabled={isLoading !== null}
@@ -129,7 +129,7 @@ export function AdminControls({ cycle, onCycleUpdate }: AdminControlsProps) {
 
           {canCancel && (
             <Button
-              variant="default"
+              variant="primary"
               className="w-full text-destructive hover:text-destructive"
               onClick={() => {
                 if (

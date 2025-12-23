@@ -41,7 +41,7 @@ export function TurnAssignment({
               Assign the order in which members will receive payouts
             </CardDescription>
           </div>
-          <Button variant="default" size="sm" onClick={onShuffle}>
+          <Button variant="primary" size="sm" onClick={onShuffle}>
             <Shuffle className="mr-2 h-4 w-4" />
             Random Shuffle
           </Button>
