@@ -76,7 +76,7 @@ export async function updateChamaMember(
     return result.rows[0] as unknown as ChamaMember
   }
 
-  await db.execute({
+  await (db.execute as any)({
     sql: `UPDATE chama_members SET ${updates.join(', ')} WHERE id = ?`,
     args: [...args, id],
   })

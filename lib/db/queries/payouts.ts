@@ -107,7 +107,7 @@ export async function updatePayout(
     return payout
   }
 
-  await db.execute({
+  await (db.execute as any)({
     sql: `UPDATE payouts SET ${updates.join(', ')} WHERE id = ?`,
     args: [...args, id],
   })

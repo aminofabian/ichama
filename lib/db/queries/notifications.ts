@@ -87,7 +87,7 @@ export async function getUserNotifications(
   sql += ' ORDER BY created_at DESC LIMIT ?'
   args.push(limit)
 
-  const result = await db.execute({ sql, args })
+  const result = await (db.execute as any)({ sql, args })
 
   return result.rows as unknown as Notification[]
 }

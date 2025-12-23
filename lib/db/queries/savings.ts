@@ -124,6 +124,6 @@ export async function getSavingsTransactions(userId: string, limit?: number): Pr
     args.push(limit)
   }
 
-  const result = await db.execute({ sql, args })
+  const result = await (db.execute as any)({ sql, args })
   return result.rows as unknown as SavingsTransaction[]
 }

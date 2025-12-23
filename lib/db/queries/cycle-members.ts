@@ -96,7 +96,7 @@ export async function updateCycleMember(
 
   args.push(id)
 
-  await db.execute({
+  await (db.execute as any)({
     sql: `UPDATE cycle_members SET ${updates.join(', ')} WHERE id = ?`,
     args,
   })

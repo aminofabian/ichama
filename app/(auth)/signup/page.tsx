@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -11,7 +11,7 @@ import { LoadingSpinner } from '@/components/shared/loading-spinner'
 
 type Step = 'phone' | 'otp' | 'details'
 
-export default function SignUpPage() {
+function SignUpForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { addToast } = useToast()
@@ -327,6 +327,26 @@ export default function SignUpPage() {
         </form>
       )}
     </Card>
+  )
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">Create Account</CardTitle>
+          <CardDescription>Enter your phone number to get started</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-center py-8">
+            <LoadingSpinner size="lg" />
+          </div>
+        </CardContent>
+      </Card>
+    }>
+      <SignUpForm />
+    </Suspense>
   )
 }
 

@@ -108,7 +108,7 @@ export async function getWalletTransactions(
     args.push(filters.limit)
   }
 
-  const result = await db.execute({ sql, args })
+  const result = await (db.execute as any)({ sql, args })
   return result.rows as unknown as WalletTransaction[]
 }
 

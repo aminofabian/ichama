@@ -109,7 +109,7 @@ export async function updateChama(
   args.push(new Date().toISOString())
   args.push(id)
 
-  await db.execute({
+  await (db.execute as any)({
     sql: `UPDATE chamas SET ${updates.join(', ')} WHERE id = ?`,
     args,
   })

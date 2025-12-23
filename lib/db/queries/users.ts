@@ -85,7 +85,7 @@ export async function updateUser(
   args.push(new Date().toISOString())
   args.push(id)
 
-  await db.execute({
+  await (db.execute as any)({
     sql: `UPDATE users SET ${updates.join(', ')} WHERE id = ?`,
     args,
   })

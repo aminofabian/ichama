@@ -112,7 +112,7 @@ export async function updateCycle(
   args.push(new Date().toISOString())
   args.push(id)
 
-  await db.execute({
+  await (db.execute as any)({
     sql: `UPDATE cycles SET ${updates.join(', ')} WHERE id = ?`,
     args,
   })

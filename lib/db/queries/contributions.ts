@@ -112,7 +112,7 @@ export async function updateContribution(
   args.push(new Date().toISOString())
   args.push(id)
 
-  await db.execute({
+  await (db.execute as any)({
     sql: `UPDATE contributions SET ${updates.join(', ')} WHERE id = ?`,
     args,
   })
@@ -138,7 +138,7 @@ export async function getPendingContributions(
 
   sql += ' ORDER BY due_date ASC'
 
-  const result = await db.execute({ sql, args })
+  const result = await (db.execute as any)({ sql, args })
   return result.rows as unknown as Contribution[]
 }
 

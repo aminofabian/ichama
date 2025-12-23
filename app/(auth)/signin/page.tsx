@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from '@/components/ui/toast'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
 
-export default function SignInPage() {
+function SignInForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { addToast } = useToast()
@@ -140,6 +140,26 @@ export default function SignInPage() {
         </CardFooter>
       </form>
     </Card>
+  )
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">Welcome Back</CardTitle>
+          <CardDescription>Sign in to your Merry account</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-center py-8">
+            <LoadingSpinner size="lg" />
+          </div>
+        </CardContent>
+      </Card>
+    }>
+      <SignInForm />
+    </Suspense>
   )
 }
 
