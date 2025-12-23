@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Modal } from '@/components/ui/modal'
+import { Modal, ModalContent, ModalHeader, ModalTitle } from '@/components/ui/modal'
 import { ContributionForm } from './contribution-form'
 import { formatCurrency, formatDate, formatRelativeTime } from '@/lib/utils/format'
 import { CheckCircle2, Clock, AlertCircle, XCircle } from 'lucide-react'
@@ -37,42 +37,42 @@ export function MyContributionCard({ contribution, onUpdate }: MyContributionCar
     switch (contribution.status) {
       case 'confirmed':
         return (
-          <Badge variant="default" className="bg-green-500">
+          <Badge variant="success">
             <CheckCircle2 className="mr-1 h-3 w-3" />
             Confirmed
           </Badge>
         )
       case 'paid':
         return (
-          <Badge variant="default" className="bg-blue-500">
+          <Badge variant="info">
             <CheckCircle2 className="mr-1 h-3 w-3" />
             Paid
           </Badge>
         )
       case 'partial':
         return (
-          <Badge variant="outline" className="border-orange-500 text-orange-600">
+          <Badge variant="warning">
             <AlertCircle className="mr-1 h-3 w-3" />
             Partial
           </Badge>
         )
       case 'late':
         return (
-          <Badge variant="outline" className="border-red-500 text-red-600">
+          <Badge variant="error">
             <Clock className="mr-1 h-3 w-3" />
             Late
           </Badge>
         )
       case 'missed':
         return (
-          <Badge variant="outline" className="border-red-500 text-red-600">
+          <Badge variant="error">
             <XCircle className="mr-1 h-3 w-3" />
             Missed
           </Badge>
         )
       default:
         return (
-          <Badge variant="outline">
+          <Badge variant="default">
             <Clock className="mr-1 h-3 w-3" />
             Pending
           </Badge>
@@ -156,16 +156,20 @@ export function MyContributionCard({ contribution, onUpdate }: MyContributionCar
 
       <Modal
         open={showForm}
-        onClose={() => setShowForm(false)}
-        title="Record Contribution"
+        onOpenChange={(open) => !open && setShowForm(false)}
       >
-        <ContributionForm
-          contribution={contribution}
-          onSuccess={() => {
-            setShowForm(false)
-            onUpdate?.()
-          }}
-        />
+        <ModalContent>
+          <ModalHeader>
+            <ModalTitle>Record Contribution</ModalTitle>
+          </ModalHeader>
+          <ContributionForm
+            contribution={contribution}
+            onSuccess={() => {
+              setShowForm(false)
+              onUpdate?.()
+            }}
+          />
+        </ModalContent>
       </Modal>
     </>
   )
