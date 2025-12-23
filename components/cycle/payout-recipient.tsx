@@ -41,34 +41,34 @@ export function PayoutRecipient({
     switch (payout.status) {
       case 'paid':
         return (
-          <Badge variant="default" className="bg-green-500">
+          <Badge variant="success">
             <CheckCircle2 className="mr-1 h-3 w-3" />
             Paid
           </Badge>
         )
       case 'confirmed':
         return (
-          <Badge variant="default" className="bg-blue-500">
+          <Badge variant="info">
             <CheckCircle2 className="mr-1 h-3 w-3" />
             Confirmed
           </Badge>
         )
       case 'pending':
         return (
-          <Badge variant="outline" className="border-orange-500 text-orange-600">
+          <Badge variant="warning">
             <Clock className="mr-1 h-3 w-3" />
             Pending
           </Badge>
         )
       case 'scheduled':
         return (
-          <Badge variant="outline" className="border-gray-500 text-gray-600">
+          <Badge variant="info">
             <Clock className="mr-1 h-3 w-3" />
             Scheduled
           </Badge>
         )
       default:
-        return <Badge variant="outline">{payout.status}</Badge>
+        return <Badge variant="default">{payout.status}</Badge>
     }
   }
 
