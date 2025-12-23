@@ -56,12 +56,12 @@ export async function updateChamaMember(
   data: Partial<Omit<ChamaMember, 'id' | 'chama_id' | 'user_id' | 'joined_at'>>
 ): Promise<ChamaMember> {
   const updates: string[] = []
-  const args: (string | number | null)[] = []
+  const args: unknown[] = []
 
   Object.entries(data).forEach(([key, value]) => {
     if (value !== undefined) {
       updates.push(`${key} = ?`)
-      args.push(value as string | number | null)
+      args.push(value)
     }
   })
 
@@ -76,11 +76,9 @@ export async function updateChamaMember(
     return result.rows[0] as unknown as ChamaMember
   }
 
-  args.push(id)
-
   await db.execute({
     sql: `UPDATE chama_members SET ${updates.join(', ')} WHERE id = ?`,
-    args: args as unknown[],
+    args: [...args, id],
   })
 
   const result = await db.execute({
