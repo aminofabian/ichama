@@ -23,6 +23,7 @@ function SignUpForm() {
   const [fullName, setFullName] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [deliveryMethod, setDeliveryMethod] = useState<'sms' | 'whatsapp'>('sms')
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -41,7 +42,7 @@ function SignUpForm() {
       const response = await fetch('/api/auth/otp/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber, purpose: 'signup' }),
+        body: JSON.stringify({ phoneNumber, purpose: 'signup', deliveryMethod }),
       })
 
       const data = await response.json()
@@ -53,7 +54,7 @@ function SignUpForm() {
       addToast({
         variant: 'success',
         title: 'OTP Sent',
-        description: 'Check your phone for the verification code.',
+        description: `Check your ${deliveryMethod === 'whatsapp' ? 'WhatsApp' : 'SMS'} for the verification code.`,
       })
 
       setStep('otp')
@@ -215,6 +216,39 @@ function SignUpForm() {
               disabled={isLoading}
               helperText="We'll send you a verification code"
             />
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Delivery Method</label>
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => setDeliveryMethod('sms')}
+                  className={`flex-1 rounded-md border-2 p-3 text-left transition-colors ${
+                    deliveryMethod === 'sms'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <div className="font-medium">SMS</div>
+                  <div className="text-xs text-muted-foreground">
+                    Text message
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeliveryMethod('whatsapp')}
+                  className={`flex-1 rounded-md border-2 p-3 text-left transition-colors ${
+                    deliveryMethod === 'whatsapp'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <div className="font-medium">WhatsApp</div>
+                  <div className="text-xs text-muted-foreground">
+                    WhatsApp message
+                  </div>
+                </button>
+              </div>
+            </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={isLoading}>

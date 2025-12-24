@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateOTP, hashOTP, OTP_EXPIRY_MINUTES } from '@/lib/auth/otp'
 import { sendOTP } from '@/lib/auth/sms'
+import { sendOTPViaWhatsApp } from '@/lib/auth/whatsapp'
 import { createOTPCode, getOTPCode } from '@/lib/db/queries/otp-codes'
 import { validateKenyanPhone, normalizePhone } from '@/lib/utils/phone'
 import db from '@/lib/db/client'
@@ -9,7 +10,7 @@ import type { ApiResponse } from '@/lib/types/api'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { phoneNumber, purpose = 'signup' } = body
+    const { phoneNumber, purpose = 'signup', deliveryMethod = 'sms' } = body
 
     if (!phoneNumber) {
       return NextResponse.json<ApiResponse>(
@@ -73,11 +74,15 @@ export async function POST(request: NextRequest) {
       purpose: purpose as 'signup' | 'login' | 'password_reset' | 'phone_change',
     })
 
-    await sendOTP(normalizedPhone, code)
+    if (deliveryMethod === 'whatsapp') {
+      await sendOTPViaWhatsApp(normalizedPhone, code)
+    } else {
+      await sendOTP(normalizedPhone, code)
+    }
 
     return NextResponse.json<ApiResponse>({
       success: true,
-      message: 'OTP sent successfully',
+      message: `OTP sent successfully via ${deliveryMethod === 'whatsapp' ? 'WhatsApp' : 'SMS'}`,
     })
   } catch (error) {
     console.error('OTP send error:', error)

@@ -12,9 +12,8 @@ const footerLinks = {
     { label: 'Blog', href: '/blog' },
   ],
   legal: [
-    { label: 'Terms', href: '/terms' },
-    { label: 'Privacy', href: '/privacy' },
-    { label: 'Security', href: '/security' },
+    { label: 'Terms of Service', href: '/terms-of-service' },
+    { label: 'Privacy Policy', href: '/privacy-policy' },
   ],
 }
 
@@ -24,7 +23,7 @@ export function Footer() {
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div>
-            <h3 className="mb-4 text-lg font-bold">Merry</h3>
+            <h3 className="mb-4 text-lg font-bold">Zamio</h3>
             <p className="text-sm text-muted-foreground">
               Manage your chama with confidence. Transparent, automated, and
               secure.
@@ -81,7 +80,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 border-t pt-8 text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} Merry. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Zamio. All rights reserved.</p>
         </div>
       </div>
     </footer>

@@ -39,6 +39,13 @@ SMS_API_URL=https://your-sms-api-url
 SMS_API_KEY=your-sms-api-key
 SMS_SENDER_ID=MERRY
 SMS_PARTNER_ID=your-partner-id
+
+# WhatsApp Service (for OTP - optional)
+WHATSAPP_ACCESS_TOKEN=your-whatsapp-access-token
+WHATSAPP_PHONE_NUMBER_ID=your-phone-number-id
+WHATSAPP_BUSINESS_ACCOUNT_ID=your-business-account-id
+WHATSAPP_TEMPLATE_NAME=authentication_code
+WHATSAPP_API_VERSION=v21.0
 ```
 
 ### Optional Variables
