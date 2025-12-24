@@ -177,7 +177,7 @@ export default function HistoryPage() {
         <div className="mb-4 md:mb-8">
           <div className="relative rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-1.5 inline-flex gap-1">
             <Button
-              variant={activeTab === 'chamas' ? 'default' : 'ghost'}
+              variant={activeTab === 'chamas' ? 'primary' : 'ghost'}
               className={`relative rounded-lg transition-all ${
                 activeTab === 'chamas'
                   ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-md'
@@ -188,7 +188,7 @@ export default function HistoryPage() {
               Chamas ({data.chamas.length})
             </Button>
             <Button
-              variant={activeTab === 'contributions' ? 'default' : 'ghost'}
+              variant={activeTab === 'contributions' ? 'primary' : 'ghost'}
               className={`relative rounded-lg transition-all ${
                 activeTab === 'contributions'
                   ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-md'
@@ -199,7 +199,7 @@ export default function HistoryPage() {
               Contributions ({data.contributions.length})
             </Button>
             <Button
-              variant={activeTab === 'payouts' ? 'default' : 'ghost'}
+              variant={activeTab === 'payouts' ? 'primary' : 'ghost'}
               className={`relative rounded-lg transition-all ${
                 activeTab === 'payouts'
                   ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-md'
