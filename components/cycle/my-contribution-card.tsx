@@ -27,8 +27,8 @@ export function MyContributionCard({ contribution, onUpdate }: MyContributionCar
         <CardContent>
           <div className="rounded-lg border border-dashed border-border/50 bg-muted/30 p-6 text-center">
             <p className="text-sm text-muted-foreground">
-              No contribution due at this time
-            </p>
+            No contribution due at this time
+          </p>
           </div>
         </CardContent>
       </Card>

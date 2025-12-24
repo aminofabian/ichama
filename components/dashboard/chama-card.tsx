@@ -177,8 +177,8 @@ export function ChamaCard({ chama, memberCount }: ChamaCardProps) {
                     style={{ width: `${progress}%` }}
                   />
                 </div>
-              </div>
-            )}
+          </div>
+          )}
           </div>
         </div>
       </div>

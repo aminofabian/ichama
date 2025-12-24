@@ -14,17 +14,17 @@ export async function POST(request: NextRequest) {
 
     if (otpToken) {
       if (!phoneNumber) {
-        return NextResponse.json<ApiResponse>(
+      return NextResponse.json<ApiResponse>(
           { success: false, error: 'Phone number is required for OTP login' },
-          { status: 400 }
-        )
-      }
+        { status: 400 }
+      )
+    }
 
-      const normalizedPhone = normalizePhone(phoneNumber)
-      const user = await getUserByPhone(normalizedPhone)
+    const normalizedPhone = normalizePhone(phoneNumber)
+    const user = await getUserByPhone(normalizedPhone)
 
-      if (!user) {
-        return NextResponse.json<ApiResponse>(
+    if (!user) {
+      return NextResponse.json<ApiResponse>(
           { success: false, error: 'User not found' },
           { status: 404 }
         )

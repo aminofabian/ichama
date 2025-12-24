@@ -308,7 +308,7 @@ function SignInForm() {
                 <label className="block text-sm font-medium text-foreground">
                   Email Address
                 </label>
-                <Input
+          <Input
                   type="email"
                   placeholder="your.email@example.com"
                   value={email}
@@ -317,24 +317,24 @@ function SignInForm() {
                     setErrors({})
                   }}
                   error={errors.identifier}
-                  disabled={isLoading}
+            disabled={isLoading}
                   className="h-12 rounded-xl border-input/50 bg-background/50 backdrop-blur-sm transition-all focus-visible:border-[#FFD700]/50 focus-visible:bg-background focus-visible:shadow-lg focus-visible:shadow-[#FFD700]/10"
                   leftIcon={<Mail className="h-5 w-5 text-muted-foreground" />}
-                />
+          />
               </div>
             )}
           </div>
 
           <div className="space-y-1">
-            <Input
+          <Input
               type={showPassword ? 'text' : 'password'}
               placeholder="Password"
-              value={password}
+            value={password}
               onChange={(e) => {
                 setPassword(e.target.value)
                 setErrors({})
               }}
-              error={errors.password}
+            error={errors.password}
               disabled={isLoading}
               className="h-12 rounded-xl border-input/50 bg-background/50 backdrop-blur-sm transition-all focus-visible:border-[#FFD700]/50 focus-visible:bg-background focus-visible:shadow-lg focus-visible:shadow-[#FFD700]/10"
               leftIcon={<Lock className="h-5 w-5 text-muted-foreground" />}
@@ -367,12 +367,12 @@ function SignInForm() {
             size="lg"
           >
             <span className="relative z-10 flex items-center justify-center">
-              {isLoading ? (
-                <>
-                  <LoadingSpinner size="sm" />
+            {isLoading ? (
+              <>
+                <LoadingSpinner size="sm" />
                   <span className="ml-2 font-semibold">Signing in...</span>
-                </>
-              ) : (
+              </>
+            ) : (
                 <>
                   <span className="font-semibold">Sign In</span>
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -399,17 +399,17 @@ function SignInForm() {
 
           {/* Sign Up Link */}
           <div className="pt-2">
-            <p className="text-center text-sm text-muted-foreground">
-              Don&apos;t have an account?{' '}
+          <p className="text-center text-sm text-muted-foreground">
+            Don&apos;t have an account?{' '}
               <Link
                 href="/join"
                 className="font-semibold text-[#FFD700] transition-colors hover:text-[#FFC700] hover:underline"
               >
                 Join Chamas
-              </Link>
-            </p>
+            </Link>
+          </p>
           </div>
-        </form>
+      </form>
 
         {/* Social Login Section */}
         <div className="mt-10">
@@ -476,8 +476,8 @@ export default function SignInPage() {
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center">
-          <LoadingSpinner size="lg" />
-        </div>
+            <LoadingSpinner size="lg" />
+          </div>
       }
     >
       <SignInForm />

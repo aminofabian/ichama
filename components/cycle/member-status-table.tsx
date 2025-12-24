@@ -162,207 +162,207 @@ export function MemberStatusTable({
         <div className="overflow-x-auto w-full">
           <div className="inline-block min-w-full align-middle">
             <table className="w-full min-w-[600px]">
-              <thead>
-                <tr className="border-b">
+            <thead>
+              <tr className="border-b">
                   <th className="text-left p-2 sm:p-3 font-semibold text-xs sm:text-sm sticky left-0 bg-card z-10">Member</th>
                   <th className="text-center p-2 sm:p-3 font-semibold text-xs sm:text-sm">Turn</th>
-                  {((chamaType === 'savings' || chamaType === 'hybrid') || cycle.savings_amount > 0 || members.some(m => m.custom_savings_amount !== null)) && (
+                {((chamaType === 'savings' || chamaType === 'hybrid') || cycle.savings_amount > 0 || members.some(m => m.custom_savings_amount !== null)) && (
                     <th className="text-center p-2 sm:p-3 font-semibold text-xs sm:text-sm">Savings</th>
-                  )}
-                  {periods.map((period) => (
+                )}
+                {periods.map((period) => (
                     <th key={period} className="text-center p-1.5 sm:p-2 font-semibold text-[10px] sm:text-sm min-w-[60px] sm:min-w-[80px]">
                       <div className="flex flex-col items-center gap-1">
                         <span>P{period}</span>
-                        {period === cycle.current_period && (
+                    {period === cycle.current_period && (
                           <Badge variant="info" className="text-[9px] px-1 py-0">
-                            Current
-                          </Badge>
-                        )}
+                        Current
+                      </Badge>
+                    )}
                       </div>
-                    </th>
-                  ))}
+                  </th>
+                ))}
                   <th className="text-center p-2 sm:p-3 font-semibold text-xs sm:text-sm">Payout</th>
                   {isAdmin && <th className="text-center p-2 sm:p-3 font-semibold text-xs sm:text-sm">Actions</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {members.map((member) => {
-                  const totalPaid = member.contributions.reduce(
-                    (sum, c) => sum + (c.amount_paid || 0),
-                    0
-                  )
-                  const totalDue = member.contributions.reduce(
-                    (sum, c) => sum + c.amount_due,
-                    0
-                  )
+              </tr>
+            </thead>
+            <tbody>
+              {members.map((member) => {
+                const totalPaid = member.contributions.reduce(
+                  (sum, c) => sum + (c.amount_paid || 0),
+                  0
+                )
+                const totalDue = member.contributions.reduce(
+                  (sum, c) => sum + c.amount_due,
+                  0
+                )
 
-                  const savingsInfo = getSavingsAmount(member)
+                const savingsInfo = getSavingsAmount(member)
 
-                  return (
-                    <tr key={member.id} className="border-b hover:bg-muted/50">
+                return (
+                  <tr key={member.id} className="border-b hover:bg-muted/50">
                       <td className="p-2 sm:p-3 sticky left-0 bg-card z-10 min-w-[120px] max-w-[180px]">
                         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                          <Avatar
-                            name={member.user?.full_name || 'Unknown'}
-                            size="sm"
-                          />
+                        <Avatar
+                          name={member.user?.full_name || 'Unknown'}
+                          size="sm"
+                        />
                           <div className="min-w-0 flex-1">
                             <p className="font-medium text-xs sm:text-sm truncate">
-                              {member.user?.full_name || 'Unknown Member'}
-                            </p>
+                            {member.user?.full_name || 'Unknown Member'}
+                          </p>
                             <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
-                              {totalPaid > 0
-                                ? `${formatCurrency(totalPaid)} / ${formatCurrency(totalDue)}`
-                                : formatCurrency(totalDue)}
-                            </p>
-                          </div>
+                            {totalPaid > 0
+                              ? `${formatCurrency(totalPaid)} / ${formatCurrency(totalDue)}`
+                              : formatCurrency(totalDue)}
+                          </p>
                         </div>
-                      </td>
+                      </div>
+                    </td>
                       <td className="text-center p-2 sm:p-3">
                         <Badge variant="default" className="text-xs">{member.turn_order}</Badge>
-                      </td>
-                      {((chamaType === 'savings' || chamaType === 'hybrid') || cycle.savings_amount > 0 || members.some(m => m.custom_savings_amount !== null)) && (
+                    </td>
+                    {((chamaType === 'savings' || chamaType === 'hybrid') || cycle.savings_amount > 0 || members.some(m => m.custom_savings_amount !== null)) && (
                         <td className="text-center p-2 sm:p-3">
-                          {editingSavings === member.id ? (
-                            <div className="flex flex-col items-center gap-2">
-                              <Input
-                                type="number"
-                                value={savingsValue}
-                                onChange={(e) => setSavingsValue(e.target.value)}
-                                placeholder="Default"
+                        {editingSavings === member.id ? (
+                          <div className="flex flex-col items-center gap-2">
+                            <Input
+                              type="number"
+                              value={savingsValue}
+                              onChange={(e) => setSavingsValue(e.target.value)}
+                              placeholder="Default"
                                 className="w-20 sm:w-24 text-center text-xs sm:text-sm"
-                                min={0}
-                                disabled={isSaving}
-                              />
-                              <div className="flex items-center gap-1">
-                                <Button
-                                  variant="primary"
-                                  size="sm"
-                                  className="h-5 sm:h-6 px-1.5 sm:px-2"
-                                  onClick={() => handleSaveSavings(member)}
-                                  disabled={isSaving}
-                                >
-                                  <Check className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-5 sm:h-6 px-1.5 sm:px-2"
-                                  onClick={handleCancelEdit}
-                                  disabled={isSaving}
-                                >
-                                  <X className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="flex flex-col items-center gap-1">
-                              <div className="flex items-center gap-1.5 sm:gap-2">
-                                <span className="text-xs sm:text-sm font-medium">
-                                  {savingsInfo.display}
-                                </span>
-                                {isAdmin && (
-                                  <button
-                                    onClick={() => handleStartEdit(member)}
-                                    className="text-primary hover:text-primary/80 transition-colors p-0.5 sm:p-1 rounded hover:bg-primary/10"
-                                    title="Edit savings amount"
-                                    type="button"
-                                  >
-                                    <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                                  </button>
-                                )}
-                              </div>
-                              {!savingsInfo.isHidden && (
-                                <div className="flex items-center gap-1 flex-wrap justify-center">
-                                  {savingsInfo.isCustom && (
-                                    <Badge variant="info" className="text-[9px] sm:text-xs">
-                                      Custom
-                                    </Badge>
-                                  )}
-                                  {!savingsInfo.isCustom && (
-                                    <span className="text-[9px] sm:text-xs text-muted-foreground">Default</span>
-                                  )}
-                                  {isAdmin && member.hide_savings === 1 && (
-                                    <Badge variant="warning" className="text-[9px] sm:text-xs flex items-center gap-0.5 sm:gap-1">
-                                      <EyeOff className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> Hidden
-                                    </Badge>
-                                  )}
-                                </div>
-                              )}
-                              {savingsInfo.isHidden && !isAdmin && (
-                                <span className="text-[9px] sm:text-xs text-muted-foreground italic">Hidden</span>
-                              )}
-                            </div>
-                          )}
-                        </td>
-                      )}
-                      {periods.map((period) => {
-                        const status = getContributionStatus(member, period)
-                        const contribution = member.contributions.find(
-                          (c) => c.period_number === period
-                        )
-
-                        return (
-                          <td key={period} className="text-center p-1 sm:p-2">
-                            {status ? (
-                              <div className="flex flex-col items-center gap-0.5 sm:gap-1" title={status.label}>
-                                <status.icon
-                                  className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${status.color}`}
-                                />
-                                {contribution && contribution.amount_paid > 0 && (
-                                  <span className="text-[9px] sm:text-xs text-muted-foreground">
-                                    {formatCurrency(contribution.amount_paid)}
-                                  </span>
-                                )}
-                              </div>
-                            ) : (
-                              <span className="text-[9px] sm:text-xs text-muted-foreground">—</span>
-                            )}
-                          </td>
-                        )
-                      })}
-                      <td className="text-center p-2 sm:p-3">
-                        {member.payout ? (
-                          <div className="flex flex-col items-center gap-0.5 sm:gap-1">
-                            <Gift
-                              className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${
-                                member.payout.status === 'paid' ||
-                                member.payout.status === 'confirmed'
-                                  ? 'text-green-500'
-                                  : 'text-gray-500'
-                              }`}
+                              min={0}
+                              disabled={isSaving}
                             />
-                            <Badge
-                              variant={
-                                member.payout.status === 'paid' ||
-                                member.payout.status === 'confirmed'
-                                  ? 'success'
-                                  : 'default'
-                              }
-                              className="text-[9px] sm:text-xs"
-                            >
-                              {member.payout.status}
-                            </Badge>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="primary"
+                                size="sm"
+                                  className="h-5 sm:h-6 px-1.5 sm:px-2"
+                                onClick={() => handleSaveSavings(member)}
+                                disabled={isSaving}
+                              >
+                                <Check className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                  className="h-5 sm:h-6 px-1.5 sm:px-2"
+                                onClick={handleCancelEdit}
+                                disabled={isSaving}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </div>
                         ) : (
-                          <span className="text-[9px] sm:text-xs text-muted-foreground">—</span>
+                          <div className="flex flex-col items-center gap-1">
+                              <div className="flex items-center gap-1.5 sm:gap-2">
+                                <span className="text-xs sm:text-sm font-medium">
+                                {savingsInfo.display}
+                              </span>
+                              {isAdmin && (
+                                <button
+                                  onClick={() => handleStartEdit(member)}
+                                    className="text-primary hover:text-primary/80 transition-colors p-0.5 sm:p-1 rounded hover:bg-primary/10"
+                                  title="Edit savings amount"
+                                  type="button"
+                                >
+                                    <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                </button>
+                              )}
+                            </div>
+                            {!savingsInfo.isHidden && (
+                                <div className="flex items-center gap-1 flex-wrap justify-center">
+                                {savingsInfo.isCustom && (
+                                    <Badge variant="info" className="text-[9px] sm:text-xs">
+                                    Custom
+                                  </Badge>
+                                )}
+                                {!savingsInfo.isCustom && (
+                                    <span className="text-[9px] sm:text-xs text-muted-foreground">Default</span>
+                                )}
+                                {isAdmin && member.hide_savings === 1 && (
+                                    <Badge variant="warning" className="text-[9px] sm:text-xs flex items-center gap-0.5 sm:gap-1">
+                                      <EyeOff className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> Hidden
+                                  </Badge>
+                                )}
+                              </div>
+                            )}
+                            {savingsInfo.isHidden && !isAdmin && (
+                                <span className="text-[9px] sm:text-xs text-muted-foreground italic">Hidden</span>
+                            )}
+                          </div>
                         )}
                       </td>
-                      {isAdmin && (
-                        <td className="text-center p-2 sm:p-3">
-                          <button
-                            className="text-[9px] sm:text-xs text-primary hover:underline"
-                            onClick={() => onMemberAction?.(member.id, 'view_details')}
-                          >
-                            View
-                          </button>
+                    )}
+                    {periods.map((period) => {
+                      const status = getContributionStatus(member, period)
+                      const contribution = member.contributions.find(
+                        (c) => c.period_number === period
+                      )
+
+                      return (
+                          <td key={period} className="text-center p-1 sm:p-2">
+                          {status ? (
+                              <div className="flex flex-col items-center gap-0.5 sm:gap-1" title={status.label}>
+                              <status.icon
+                                  className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${status.color}`}
+                              />
+                              {contribution && contribution.amount_paid > 0 && (
+                                  <span className="text-[9px] sm:text-xs text-muted-foreground">
+                                  {formatCurrency(contribution.amount_paid)}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                              <span className="text-[9px] sm:text-xs text-muted-foreground">—</span>
+                          )}
                         </td>
+                      )
+                    })}
+                      <td className="text-center p-2 sm:p-3">
+                      {member.payout ? (
+                          <div className="flex flex-col items-center gap-0.5 sm:gap-1">
+                          <Gift
+                              className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${
+                              member.payout.status === 'paid' ||
+                              member.payout.status === 'confirmed'
+                                ? 'text-green-500'
+                                : 'text-gray-500'
+                            }`}
+                          />
+                          <Badge
+                            variant={
+                              member.payout.status === 'paid' ||
+                              member.payout.status === 'confirmed'
+                                ? 'success'
+                                : 'default'
+                            }
+                              className="text-[9px] sm:text-xs"
+                          >
+                            {member.payout.status}
+                          </Badge>
+                        </div>
+                      ) : (
+                          <span className="text-[9px] sm:text-xs text-muted-foreground">—</span>
                       )}
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                    </td>
+                    {isAdmin && (
+                        <td className="text-center p-2 sm:p-3">
+                        <button
+                            className="text-[9px] sm:text-xs text-primary hover:underline"
+                          onClick={() => onMemberAction?.(member.id, 'view_details')}
+                        >
+                          View
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
           </div>
         </div>
 
