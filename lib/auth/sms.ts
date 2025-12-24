@@ -1,4 +1,17 @@
+function normalizeSmsApiUrl(url: string): string {
+  if (!url) return url
+  
+  try {
+    new URL(url)
+    return url
+  } catch {
+    return `https://${url}`
+  }
+}
+
 const SMS_API_URL = process.env.SMS_API_URL
+  ? normalizeSmsApiUrl(process.env.SMS_API_URL)
+  : undefined
 const SMS_API_KEY = process.env.SMS_API_KEY
 const SMS_SENDER_ID = process.env.SMS_SENDER_ID || 'MERRY'
 const SMS_PARTNER_ID = process.env.SMS_PARTNER_ID

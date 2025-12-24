@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
-import { Calendar, CheckCircle, Clock, AlertCircle, Eye, EyeOff } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Calendar, CheckCircle, Clock, AlertCircle, Eye, EyeOff, Edit2, Check, X } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
 import { useToast } from '@/components/ui/toast'
 import type { Cycle, CycleMember } from '@/lib/types/cycle'
@@ -24,6 +25,9 @@ export function CycleSummary({ cycle, cycleMember, chamaType, cycleId, chamaId }
   const { addToast } = useToast()
   const [isUpdatingPrivacy, setIsUpdatingPrivacy] = useState(false)
   const [hideSavings, setHideSavings] = useState(cycleMember?.hide_savings ?? 0)
+  const [isEditingSavings, setIsEditingSavings] = useState(false)
+  const [savingsInput, setSavingsInput] = useState<string>('')
+  const [isSavingAmount, setIsSavingAmount] = useState(false)
 
   const handlePrivacyToggle = async (checked: boolean) => {
     if (!cycleMember) return
@@ -66,6 +70,82 @@ export function CycleSummary({ cycle, cycleMember, chamaType, cycleId, chamaId }
 
   const savingsAmount = cycleMember?.custom_savings_amount ?? cycle.savings_amount
   const isCustom = cycleMember?.custom_savings_amount !== null
+  const canEditSavings = cycle.status === 'pending' && (chamaType === 'savings' || chamaType === 'hybrid')
+
+  useEffect(() => {
+    if (cycleMember) {
+      const currentAmount = cycleMember.custom_savings_amount ?? cycle.savings_amount
+      setSavingsInput(currentAmount.toString())
+    }
+  }, [cycleMember, cycle.savings_amount])
+
+  const handleStartEditSavings = () => {
+    if (!cycleMember) return
+    const currentAmount = cycleMember.custom_savings_amount ?? cycle.savings_amount
+    setSavingsInput(currentAmount.toString())
+    setIsEditingSavings(true)
+  }
+
+  const handleCancelEditSavings = () => {
+    if (cycleMember) {
+      const currentAmount = cycleMember.custom_savings_amount ?? cycle.savings_amount
+      setSavingsInput(currentAmount.toString())
+    }
+    setIsEditingSavings(false)
+  }
+
+  const handleSaveSavings = async () => {
+    if (!cycleMember) return
+
+    const amount = savingsInput.trim() === '' ? null : parseInt(savingsInput, 10)
+    
+    if (amount !== null && (isNaN(amount) || amount < 0)) {
+      addToast({
+        variant: 'error',
+        title: 'Invalid Amount',
+        description: 'Savings amount must be a positive number or empty to use default.',
+      })
+      return
+    }
+
+    setIsSavingAmount(true)
+    try {
+      const response = await fetch(
+        `/api/chamas/${chamaId}/cycles/${cycleId}/members/${cycleMember.id}/savings`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ custom_savings_amount: amount }),
+        }
+      )
+
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to update savings amount')
+      }
+
+      addToast({
+        variant: 'success',
+        title: 'Savings Updated',
+        description: amount === null 
+          ? 'Your savings amount has been reset to the cycle default'
+          : 'Your custom savings amount has been updated successfully',
+      })
+
+      setIsEditingSavings(false)
+      // Refresh the page to show updated value
+      window.location.reload()
+    } catch (error) {
+      addToast({
+        variant: 'error',
+        title: 'Update Failed',
+        description: error instanceof Error ? error.message : 'Failed to update savings amount. Please try again.',
+      })
+    } finally {
+      setIsSavingAmount(false)
+    }
+  }
   return (
     <Card>
       <CardHeader>
@@ -118,19 +198,64 @@ export function CycleSummary({ cycle, cycleMember, chamaType, cycleId, chamaId }
         {cycle.savings_amount > 0 && cycleMember && (
           <div className="rounded-lg border p-3 space-y-3">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="flex-1">
                 <p className="text-sm text-muted-foreground">Your Savings Amount</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <p className="text-lg font-semibold">{formatCurrency(savingsAmount)}</p>
-                  {isCustom && (
-                    <Badge variant="info" className="text-xs">
-                      Custom
-                    </Badge>
-                  )}
-                  {!isCustom && (
-                    <span className="text-xs text-muted-foreground">(Default)</span>
-                  )}
-                </div>
+                {isEditingSavings ? (
+                  <div className="mt-2 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        value={savingsInput}
+                        onChange={(e) => setSavingsInput(e.target.value)}
+                        placeholder={cycle.savings_amount.toString()}
+                        min={0}
+                        className="max-w-[200px]"
+                        disabled={isSavingAmount}
+                      />
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={handleSaveSavings}
+                        disabled={isSavingAmount}
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleCancelEditSavings}
+                        disabled={isSavingAmount}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Leave empty to use default ({formatCurrency(cycle.savings_amount)})
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-lg font-semibold">{formatCurrency(savingsAmount)}</p>
+                    {isCustom && (
+                      <Badge variant="info" className="text-xs">
+                        Custom
+                      </Badge>
+                    )}
+                    {!isCustom && (
+                      <span className="text-xs text-muted-foreground">(Default)</span>
+                    )}
+                    {canEditSavings && (
+                      <button
+                        onClick={handleStartEditSavings}
+                        className="text-primary hover:text-primary/80 transition-colors p-1 rounded hover:bg-primary/10"
+                        title="Edit savings amount"
+                        type="button"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 

@@ -36,10 +36,49 @@ export async function GET(request: NextRequest) {
         ? upcomingPayoutResult.rows[0]
         : null
 
+    // Get pending contributions with cycle and chama info
+    const pendingContributionsResult = await db.execute({
+      sql: `SELECT 
+              c.id, c.cycle_id, c.cycle_member_id, c.user_id, c.period_number,
+              c.amount_due, c.amount_paid, c.due_date, c.status,
+              cy.name as cycle_name, cy.contribution_amount, cy.savings_amount,
+              ch.id as chama_id, ch.name as chama_name, ch.chama_type,
+              cm.custom_savings_amount
+            FROM contributions c
+            INNER JOIN cycles cy ON c.cycle_id = cy.id
+            INNER JOIN chamas ch ON cy.chama_id = ch.id
+            LEFT JOIN cycle_members cm ON c.cycle_member_id = cm.id
+            WHERE c.user_id = ? 
+              AND c.status IN ('pending', 'partial')
+              AND c.amount_paid < c.amount_due
+            ORDER BY c.due_date ASC`,
+      args: [user.id],
+    })
+
+    const pendingContributions = pendingContributionsResult.rows.map((row: any) => ({
+      id: row.id,
+      cycle_id: row.cycle_id,
+      cycle_member_id: row.cycle_member_id,
+      user_id: row.user_id,
+      period_number: row.period_number,
+      amount_due: row.amount_due,
+      amount_paid: row.amount_paid,
+      due_date: row.due_date,
+      status: row.status,
+      cycle_name: row.cycle_name,
+      contribution_amount: row.contribution_amount,
+      savings_amount: row.savings_amount,
+      chama_id: row.chama_id,
+      chama_name: row.chama_name,
+      chama_type: row.chama_type,
+      custom_savings_amount: row.custom_savings_amount,
+    }))
+
     return NextResponse.json<ApiResponse>({
       success: true,
       data: {
         chamas,
+        pendingContributions,
         stats: {
           activeChamas: chamas.length,
           totalContributions,
