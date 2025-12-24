@@ -46,6 +46,19 @@ export async function getUserByPhone(phoneNumber: string): Promise<User | null> 
   return result.rows[0] as unknown as User
 }
 
+export async function getUserByEmail(email: string): Promise<User | null> {
+  const result = await db.execute({
+    sql: 'SELECT * FROM users WHERE email = ?',
+    args: [email],
+  })
+
+  if (result.rows.length === 0) {
+    return null
+  }
+
+  return result.rows[0] as unknown as User
+}
+
 export async function getUserById(id: string): Promise<User | null> {
   const result = await db.execute({
     sql: 'SELECT * FROM users WHERE id = ?',

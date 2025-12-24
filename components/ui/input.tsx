@@ -8,6 +8,7 @@ export interface InputProps
   helperText?: string
   leftIcon?: React.ReactNode
   rightIcon?: React.ReactNode
+  onRightIconClick?: () => void
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
@@ -20,6 +21,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       helperText,
       leftIcon,
       rightIcon,
+      onRightIconClick,
       id,
       ...props
     },
@@ -58,9 +60,17 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {rightIcon && (
-            <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+            <button
+              type="button"
+              onClick={onRightIconClick}
+              className={cn(
+                'absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground',
+                onRightIconClick ? 'cursor-pointer' : 'pointer-events-none'
+              )}
+              tabIndex={onRightIconClick ? 0 : -1}
+            >
               {rightIcon}
-            </div>
+            </button>
           )}
         </div>
         {error && (
