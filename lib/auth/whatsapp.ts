@@ -65,16 +65,26 @@ export async function sendOTPViaWhatsApp(
       }
     )
 
+    const responseText = await response.text()
+    
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({
-        error: { message: await response.text() },
-      }))
-      throw new Error(
-        `WhatsApp API error: ${JSON.stringify(errorData.error || errorData)}`
-      )
+      let errorMessage = 'Unknown error'
+      try {
+        const errorData = JSON.parse(responseText)
+        errorMessage = JSON.stringify(errorData.error || errorData)
+      } catch {
+        errorMessage = responseText || `HTTP ${response.status}: ${response.statusText}`
+      }
+      throw new Error(`WhatsApp API error: ${errorMessage}`)
     }
 
-    const data = await response.json()
+    let data
+    try {
+      data = JSON.parse(responseText)
+    } catch {
+      throw new Error('WhatsApp API returned invalid JSON response')
+    }
+    
     if (data.error) {
       throw new Error(`WhatsApp API error: ${JSON.stringify(data.error)}`)
     }
