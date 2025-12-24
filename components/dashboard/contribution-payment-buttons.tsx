@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -44,6 +43,8 @@ export function ContributionPaymentButtons({ contributions, onUpdate }: Contribu
   const [paidDate, setPaidDate] = useState<string>(new Date().toISOString().split('T')[0])
   const [notes, setNotes] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSaveMode, setIsSaveMode] = useState(false)
+  const [additionalSavings, setAdditionalSavings] = useState<string>('')
 
   const getDaysRemaining = (dueDate: string): number => {
     const due = new Date(dueDate)
@@ -75,17 +76,21 @@ export function ContributionPaymentButtons({ contributions, onUpdate }: Contribu
     }
   }
 
-  const handleOpenPaymentModal = (contribution: PendingContribution) => {
+  const handleOpenPaymentModal = (contribution: PendingContribution, saveMode: boolean = false) => {
     setSelectedContribution(contribution)
     setAmountPaid(contribution.amount_due.toString())
     setPaidDate(new Date().toISOString().split('T')[0])
     setNotes('')
+    setIsSaveMode(saveMode)
+    setAdditionalSavings('')
   }
 
   const handleCloseModal = () => {
     setSelectedContribution(null)
     setAmountPaid('')
     setNotes('')
+    setIsSaveMode(false)
+    setAdditionalSavings('')
   }
 
   const handleSubmitPayment = async () => {
@@ -110,6 +115,20 @@ export function ContributionPaymentButtons({ contributions, onUpdate }: Contribu
       return
     }
 
+    let savingsAmount: number | undefined
+    if (isSaveMode) {
+      const savings = parseInt(additionalSavings, 10)
+      if (isNaN(savings) || savings < 0) {
+        addToast({
+          variant: 'error',
+          title: 'Invalid Savings Amount',
+          description: 'Please enter a valid savings amount (0 or more)',
+        })
+        return
+      }
+      savingsAmount = savings > 0 ? savings : undefined
+    }
+
     setIsSubmitting(true)
     try {
       const response = await fetch(`/api/cycles/${selectedContribution.cycle_id}/contributions`, {
@@ -120,6 +139,7 @@ export function ContributionPaymentButtons({ contributions, onUpdate }: Contribu
           amount_paid: amount,
           paid_at: new Date(paidDate).toISOString(),
           notes: notes || null,
+          additional_savings: savingsAmount,
         }),
       })
 
@@ -129,11 +149,19 @@ export function ContributionPaymentButtons({ contributions, onUpdate }: Contribu
         throw new Error(result.error || 'Failed to record contribution')
       }
 
-      addToast({
-        variant: 'success',
-        title: 'Payment Recorded',
-        description: 'Your contribution has been recorded. An admin will confirm it and process your savings.',
-      })
+      if (isSaveMode && savingsAmount && savingsAmount > 0) {
+        addToast({
+          variant: 'success',
+          title: 'Contribution & Savings Recorded',
+          description: `Your contribution has been recorded and ${formatCurrency(savingsAmount)} has been credited to your savings account.`,
+        })
+      } else {
+        addToast({
+          variant: 'success',
+          title: 'Payment Recorded',
+          description: 'Your contribution has been recorded. An admin will confirm it and process your savings.',
+        })
+      }
 
       handleCloseModal()
       onUpdate?.()
@@ -153,110 +181,96 @@ export function ContributionPaymentButtons({ contributions, onUpdate }: Contribu
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Upcoming Contributions</CardTitle>
-        <CardDescription>Record your contributions and savings payments</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {contributions.map((contrib) => {
-            const daysRemaining = getDaysRemaining(contrib.due_date)
-            const remaining = contrib.amount_due - contrib.amount_paid
-            const effectiveSavings = contrib.custom_savings_amount ?? contrib.savings_amount
-            const hasSavings = effectiveSavings > 0 && (contrib.chama_type === 'savings' || contrib.chama_type === 'hybrid')
-            const buttonColor = getButtonColor(daysRemaining)
-            const isProcessing = processingId === contrib.id
+    <div className="space-y-2">
+      {contributions.map((contrib) => {
+        const daysRemaining = getDaysRemaining(contrib.due_date)
+        const remaining = contrib.amount_due - contrib.amount_paid
+        const effectiveSavings = contrib.custom_savings_amount ?? contrib.savings_amount
+        const hasSavings = effectiveSavings > 0 && (contrib.chama_type === 'savings' || contrib.chama_type === 'hybrid')
+        const buttonColor = getButtonColor(daysRemaining)
+        const isProcessing = processingId === contrib.id
 
-            return (
-              <div
-                key={contrib.id}
-                className="rounded-lg border p-4 space-y-3 hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold">{contrib.chama_name}</h3>
-                      <Badge variant="default" className="text-xs">
-                        {contrib.cycle_name}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Period {contrib.period_number}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-muted-foreground">Due</p>
-                    <p className="font-semibold">{formatDate(contrib.due_date)}</p>
-                    <p className={`text-xs font-medium ${
-                      daysRemaining < 0 ? 'text-red-600' :
-                      daysRemaining <= 2 ? 'text-red-600' :
-                      daysRemaining <= 4 ? 'text-yellow-600' :
-                      'text-green-600'
-                    }`}>
-                      {daysRemaining < 0 
-                        ? `${Math.abs(daysRemaining)} day${Math.abs(daysRemaining) !== 1 ? 's' : ''} overdue`
-                        : daysRemaining === 0
-                        ? 'Due today'
-                        : `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} left`
-                      }
-                    </p>
-                  </div>
+        return (
+          <div
+            key={contrib.id}
+            className="rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+          >
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <h3 className="font-semibold text-sm truncate">{contrib.chama_name}</h3>
+                  <Badge variant="default" className="text-[10px] px-1.5 py-0">
+                    {contrib.cycle_name}
+                  </Badge>
                 </div>
-
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Amount Due</p>
-                    <p className="font-semibold">{formatCurrency(contrib.amount_due)}</p>
-                    {contrib.amount_paid > 0 && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Paid: {formatCurrency(contrib.amount_paid)} | Remaining: {formatCurrency(remaining)}
-                      </p>
-                    )}
-                  </div>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <span>Period {contrib.period_number}</span>
+                  <span>•</span>
+                  <span className="font-medium text-foreground">{formatCurrency(contrib.amount_due)}</span>
                   {hasSavings && (
-                    <div>
-                      <p className="text-muted-foreground">Savings Amount</p>
-                      <p className="font-semibold">{formatCurrency(effectiveSavings)}</p>
-                      {contrib.custom_savings_amount !== null && (
-                        <Badge variant="info" className="text-xs mt-1">Custom</Badge>
-                      )}
-                    </div>
+                    <>
+                      <span>•</span>
+                      <span className="flex items-center gap-1">
+                        <PiggyBank className="h-3 w-3" />
+                        {formatCurrency(effectiveSavings)}
+                      </span>
+                    </>
                   )}
                 </div>
-
-                <div className="flex gap-2 pt-2 border-t">
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">Due {formatDate(contrib.due_date)}</p>
+                  <p className={`text-xs font-medium ${
+                    daysRemaining < 0 ? 'text-red-600' :
+                    daysRemaining <= 2 ? 'text-red-600' :
+                    daysRemaining <= 4 ? 'text-yellow-600' :
+                    'text-green-600'
+                  }`}>
+                    {daysRemaining < 0 
+                      ? `${Math.abs(daysRemaining)}d overdue`
+                      : daysRemaining === 0
+                      ? 'Due today'
+                      : `${daysRemaining}d left`
+                    }
+                  </p>
+                </div>
+                <div className="flex gap-1.5">
                   <Button
-                    onClick={() => handleOpenPaymentModal(contrib)}
+                    onClick={() => handleOpenPaymentModal(contrib, false)}
                     disabled={isProcessing}
-                    className={`flex-1 text-white ${buttonColor}`}
+                    size="sm"
+                    className={`text-white text-xs px-3 py-1.5 h-auto ${buttonColor}`}
                   >
                     {isProcessing ? (
-                      <>
-                        <LoadingSpinner size="sm" />
-                        <span className="ml-2">Processing...</span>
-                      </>
+                      <LoadingSpinner size="sm" />
                     ) : (
                       <>
-                        <Wallet className="mr-2 h-4 w-4" />
-                        Record Payment
+                        <Wallet className="h-3 w-3 mr-1" />
+                        Pay
                       </>
                     )}
                   </Button>
                   <Button
-                    variant="outline"
-                    onClick={() => router.push(`/chamas/${contrib.chama_id}/cycles/${contrib.cycle_id}`)}
-                    className="flex-1"
+                    onClick={() => handleOpenPaymentModal(contrib, true)}
+                    disabled={isProcessing}
+                    size="sm"
+                    className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white text-xs px-3 py-1.5 h-auto"
                   >
-                    <Calendar className="mr-2 h-4 w-4" />
-                    View Details
+                    <PiggyBank className="h-3 w-3 mr-1" />
+                    Pay & Save
                   </Button>
                 </div>
               </div>
-            )
-          })}
-        </div>
-      </CardContent>
+            </div>
+            {contrib.amount_paid > 0 && (
+              <p className="text-xs text-muted-foreground mt-1.5 pt-1.5 border-t">
+                Paid: {formatCurrency(contrib.amount_paid)} • Remaining: {formatCurrency(remaining)}
+              </p>
+            )}
+          </div>
+        )
+      })}
 
       {/* Payment Modal */}
       {selectedContribution && (() => {
@@ -271,7 +285,9 @@ export function ContributionPaymentButtons({ contributions, onUpdate }: Contribu
             <ModalContent>
               <ModalClose onClose={handleCloseModal} />
               <ModalHeader>
-                <ModalTitle>Record Contribution Payment</ModalTitle>
+                <ModalTitle>
+                  {isSaveMode ? 'Contribute & Save' : 'Record Contribution Payment'}
+                </ModalTitle>
               </ModalHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
@@ -350,7 +366,7 @@ export function ContributionPaymentButtons({ contributions, onUpdate }: Contribu
               />
             </div>
 
-            {hasSavings && (
+            {hasSavings && !isSaveMode && (
               <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
                 <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
                   💡 Savings Information
@@ -358,6 +374,30 @@ export function ContributionPaymentButtons({ contributions, onUpdate }: Contribu
                 <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
                   When an admin confirms this payment, {formatCurrency(effectiveSavings)} will be automatically credited to your savings account.
                 </p>
+              </div>
+            )}
+
+            {isSaveMode && (
+              <div>
+                <Input
+                  type="number"
+                  label="Additional Savings Amount (KES)"
+                  value={additionalSavings}
+                  onChange={(e) => setAdditionalSavings(e.target.value)}
+                  min={0}
+                  placeholder="Enter additional amount to save (optional)"
+                  disabled={isSubmitting}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  This amount will be immediately credited to your savings account. Leave empty or 0 to skip.
+                </p>
+                {hasSavings && (
+                  <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                    <p className="text-xs text-blue-700 dark:text-blue-300">
+                      Note: {formatCurrency(effectiveSavings)} will still be automatically credited when admin confirms your contribution.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -378,10 +418,10 @@ export function ContributionPaymentButtons({ contributions, onUpdate }: Contribu
                     {isSubmitting ? (
                       <>
                         <LoadingSpinner size="sm" />
-                        <span className="ml-2">Recording...</span>
+                        <span className="ml-2">Processing...</span>
                       </>
                     ) : (
-                      'Record Payment'
+                      isSaveMode ? 'Contribute & Save' : 'Record Payment'
                     )}
                   </Button>
                 </div>
@@ -390,7 +430,7 @@ export function ContributionPaymentButtons({ contributions, onUpdate }: Contribu
           </Modal>
         )
       })()}
-    </Card>
+    </div>
   )
 }
 

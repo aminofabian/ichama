@@ -63,10 +63,10 @@ export function MemberView({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {activeCycle && (
         <>
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-4 md:gap-6 md:grid-cols-2">
             <CycleSummary
               cycle={activeCycle}
               cycleMember={cycleMember}
@@ -90,11 +90,19 @@ export function MemberView({
           />
 
           {/* Quick Actions */}
-          <div className="flex gap-4">
-            <Button onClick={() => router.push(`/chamas/${chama.id}/cycles/${activeCycle.id}`)}>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button 
+              variant="outline"
+              onClick={() => router.push(`/chamas/${chama.id}/cycles/${activeCycle.id}`)}
+              className="flex-1 sm:flex-none"
+            >
               View Cycle Details
             </Button>
-            <Button variant="primary" onClick={() => router.push(`/chamas/${chama.id}/cycles/${activeCycle.id}`)}>
+            <Button 
+              variant="primary" 
+              onClick={() => router.push(`/chamas/${chama.id}/cycles/${activeCycle.id}`)}
+              className="flex-1 sm:flex-none bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all"
+            >
               View All Contributions
             </Button>
           </div>

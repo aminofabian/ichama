@@ -93,34 +93,44 @@ export default function ChamaDetailPage() {
   const { chama, member, members, isAdmin, activeCycle, cycleMember, cycles = [], pendingCycle, pendingCycleMembers } = data
 
   return (
-    <div className="space-y-6">
-      <ChamaHeader
-        chama={chama}
-        memberCount={members.length}
-        isAdmin={isAdmin}
-      />
+    <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/30 pb-20 md:pb-8">
+      {/* Animated Background Elements */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute -left-1/4 -top-1/4 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-[#FFD700]/10 via-[#FFD700]/5 to-transparent blur-3xl animate-pulse" />
+        <div className="absolute -right-1/4 top-1/3 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent blur-3xl animate-pulse delay-1000" />
+        <div className="absolute bottom-1/4 left-1/3 h-[550px] w-[550px] rounded-full bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent blur-3xl animate-pulse delay-2000" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+      </div>
 
-      {isAdmin ? (
-        <AdminView
+      <div className="relative z-10 space-y-4 md:space-y-6 px-4 pt-4 md:px-0 md:pt-0">
+        <ChamaHeader
           chama={chama}
-          members={members}
-          activeCycle={data.activeCycle}
-          collectionRate={0}
-          savingsPot={0}
-          cycles={cycles}
-          pendingCycle={pendingCycle}
-          pendingCycleMembers={pendingCycleMembers}
+          memberCount={members.length}
+          isAdmin={isAdmin}
         />
-      ) : (
-        <MemberView
-          chama={chama}
-          member={member}
-          activeCycle={data.activeCycle}
-          cycleMember={data.cycleMember}
-          cycles={cycles}
-          totalMembers={members.length}
-        />
-      )}
+
+        {isAdmin ? (
+          <AdminView
+            chama={chama}
+            members={members}
+            activeCycle={data.activeCycle}
+            collectionRate={0}
+            savingsPot={0}
+            cycles={cycles}
+            pendingCycle={pendingCycle}
+            pendingCycleMembers={pendingCycleMembers}
+          />
+        ) : (
+          <MemberView
+            chama={chama}
+            member={member}
+            activeCycle={data.activeCycle}
+            cycleMember={data.cycleMember}
+            cycles={cycles}
+            totalMembers={members.length}
+          />
+        )}
+      </div>
     </div>
   )
 }

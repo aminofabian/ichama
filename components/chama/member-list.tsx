@@ -69,30 +69,30 @@ export function MemberList({ chamaId, members, isAdmin }: MemberListProps) {
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle>Members ({members.length})</CardTitle>
-          <CardDescription>All members of this chama</CardDescription>
+      <Card className="border-border/50 shadow-lg hover:shadow-xl transition-all">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold">Members ({members.length})</CardTitle>
+          <CardDescription className="text-xs">All members of this chama</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="divide-y">
+          <div className="divide-y divide-border/50">
             {members.map((member) => (
               <div
                 key={member.id}
-                className="flex items-center justify-between py-4 first:pt-0 last:pb-0"
+                className="flex items-center justify-between py-3 first:pt-0 last:pb-0 hover:bg-muted/30 rounded-lg px-2 -mx-2 transition-colors"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
                   <Avatar name={member.user?.full_name || 'Unknown'} size="sm" />
-                  <div>
-                    <p className="font-medium">{member.user?.full_name || 'Unknown'}</p>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm truncate">{member.user?.full_name || 'Unknown'}</p>
+                    <p className="text-xs text-muted-foreground truncate">
                       {member.user?.phone_number || 'No phone'}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Badge variant={member.role === 'admin' ? 'default' : 'info'}>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <Badge variant={member.role === 'admin' ? 'default' : 'info'} className="text-[10px] px-1.5 py-0">
                     {member.role}
                   </Badge>
                   <Badge
@@ -103,11 +103,12 @@ export function MemberList({ chamaId, members, isAdmin }: MemberListProps) {
                         ? 'error'
                         : 'default'
                     }
+                    className="text-[10px] px-1.5 py-0"
                   >
                     {member.status}
                   </Badge>
-                  <span className="text-xs text-muted-foreground">
-                    Joined {formatDate(member.joined_at)}
+                  <span className="text-[10px] text-muted-foreground hidden md:inline">
+                    {formatDate(member.joined_at)}
                   </span>
 
                   {isAdmin && member.role !== 'admin' && (
@@ -118,6 +119,7 @@ export function MemberList({ chamaId, members, isAdmin }: MemberListProps) {
                         setSelectedMember(member)
                         setShowRemoveModal(true)
                       }}
+                      className="h-8 w-8 p-0 hover:bg-destructive/10"
                     >
                       <UserMinus className="h-4 w-4 text-destructive" />
                     </Button>
@@ -127,9 +129,11 @@ export function MemberList({ chamaId, members, isAdmin }: MemberListProps) {
             ))}
 
             {members.length === 0 && (
-              <p className="py-8 text-center text-muted-foreground">
-                No members yet
-              </p>
+              <div className="py-8 text-center">
+                <p className="text-sm text-muted-foreground">
+                  No members yet
+                </p>
+              </div>
             )}
           </div>
         </CardContent>

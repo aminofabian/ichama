@@ -20,14 +20,16 @@ export function MyContributionCard({ contribution, onUpdate }: MyContributionCar
 
   if (!contribution) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>My Contribution</CardTitle>
+      <Card className="border-border/50 shadow-lg hover:shadow-xl transition-all">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold">My Contribution</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground text-center py-4">
-            No contribution due at this time
-          </p>
+          <div className="rounded-lg border border-dashed border-border/50 bg-muted/30 p-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              No contribution due at this time
+            </p>
+          </div>
         </CardContent>
       </Card>
     )
@@ -86,42 +88,42 @@ export function MyContributionCard({ contribution, onUpdate }: MyContributionCar
 
   return (
     <>
-      <Card>
-        <CardHeader>
+      <Card className="border-border/50 shadow-lg hover:shadow-xl transition-all">
+        <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle>My Contribution</CardTitle>
+            <CardTitle className="text-base font-semibold">My Contribution</CardTitle>
             {getStatusBadge()}
           </div>
-          <CardDescription>Period {contribution.period_number}</CardDescription>
+          <CardDescription className="text-xs">Period {contribution.period_number}</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Amount Due</p>
-              <p className="text-xl font-bold">{formatCurrency(contribution.amount_due)}</p>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-lg border border-border/50 bg-gradient-to-br from-muted/30 to-muted/10 p-3">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Amount Due</p>
+              <p className="text-base font-bold">{formatCurrency(contribution.amount_due)}</p>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Amount Paid</p>
-              <p className={`text-xl font-bold ${contribution.amount_paid > 0 ? 'text-green-600' : ''}`}>
+            <div className="rounded-lg border border-border/50 bg-gradient-to-br from-muted/30 to-muted/10 p-3">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Amount Paid</p>
+              <p className={`text-base font-bold ${contribution.amount_paid > 0 ? 'text-green-600 dark:text-green-400' : ''}`}>
                 {formatCurrency(contribution.amount_paid)}
               </p>
             </div>
           </div>
 
           {remaining > 0 && (
-            <div className="p-3 bg-orange-50 dark:bg-orange-950 rounded-lg">
-              <p className="text-sm font-medium text-orange-700 dark:text-orange-300">
+            <div className="p-3 bg-gradient-to-r from-orange-50 to-orange-100/50 dark:from-orange-950/30 dark:to-orange-900/20 rounded-lg border border-orange-200/50 dark:border-orange-800/30">
+              <p className="text-xs font-semibold text-orange-700 dark:text-orange-300">
                 Remaining: {formatCurrency(remaining)}
               </p>
             </div>
           )}
 
-          <div>
-            <p className="text-sm text-muted-foreground">Due Date</p>
-            <p className="text-sm font-medium">
+          <div className="rounded-lg border border-border/50 bg-muted/30 p-3">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Due Date</p>
+            <p className="text-sm font-semibold">
               {formatDate(contribution.due_date)}
               {isOverdue && (
-                <span className="ml-2 text-red-600">(Overdue)</span>
+                <span className="ml-2 text-xs text-red-600 dark:text-red-400 font-medium">(Overdue)</span>
               )}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
@@ -130,22 +132,22 @@ export function MyContributionCard({ contribution, onUpdate }: MyContributionCar
           </div>
 
           {contribution.paid_at && (
-            <div>
-              <p className="text-sm text-muted-foreground">Paid On</p>
-              <p className="text-sm font-medium">{formatDate(contribution.paid_at)}</p>
+            <div className="rounded-lg border border-border/50 bg-muted/30 p-3">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Paid On</p>
+              <p className="text-sm font-semibold">{formatDate(contribution.paid_at)}</p>
             </div>
           )}
 
           {contribution.notes && (
-            <div>
-              <p className="text-sm text-muted-foreground">Notes</p>
-              <p className="text-sm">{contribution.notes}</p>
+            <div className="rounded-lg border border-border/50 bg-muted/30 p-3">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Notes</p>
+              <p className="text-xs">{contribution.notes}</p>
             </div>
           )}
 
           {canPay && (
             <Button
-              className="w-full"
+              className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all"
               onClick={() => setShowForm(true)}
             >
               {contribution.amount_paid > 0 ? 'Update Payment' : 'Record Payment'}

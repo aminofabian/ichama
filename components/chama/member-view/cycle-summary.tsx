@@ -147,16 +147,16 @@ export function CycleSummary({ cycle, cycleMember, chamaType, cycleId, chamaId }
     }
   }
   return (
-    <Card>
-      <CardHeader>
+    <Card className="border-border/50 shadow-lg hover:shadow-xl transition-all">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle>Current Cycle</CardTitle>
-          <Badge variant={cycle.status === 'active' ? 'default' : 'default'}>
+          <CardTitle className="text-base font-semibold">Current Cycle</CardTitle>
+          <Badge variant={cycle.status === 'active' ? 'default' : 'default'} className="text-xs">
             {cycle.status}
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         <div className="flex items-center gap-3">
           <Calendar className="h-5 w-5 text-muted-foreground" />
           <div>
@@ -177,26 +177,26 @@ export function CycleSummary({ cycle, cycleMember, chamaType, cycleId, chamaId }
           </div>
         </div>
 
-        <div className="rounded-lg border p-3">
+        <div className="rounded-lg border border-border/50 bg-gradient-to-br from-muted/30 to-muted/10 p-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Contribution Amount</span>
+            <span className="text-xs text-muted-foreground uppercase tracking-wider">Contribution Amount</span>
           </div>
-          <p className="mt-2 text-lg font-semibold">
+          <p className="mt-1.5 text-base font-bold">
             {formatCurrency(cycle.contribution_amount)}
           </p>
         </div>
 
         {chamaType !== 'savings' && (
-          <div className="rounded-lg border p-3">
-            <p className="text-sm text-muted-foreground">This Period&apos;s Payout</p>
-            <p className="text-lg font-semibold">
+          <div className="rounded-lg border border-border/50 bg-gradient-to-br from-muted/30 to-muted/10 p-3">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">This Period&apos;s Payout</p>
+            <p className="mt-1.5 text-base font-bold">
               {formatCurrency(cycle.payout_amount || 0)}
             </p>
           </div>
         )}
 
         {cycle.savings_amount > 0 && cycleMember && (
-          <div className="rounded-lg border p-3 space-y-3">
+          <div className="rounded-lg border border-border/50 bg-gradient-to-br from-muted/30 to-muted/10 p-3 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">Your Savings Amount</p>

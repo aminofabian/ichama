@@ -22,37 +22,42 @@ export function MemberPosition({
 
   if (chamaType === 'savings') {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Savings Status</CardTitle>
+      <Card className="border-border/50 shadow-lg hover:shadow-xl transition-all">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold">Savings Status</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">
-            This is a savings-only chama. Your contributions go directly to your
-            savings account.
-          </p>
+          <div className="rounded-lg border border-border/50 bg-gradient-to-br from-muted/30 to-muted/10 p-4">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              This is a savings-only chama. Your contributions go directly to your
+              savings account.
+            </p>
+          </div>
         </CardContent>
       </Card>
     )
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="border-border/50 shadow-lg hover:shadow-xl transition-all">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle>Your Position</CardTitle>
+          <CardTitle className="text-base font-semibold">Your Position</CardTitle>
           {hasReceived && (
-            <Badge variant="success">Payout Received</Badge>
+            <Badge variant="success" className="text-xs">Payout Received</Badge>
           )}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-center">
-          <div className="relative flex h-32 w-32 items-center justify-center rounded-full border-4 border-primary">
-            <div className="text-center">
-              <Trophy className="mx-auto h-6 w-6 text-primary" />
-              <span className="text-3xl font-bold">{position}</span>
-              <span className="text-sm text-muted-foreground">/{totalMembers}</span>
+          <div className="relative">
+            <div className="absolute -inset-2 bg-primary/10 rounded-full blur-lg animate-pulse" />
+            <div className="relative flex h-24 w-24 md:h-32 md:w-32 items-center justify-center rounded-full border-4 border-primary bg-gradient-to-br from-primary/5 to-transparent">
+              <div className="text-center">
+                <Trophy className="mx-auto h-5 w-5 md:h-6 md:w-6 text-primary mb-1" />
+                <span className="text-2xl md:text-3xl font-bold">{position}</span>
+                <span className="text-xs md:text-sm text-muted-foreground">/{totalMembers}</span>
+              </div>
             </div>
           </div>
         </div>

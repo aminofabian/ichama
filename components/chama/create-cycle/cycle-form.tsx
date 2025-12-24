@@ -31,9 +31,15 @@ export function CycleForm({
   const isMerryGoRound = chama.chama_type === 'merry_go_round'
   const isHybrid = chama.chama_type === 'hybrid'
 
+  const total =
+    (formData.payout_amount || 0) +
+    (formData.savings_amount || 0) +
+    (formData.service_fee || 0)
+  const hasMismatch = formData.contribution_amount !== null && total !== formData.contribution_amount
+
   return (
-    <div className="space-y-6">
-      <div>
+    <div className="space-y-4">
+      <div className="space-y-1.5">
         <Input
           label="Cycle Name"
           placeholder="e.g., Q1 2024 Savings Cycle"
@@ -44,8 +50,8 @@ export function CycleForm({
         />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
+      <div className="grid gap-3 md:gap-4 md:grid-cols-2">
+        <div className="space-y-1.5">
           <Input
             type="number"
             label="Contribution Amount (KES)"
@@ -60,7 +66,7 @@ export function CycleForm({
           />
         </div>
 
-        <div>
+        <div className="space-y-1.5">
           <Input
             type="number"
             label="Total Periods"
@@ -77,11 +83,14 @@ export function CycleForm({
       </div>
 
       {formData.contribution_amount && (
-        <div className="rounded-lg border p-4 space-y-3">
-          <h3 className="font-semibold">Breakdown</h3>
-          <div className={`grid gap-4 text-sm ${isHybrid ? 'grid-cols-3' : 'grid-cols-2'}`}>
+        <div className="rounded-lg border border-border/50 bg-gradient-to-br from-muted/40 to-muted/20 p-3.5 space-y-3 shadow-sm">
+          <h3 className="font-semibold text-sm flex items-center gap-2">
+            <div className="h-1 w-1 rounded-full bg-primary" />
+            Breakdown
+          </h3>
+          <div className={`grid gap-2.5 ${isHybrid ? 'grid-cols-3' : 'grid-cols-2'}`}>
             {!isSavingsOnly && (
-              <div>
+              <div className="space-y-1.5">
                 <Input
                   type="number"
                   label="Payout Amount"
@@ -96,7 +105,7 @@ export function CycleForm({
               </div>
             )}
             {!isMerryGoRound && (
-              <div>
+              <div className="space-y-1.5">
                 <Input
                   type="number"
                   label="Savings Amount"
@@ -110,7 +119,7 @@ export function CycleForm({
                 />
               </div>
             )}
-            <div>
+            <div className="space-y-1.5">
               <Input
                 type="number"
                 label="Service Fee"
@@ -124,27 +133,36 @@ export function CycleForm({
               />
             </div>
           </div>
-          <div className="pt-2 border-t">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Total</span>
-              <span className="font-semibold">
-                {formatCurrency(
-                  (formData.payout_amount || 0) +
-                    (formData.savings_amount || 0) +
-                    (formData.service_fee || 0)
-                )}
+          <div className="pt-3 border-t border-border/50 space-y-1.5">
+            <div className="flex justify-between items-center">
+              <span className="text-xs text-muted-foreground">Total Breakdown</span>
+              <span className={`text-sm font-bold ${hasMismatch ? 'text-destructive' : ''}`}>
+                {formatCurrency(total)}
               </span>
             </div>
+            <div className="flex justify-between items-center">
+              <span className="text-xs text-muted-foreground">Contribution Amount</span>
+              <span className="text-sm font-bold">
+                {formatCurrency(formData.contribution_amount)}
+              </span>
+            </div>
+            {hasMismatch && (
+              <div className="mt-2 p-2.5 rounded-lg bg-destructive/10 border border-destructive/20">
+                <p className="text-[10px] text-destructive font-medium">
+                  ⚠️ Total breakdown ({formatCurrency(total)}) does not match contribution amount ({formatCurrency(formData.contribution_amount)})
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
-          <Label htmlFor="frequency">Frequency</Label>
+      <div className="grid gap-3 md:gap-4 md:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label htmlFor="frequency" className="text-sm font-medium">Frequency</Label>
           <select
             id="frequency"
-            className="mt-2 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all"
             value={formData.frequency || ''}
             onChange={(e) =>
               updateField(
@@ -159,11 +177,11 @@ export function CycleForm({
             <option value="monthly">Monthly</option>
           </select>
           {errors.frequency && (
-            <p className="mt-1 text-sm text-destructive">{errors.frequency}</p>
+            <p className="text-xs text-destructive">{errors.frequency}</p>
           )}
         </div>
 
-        <div>
+        <div className="space-y-1.5">
           <Input
             type="date"
             label="Start Date"

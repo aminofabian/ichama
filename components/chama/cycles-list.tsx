@@ -21,33 +21,33 @@ function CycleCard({
   return (
     <Link
       href={`/chamas/${chamaId}/cycles/${cycle.id}`}
-      className="block rounded-lg border p-4 transition-colors hover:bg-muted"
+      className="group block rounded-lg border border-border/50 bg-gradient-to-br from-card/80 to-card/50 p-4 transition-all hover:shadow-lg hover:border-primary/30 hover:scale-[1.01]"
     >
       <div className="flex items-start justify-between">
-        <div className="flex-1 space-y-2">
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold">{cycle.name}</h3>
+        <div className="flex-1 space-y-2.5">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-semibold text-sm md:text-base">{cycle.name}</h3>
             {getStatusBadge(cycle.status)}
           </div>
-          <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground md:grid-cols-4">
-            <div className="flex items-center gap-1">
-              <TrendingUp className="h-4 w-4" />
-              <span>{formatCurrency(cycle.contribution_amount)}</span>
+          <div className="grid grid-cols-2 gap-2 md:gap-4 text-xs md:text-sm text-muted-foreground md:grid-cols-4">
+            <div className="flex items-center gap-1.5">
+              <TrendingUp className="h-3.5 w-3.5 md:h-4 md:w-4 flex-shrink-0" />
+              <span className="truncate">{formatCurrency(cycle.contribution_amount)}</span>
             </div>
-            <div className="flex items-center gap-1">
-              <Users className="h-4 w-4" />
-              <span>
+            <div className="flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5 md:h-4 md:w-4 flex-shrink-0" />
+              <span className="truncate">
                 Period {cycle.current_period} / {cycle.total_periods}
               </span>
             </div>
-            <div className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
-              <span>{cycle.start_date ? formatDate(cycle.start_date) : 'N/A'}</span>
+            <div className="flex items-center gap-1.5">
+              <Calendar className="h-3.5 w-3.5 md:h-4 md:w-4 flex-shrink-0" />
+              <span className="truncate">{cycle.start_date ? formatDate(cycle.start_date) : 'N/A'}</span>
             </div>
             {cycle.end_date && (
-              <div className="flex items-center gap-1">
-                <Clock className="h-4 w-4" />
-                <span>Ends: {formatDate(cycle.end_date)}</span>
+              <div className="flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5 md:h-4 md:w-4 flex-shrink-0" />
+                <span className="truncate">Ends: {formatDate(cycle.end_date)}</span>
               </div>
             )}
           </div>
@@ -152,27 +152,39 @@ export function CyclesList({ cycles, chamaId, isAdmin = false }: CyclesListProps
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="border-border/50 shadow-lg hover:shadow-xl transition-all">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Cycles</CardTitle>
-            <CardDescription>All contribution cycles for this chama</CardDescription>
+            <CardTitle className="text-base font-semibold">Cycles</CardTitle>
+            <CardDescription className="text-xs">All contribution cycles for this chama</CardDescription>
           </div>
           {isAdmin && (
             <Link href={`/chamas/${chamaId}/cycles/new`}>
-              <Button size="sm">New Cycle</Button>
+              <Button 
+                size="sm"
+                className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all"
+              >
+                New Cycle
+              </Button>
             </Link>
           )}
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
           {/* Active Cycles */}
           {activeCycles.length > 0 && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {activeCycles.length > 1 && (
-                <h4 className="text-sm font-semibold text-muted-foreground">Active Cycles</h4>
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="h-px w-full bg-gradient-to-r from-transparent via-border to-transparent" />
+                  </div>
+                  <h4 className="relative text-xs font-bold uppercase tracking-wider text-muted-foreground px-2 bg-card inline-block">
+                    Active Cycles
+                  </h4>
+                </div>
               )}
               {activeCycles.map((cycle) => (
                 <CycleCard key={cycle.id} cycle={cycle} chamaId={chamaId} getStatusBadge={getStatusBadge} />
@@ -182,9 +194,16 @@ export function CyclesList({ cycles, chamaId, isAdmin = false }: CyclesListProps
 
           {/* Pending Cycles */}
           {pendingCycles.length > 0 && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {pendingCycles.length > 1 && (
-                <h4 className="text-sm font-semibold text-muted-foreground">Pending Cycles</h4>
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="h-px w-full bg-gradient-to-r from-transparent via-border to-transparent" />
+                  </div>
+                  <h4 className="relative text-xs font-bold uppercase tracking-wider text-muted-foreground px-2 bg-card inline-block">
+                    Pending Cycles
+                  </h4>
+                </div>
               )}
               {pendingCycles.map((cycle) => (
                 <CycleCard key={cycle.id} cycle={cycle} chamaId={chamaId} getStatusBadge={getStatusBadge} />
@@ -194,13 +213,20 @@ export function CyclesList({ cycles, chamaId, isAdmin = false }: CyclesListProps
 
           {/* Other Cycles (Paused, Completed) - Limit to last 5 */}
           {otherCycles.length > 0 && (
-            <div className="space-y-4">
-              <h4 className="text-sm font-semibold text-muted-foreground">Other Cycles</h4>
+            <div className="space-y-3">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="h-px w-full bg-gradient-to-r from-transparent via-border to-transparent" />
+                </div>
+                <h4 className="relative text-xs font-bold uppercase tracking-wider text-muted-foreground px-2 bg-card inline-block">
+                  Other Cycles
+                </h4>
+              </div>
               {otherCycles.slice(0, 5).map((cycle) => (
                 <CycleCard key={cycle.id} cycle={cycle} chamaId={chamaId} getStatusBadge={getStatusBadge} />
               ))}
               {otherCycles.length > 5 && (
-                <p className="text-xs text-muted-foreground text-center">
+                <p className="text-xs text-muted-foreground text-center pt-2">
                   Showing 5 of {otherCycles.length} {otherCycles.length > 5 ? 'other' : ''} cycles
                 </p>
               )}

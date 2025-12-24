@@ -82,7 +82,7 @@ export async function POST(
     const { id } = await params
     const body = await request.json()
 
-    const { contribution_id, amount_paid, paid_at, notes } = body
+    const { contribution_id, amount_paid, paid_at, notes, additional_savings } = body
 
     if (!contribution_id) {
       return NextResponse.json<ApiResponse>(
@@ -115,11 +115,23 @@ export async function POST(
       )
     }
 
+    // Validate additional_savings if provided
+    if (additional_savings !== undefined && additional_savings !== null) {
+      const savingsAmount = parseInt(additional_savings, 10)
+      if (isNaN(savingsAmount) || savingsAmount < 0) {
+        return NextResponse.json<ApiResponse>(
+          { success: false, error: 'Additional savings amount must be a positive number' },
+          { status: 400 }
+        )
+      }
+    }
+
     // Record the contribution
     const updatedContribution = await recordContribution(contribution_id, {
       amount_paid: amount_paid || contribution.amount_due,
       paid_at,
       notes,
+      additional_savings: additional_savings ? parseInt(additional_savings, 10) : undefined,
     })
 
     return NextResponse.json<ApiResponse>({

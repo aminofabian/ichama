@@ -239,150 +239,275 @@ export default function CreateCyclePage() {
 
   const selectedMembers = chamaData.members.filter((m) => selectedMemberIds.has(m.id))
 
+  const steps = [
+    { number: 1, label: 'Cycle Details' },
+    { number: 2, label: 'Select Members' },
+    { number: 3, label: 'Turn Order' },
+  ]
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href={`/chamas/${chamaId}`}>
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Chama
-          </Button>
-        </Link>
+    <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/30 pb-4 md:pb-12">
+      {/* Animated Background Elements */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute -left-1/4 -top-1/4 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-[#FFD700]/10 via-[#FFD700]/5 to-transparent blur-3xl animate-pulse" />
+        <div className="absolute -right-1/4 top-1/3 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent blur-3xl animate-pulse delay-1000" />
+        <div className="absolute bottom-1/4 left-1/3 h-[550px] w-[550px] rounded-full bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent blur-3xl animate-pulse delay-2000" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
       </div>
 
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Create New Cycle</h1>
-        <p className="text-muted-foreground">
-          Set up a new contribution cycle for {chamaData.chama.name}
-        </p>
-      </div>
+      <div className="relative z-10 mx-auto max-w-5xl px-3 pt-4 md:px-6 md:pt-12">
+        {/* Header */}
+        <div className="mb-4 md:mb-8">
+          <Link href={`/chamas/${chamaId}`}>
+            <Button variant="ghost" size="sm" className="mb-4 hover:bg-muted/80">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Chama
+            </Button>
+          </Link>
+          <div className="relative inline-block mb-2 md:mb-3">
+            <div className="absolute -inset-1 md:-inset-2 bg-gradient-to-r from-primary/30 via-purple-500/20 to-blue-500/30 rounded-xl md:rounded-2xl blur-xl opacity-60 animate-pulse" />
+            <div className="absolute -inset-0.5 md:-inset-1 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-lg md:rounded-xl blur-md opacity-40" />
+            <h1 className="relative bg-gradient-to-r from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-2xl md:text-4xl font-bold tracking-tight text-transparent">
+              Create New Cycle
+            </h1>
+          </div>
+          <p className="text-xs md:text-sm text-muted-foreground">
+            Set up a new contribution cycle for {chamaData.chama.name}
+          </p>
+        </div>
 
-      <div className="mb-4 flex gap-2">
-        <div
-          className={`h-2 flex-1 rounded-full ${step >= 1 ? 'bg-primary' : 'bg-muted'}`}
-        />
-        <div
-          className={`h-2 flex-1 rounded-full ${step >= 2 ? 'bg-primary' : 'bg-muted'}`}
-        />
-        <div
-          className={`h-2 flex-1 rounded-full ${step >= 3 ? 'bg-primary' : 'bg-muted'}`}
-        />
-      </div>
+        {/* Step Indicator */}
+        <div className="relative mb-4 md:mb-8 py-3 md:py-6">
+          <div className="absolute inset-0 -mx-3 md:-mx-4 rounded-xl md:rounded-2xl bg-gradient-to-r from-muted/30 via-muted/20 to-muted/30 border border-border/30" />
+          <div className="relative flex items-center justify-between px-1 md:px-2">
+            {steps.map((stepItem, index) => {
+              const isCompleted = step > stepItem.number
+              const isCurrent = step === stepItem.number
+              const isUpcoming = step < stepItem.number
 
-      <Card>
-        <CardContent className="pt-6">
-          {step === 1 && (
-            <CycleForm
-              chama={chamaData.chama}
-              formData={formData}
-              updateField={(field, value) =>
-                setFormData((prev) => ({ ...prev, [field]: value }))
-              }
-              errors={errors}
-            />
-          )}
+              return (
+                <div key={stepItem.number} className="flex flex-1 items-center">
+                  <div className="flex flex-col items-center relative z-10 flex-1">
+                    <div className="relative mb-2 md:mb-4">
+                      {isCurrent && (
+                        <>
+                          <div className="absolute -inset-2 md:-inset-3 bg-primary/10 rounded-full blur-lg animate-pulse" />
+                          <div className="absolute -inset-1 md:-inset-2 bg-primary/20 rounded-full blur-md" />
+                        </>
+                      )}
+                      <div
+                        className={`relative flex h-10 w-10 md:h-14 md:w-14 items-center justify-center rounded-full border-2 transition-all duration-500 shadow-xl ${
+                          isCompleted
+                            ? 'border-primary bg-gradient-to-br from-primary via-primary/95 to-primary/80 text-primary-foreground shadow-primary/30'
+                            : isCurrent
+                            ? 'border-primary bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground shadow-primary/40 scale-110 ring-2 md:ring-4 ring-primary/20'
+                            : 'border-muted/50 bg-background/80 text-muted-foreground shadow-sm backdrop-blur-sm'
+                        }`}
+                      >
+                        {isCompleted ? (
+                          <svg className="h-4 w-4 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : (
+                          <span className="text-sm md:text-base font-bold">{stepItem.number}</span>
+                        )}
+                        {(isCompleted || isCurrent) && (
+                          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent" />
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <span
+                        className={`block text-[9px] md:text-xs font-bold uppercase tracking-wider md:tracking-widest transition-all duration-300 ${
+                          isCurrent
+                            ? 'text-foreground scale-105'
+                            : isCompleted
+                            ? 'text-foreground/70'
+                            : 'text-muted-foreground'
+                        }`}
+                      >
+                        {stepItem.label}
+                      </span>
+                      {isCurrent && (
+                        <div className="mt-1 md:mt-2 mx-auto h-0.5 md:h-1 w-6 md:w-8 rounded-full bg-gradient-to-r from-primary to-primary/50 animate-pulse" />
+                      )}
+                    </div>
+                  </div>
+                  {index < steps.length - 1 && (
+                    <div className="relative mx-1 md:mx-2 h-0.5 md:h-1 flex-1 -mt-6 md:-mt-8">
+                      <div className="absolute inset-0 bg-muted/50 rounded-full" />
+                      <div
+                        className={`absolute inset-y-0 left-0 rounded-full bg-gradient-to-r transition-all duration-700 ease-out ${
+                          isCompleted
+                            ? 'from-primary via-primary/90 to-primary/80 w-full shadow-sm shadow-primary/20'
+                            : 'from-primary/30 to-transparent w-0'
+                        }`}
+                      />
+                      {isCompleted && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
 
-          {step === 2 && (
-            <MemberSelector
-              members={chamaData.members.map((m) => ({
-                id: m.id,
-                chama_member_id: m.id,
-                user_id: m.user_id,
-                full_name: m.user?.full_name || 'Unknown',
-                phone_number: m.user?.phone_number || '',
-                role: m.role,
-              }))}
-              selectedMemberIds={selectedMemberIds}
-              onToggle={(memberId) => {
-                const newSet = new Set(selectedMemberIds)
-                if (newSet.has(memberId)) {
-                  newSet.delete(memberId)
-                  // Clear savings when unselected
-                  setMemberSavings((prev) => {
-                    const next = new Map(prev)
-                    next.delete(memberId)
-                    return next
-                  })
-                  setMemberHideSavings((prev) => {
-                    const next = new Map(prev)
-                    next.delete(memberId)
-                    return next
-                  })
-                } else {
-                  newSet.add(memberId)
-                }
-                setSelectedMemberIds(newSet)
-              }}
-              onSelectAll={() => {
-                const allIds = new Set(chamaData.members.map((m) => m.id))
-                setSelectedMemberIds(allIds)
-              }}
-              onSelectNone={() => {
-                setSelectedMemberIds(new Set())
-                setMemberSavings(new Map())
-                setMemberHideSavings(new Map())
-              }}
-              chamaType={chamaData.chama.chama_type}
-              defaultSavingsAmount={formData.savings_amount}
-              contributionAmount={formData.contribution_amount}
-              memberSavings={memberSavings}
-              onSavingsChange={(memberId, amount) => {
-                setMemberSavings((prev) => {
-                  const next = new Map(prev)
-                  if (amount === null) {
-                    next.delete(memberId)
-                  } else {
-                    next.set(memberId, amount)
+        {/* Step Content Card */}
+        <div className="group relative mb-4 md:mb-10">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 via-purple-500/20 to-blue-500/20 rounded-xl md:rounded-3xl blur opacity-30 group-hover:opacity-50 transition-opacity duration-500" />
+          <Card className="relative rounded-xl md:rounded-3xl border border-border/60 bg-card/80 backdrop-blur-xl p-4 md:p-10 shadow-2xl">
+            <div className="absolute inset-0 rounded-xl md:rounded-3xl bg-gradient-to-br from-primary/5 via-transparent to-purple-500/5 pointer-events-none" />
+            <CardContent className="relative pt-0">
+              {step === 1 && (
+                <CycleForm
+                  chama={chamaData.chama}
+                  formData={formData}
+                  updateField={(field, value) =>
+                    setFormData((prev) => ({ ...prev, [field]: value }))
                   }
-                  return next
-                })
-              }}
-              memberHideSavings={memberHideSavings}
-              onHideSavingsChange={(memberId, hide) => {
-                setMemberHideSavings((prev) => {
-                  const next = new Map(prev)
-                  next.set(memberId, hide)
-                  return next
-                })
-              }}
-            />
-          )}
+                  errors={errors}
+                />
+              )}
 
-          {step === 3 && (
-            <TurnAssignment
-              members={selectedMembers.map((m) => ({
-                chama_member_id: m.id,
-                user_id: m.user_id,
-                full_name: m.user?.full_name || 'Unknown',
-                phone_number: m.user?.phone_number || '',
-              }))}
-              turnOrder={turnOrder}
-              onTurnOrderChange={(memberId, turn) => {
-                const newTurnOrder = new Map(turnOrder)
-                newTurnOrder.set(memberId, turn)
-                setTurnOrder(newTurnOrder)
-              }}
-              onShuffle={handleShuffle}
-            />
-          )}
-        </CardContent>
-      </Card>
+              {step === 2 && (
+                <MemberSelector
+                  members={chamaData.members.map((m) => ({
+                    id: m.id,
+                    chama_member_id: m.id,
+                    user_id: m.user_id,
+                    full_name: m.user?.full_name || 'Unknown',
+                    phone_number: m.user?.phone_number || '',
+                    role: m.role,
+                  }))}
+                  selectedMemberIds={selectedMemberIds}
+                  onToggle={(memberId) => {
+                    const newSet = new Set(selectedMemberIds)
+                    if (newSet.has(memberId)) {
+                      newSet.delete(memberId)
+                      setMemberSavings((prev) => {
+                        const next = new Map(prev)
+                        next.delete(memberId)
+                        return next
+                      })
+                      setMemberHideSavings((prev) => {
+                        const next = new Map(prev)
+                        next.delete(memberId)
+                        return next
+                      })
+                    } else {
+                      newSet.add(memberId)
+                    }
+                    setSelectedMemberIds(newSet)
+                  }}
+                  onSelectAll={() => {
+                    const allIds = new Set(chamaData.members.map((m) => m.id))
+                    setSelectedMemberIds(allIds)
+                  }}
+                  onSelectNone={() => {
+                    setSelectedMemberIds(new Set())
+                    setMemberSavings(new Map())
+                    setMemberHideSavings(new Map())
+                  }}
+                  chamaType={chamaData.chama.chama_type}
+                  defaultSavingsAmount={formData.savings_amount}
+                  contributionAmount={formData.contribution_amount}
+                  memberSavings={memberSavings}
+                  onSavingsChange={(memberId, amount) => {
+                    setMemberSavings((prev) => {
+                      const next = new Map(prev)
+                      if (amount === null) {
+                        next.delete(memberId)
+                      } else {
+                        next.set(memberId, amount)
+                      }
+                      return next
+                    })
+                  }}
+                  memberHideSavings={memberHideSavings}
+                  onHideSavingsChange={(memberId, hide) => {
+                    setMemberHideSavings((prev) => {
+                      const next = new Map(prev)
+                      next.set(memberId, hide)
+                      return next
+                    })
+                  }}
+                />
+              )}
 
-      <div className="flex justify-between">
-        <Button
-          variant="primary"
-          onClick={() => setStep(Math.max(1, step - 1))}
-          disabled={step === 1}
-        >
-          Back
-        </Button>
-        {step < 3 ? (
-          <Button onClick={handleNext}>Next</Button>
-        ) : (
-          <Button onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? 'Creating...' : 'Create Cycle'}
+              {step === 3 && (
+                <TurnAssignment
+                  members={selectedMembers.map((m) => ({
+                    chama_member_id: m.id,
+                    user_id: m.user_id,
+                    full_name: m.user?.full_name || 'Unknown',
+                    phone_number: m.user?.phone_number || '',
+                  }))}
+                  turnOrder={turnOrder}
+                  onTurnOrderChange={(memberId, turn) => {
+                    const newTurnOrder = new Map(turnOrder)
+                    newTurnOrder.set(memberId, turn)
+                    setTurnOrder(newTurnOrder)
+                  }}
+                  onShuffle={handleShuffle}
+                />
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Navigation Buttons */}
+        <div className="flex flex-col-reverse gap-2 md:gap-4 sm:flex-row sm:justify-between sm:items-center pb-4 md:pb-0">
+          <Button
+            variant="outline"
+            onClick={() => setStep(Math.max(1, step - 1))}
+            disabled={step === 1}
+            className="group relative w-full sm:w-auto overflow-hidden border-2 transition-all duration-300 hover:scale-[1.02] disabled:opacity-40"
+          >
+            <span className="relative z-10">Back</span>
+            {step > 1 && (
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
+            )}
           </Button>
-        )}
+          {step < 3 ? (
+            <Button 
+              onClick={handleNext}
+              className="group relative w-full sm:w-auto overflow-hidden bg-gradient-to-r from-primary via-primary/95 to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary/90 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <span className="relative z-10 flex items-center gap-2">
+                Next
+                <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
+            </Button>
+          ) : (
+            <Button 
+              onClick={handleSubmit} 
+              disabled={isSubmitting}
+              className="group relative w-full sm:w-auto overflow-hidden bg-gradient-to-r from-primary via-primary/95 to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary/90 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70"
+            >
+              {isSubmitting ? (
+                <span className="relative z-10 flex items-center gap-2">
+                  <LoadingSpinner size="sm" />
+                  <span>Creating...</span>
+                </span>
+              ) : (
+                <>
+                  <span className="relative z-10 flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Create Cycle
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
+                </>
+              )}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   )

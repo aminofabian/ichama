@@ -4,6 +4,7 @@ import { getCycleMemberByCycleMemberId } from '@/lib/db/queries/cycle-members'
 import { getSavingsAccount, updateSavingsBalance, createSavingsTransaction } from '@/lib/db/queries/savings'
 import { createWalletTransaction } from '@/lib/db/queries/wallet'
 import { createNotification } from '@/lib/db/queries/notifications'
+import { creditSavings } from '@/lib/services/savings-service'
 import type { Contribution } from '@/lib/types/contribution'
 
 export async function recordContribution(
@@ -12,6 +13,7 @@ export async function recordContribution(
     amount_paid: number
     paid_at?: string
     notes?: string
+    additional_savings?: number
   }
 ): Promise<Contribution> {
   const contribution = await getContributionById(contributionId)
@@ -33,6 +35,16 @@ export async function recordContribution(
     status,
     notes: data.notes || null,
   })
+
+  // If additional savings amount is provided, credit it immediately
+  if (data.additional_savings && data.additional_savings > 0) {
+    await creditSavings(
+      contribution.user_id,
+      data.additional_savings,
+      contribution.cycle_id,
+      'contribution'
+    )
+  }
 
   return updatedContribution
 }
