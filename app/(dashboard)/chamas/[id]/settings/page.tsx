@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Trash2 } from 'lucide-react'
+import { ArrowLeft, Trash2, Settings, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -152,121 +152,189 @@ export default function ChamaSettingsPage() {
 
   return (
     <>
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Link href={`/chamas/${chamaId}`}>
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Chama
-            </Button>
-          </Link>
+      <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/30 pb-4 md:pb-12">
+        {/* Animated Background Elements */}
+        <div className="pointer-events-none fixed inset-0 overflow-hidden">
+          <div className="absolute -left-1/4 -top-1/4 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-[#FFD700]/10 via-[#FFD700]/5 to-transparent blur-3xl animate-pulse" />
+          <div className="absolute -right-1/4 top-1/3 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent blur-3xl animate-pulse delay-1000" />
+          <div className="absolute bottom-1/4 left-1/3 h-[550px] w-[550px] rounded-full bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent blur-3xl animate-pulse delay-2000" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
         </div>
 
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-          <p className="text-muted-foreground">Manage your chama settings</p>
+        <div className="relative z-10 mx-auto max-w-4xl px-3 pt-4 md:px-6 md:pt-12">
+          {/* Header */}
+          <div className="mb-4 md:mb-8">
+            <Link href={`/chamas/${chamaId}`}>
+              <Button variant="ghost" size="sm" className="mb-4 hover:bg-muted/80">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Chama
+              </Button>
+            </Link>
+            <div className="relative inline-block mb-2 md:mb-3">
+              <div className="absolute -inset-1 md:-inset-2 bg-gradient-to-r from-primary/30 via-purple-500/20 to-blue-500/30 rounded-xl md:rounded-2xl blur-xl opacity-60 animate-pulse" />
+              <div className="absolute -inset-0.5 md:-inset-1 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-lg md:rounded-xl blur-md opacity-40" />
+              <h1 className="relative flex items-center gap-3 bg-gradient-to-r from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-2xl md:text-4xl font-bold tracking-tight text-transparent">
+                <Settings className="relative h-6 w-6 md:h-8 md:w-8 text-primary" />
+                <span>Settings</span>
+              </h1>
+            </div>
+            <p className="text-xs md:text-sm text-muted-foreground">
+              Manage your chama settings and preferences
+            </p>
+          </div>
+
+          {/* General Settings Card */}
+          <div className="group relative mb-4 md:mb-8">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 via-purple-500/20 to-blue-500/20 rounded-xl md:rounded-3xl blur opacity-30 group-hover:opacity-50 transition-opacity duration-500" />
+            <Card className="relative rounded-xl md:rounded-3xl border border-border/60 bg-card/80 backdrop-blur-xl p-4 md:p-8 shadow-2xl">
+              <div className="absolute inset-0 rounded-xl md:rounded-3xl bg-gradient-to-br from-primary/5 via-transparent to-purple-500/5 pointer-events-none" />
+              <CardHeader className="relative pb-4 md:pb-6">
+                <CardTitle className="text-lg md:text-xl font-bold">General Settings</CardTitle>
+                <CardDescription className="text-xs md:text-sm">
+                  Update your chama information and preferences
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="relative space-y-4 md:space-y-6">
+                <div className="space-y-1.5">
+                  <Input
+                    label="Chama Name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="description" className="text-sm font-medium">Description</Label>
+                  <textarea
+                    id="description"
+                    className="flex min-h-[100px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all"
+                    placeholder="Describe your chama..."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between rounded-xl border border-border/50 bg-muted/30 p-3 md:p-5 transition-all hover:bg-muted/50">
+                  <div className="space-y-0.5 flex-1 pr-4">
+                    <Label htmlFor="privacy" className="text-sm md:text-base font-semibold">Private Chama</Label>
+                    <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                      Only members with invite links can join
+                    </p>
+                  </div>
+                  <Switch
+                    id="privacy"
+                    checked={isPrivate}
+                    onCheckedChange={setIsPrivate}
+                  />
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <Button 
+                    onClick={handleSave} 
+                    disabled={isSaving}
+                    className="group relative overflow-hidden bg-gradient-to-r from-primary via-primary/95 to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary/90 shadow-lg hover:shadow-xl transition-all"
+                  >
+                    {isSaving ? (
+                      <>
+                        <LoadingSpinner size="sm" />
+                        <span className="ml-2">Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="relative z-10">Save Changes</span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Danger Zone Card */}
+          <div className="group relative">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-destructive/20 via-red-500/20 to-destructive/20 rounded-xl md:rounded-3xl blur opacity-30 group-hover:opacity-50 transition-opacity duration-500" />
+            <Card className="relative rounded-xl md:rounded-3xl border-2 border-destructive/50 bg-card/80 backdrop-blur-xl p-4 md:p-8 shadow-2xl">
+              <div className="absolute inset-0 rounded-xl md:rounded-3xl bg-gradient-to-br from-destructive/5 via-transparent to-red-500/5 pointer-events-none" />
+              <CardHeader className="relative pb-4 md:pb-6">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 md:h-6 md:w-6 text-destructive" />
+                  <CardTitle className="text-lg md:text-xl font-bold text-destructive">Danger Zone</CardTitle>
+                </div>
+                <CardDescription className="text-xs md:text-sm">
+                  Irreversible actions that will affect your chama permanently
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="relative">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-lg border border-destructive/30 bg-destructive/5 p-4 md:p-5">
+                  <div className="flex-1">
+                    <p className="font-semibold text-sm md:text-base mb-1">Delete Chama</p>
+                    <p className="text-xs md:text-sm text-muted-foreground">
+                      Permanently delete this chama and all its data. This action cannot be undone.
+                    </p>
+                  </div>
+                  <Button
+                    variant="danger"
+                    onClick={() => setShowDeleteModal(true)}
+                    className="group relative overflow-hidden shadow-lg hover:shadow-xl transition-all w-full sm:w-auto"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete Chama
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>General Settings</CardTitle>
-            <CardDescription>Update your chama information</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <Input
-                label="Chama Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <textarea
-                id="description"
-                className="mt-2 flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                placeholder="Describe your chama..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </div>
-
-            <div className="flex items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <Label htmlFor="privacy">Private Chama</Label>
-                <p className="text-sm text-muted-foreground">
-                  Only members with invite links can join
-                </p>
-              </div>
-              <Switch
-                id="privacy"
-                checked={isPrivate}
-                onCheckedChange={setIsPrivate}
-              />
-            </div>
-
-            <div className="flex justify-end">
-              <Button onClick={handleSave} disabled={isSaving}>
-                {isSaving ? 'Saving...' : 'Save Changes'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-destructive">
-          <CardHeader>
-            <CardTitle className="text-destructive">Danger Zone</CardTitle>
-            <CardDescription>
-              Irreversible actions that will affect your chama
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Delete Chama</p>
-                <p className="text-sm text-muted-foreground">
-                  Permanently delete this chama and all its data
-                </p>
-              </div>
-              <Button
-                variant="danger"
-                onClick={() => setShowDeleteModal(true)}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete Chama
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
+      {/* Delete Confirmation Modal */}
       <Modal
         open={showDeleteModal}
         onOpenChange={setShowDeleteModal}
       >
-        <ModalContent>
+        <ModalContent className="border-2 border-destructive/50">
           <ModalHeader>
-            <ModalTitle>Delete Chama</ModalTitle>
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              <ModalTitle className="text-destructive">Delete Chama</ModalTitle>
+            </div>
           </ModalHeader>
-          <div className="space-y-4">
-            <p>
-              Are you sure you want to delete <strong>{data.chama.name}</strong>?
+          <div className="space-y-4 pt-2">
+            <p className="text-sm md:text-base">
+              Are you sure you want to delete <strong className="text-destructive">{data.chama.name}</strong>?
             </p>
-            <p className="text-sm text-muted-foreground">
-              This action cannot be undone. All chama data, including members, cycles,
-              and contributions will be permanently deleted.
-            </p>
-            <div className="flex justify-end gap-2">
-              <Button variant="primary" onClick={() => setShowDeleteModal(false)}>
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 md:p-4">
+              <p className="text-xs md:text-sm text-muted-foreground">
+                This action cannot be undone. All chama data, including members, cycles,
+                and contributions will be permanently deleted.
+              </p>
+            </div>
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowDeleteModal(false)}
+                className="w-full sm:w-auto"
+              >
                 Cancel
               </Button>
               <Button
                 variant="danger"
                 onClick={handleDelete}
                 disabled={isDeleting}
+                className="group relative overflow-hidden w-full sm:w-auto shadow-lg hover:shadow-xl transition-all"
               >
-                {isDeleting ? 'Deleting...' : 'Delete Permanently'}
+                {isDeleting ? (
+                  <>
+                    <LoadingSpinner size="sm" />
+                    <span className="ml-2">Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete Permanently
+                  </>
+                )}
               </Button>
             </div>
           </div>
