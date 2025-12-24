@@ -30,7 +30,7 @@ export async function sendOTP(
     console.log('========================================\n')
   }
 
-  if (!SMS_API_URL || !SMS_API_KEY) {
+  if (!SMS_API_URL || !SMS_API_KEY || !SMS_PARTNER_ID) {
     console.warn('SMS service not configured, skipping OTP send')
     return
   }
@@ -40,13 +40,13 @@ export async function sendOTP(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${SMS_API_KEY}`,
       },
       body: JSON.stringify({
-        to: phoneNumber,
+        apikey: SMS_API_KEY,
+        partnerID: SMS_PARTNER_ID,
+        mobile: phoneNumber,
+        shortcode: SMS_SENDER_ID,
         message: `Your Merry verification code is: ${code}. Valid for ${process.env.OTP_EXPIRY_MINUTES || 10} minutes.`,
-        senderId: SMS_SENDER_ID,
-        partnerId: SMS_PARTNER_ID,
       }),
     })
 
