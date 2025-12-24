@@ -87,20 +87,20 @@ export function StepReview({ formData, onEdit }: StepReviewProps) {
           </CardHeader>
           <CardContent className="space-y-3 pt-0 px-4 pb-4">
             <div className="grid grid-cols-2 gap-3">
-              <div>
+            <div>
                 <p className="text-[10px] text-muted-foreground mb-1 uppercase tracking-wider">Contribution Amount</p>
                 <p className="font-bold text-sm">
-                  {formatCurrency(formData.contributionAmount)}
-                </p>
-              </div>
-              <div>
+                {formatCurrency(formData.contributionAmount)}
+              </p>
+            </div>
+            <div>
                 <p className="text-[10px] text-muted-foreground mb-1 uppercase tracking-wider">Frequency</p>
                 <p className="font-semibold text-sm">
-                  {formData.frequency
-                    ? frequencyLabels[formData.frequency]
-                    : 'Not selected'}
-                </p>
-              </div>
+                {formData.frequency
+                  ? frequencyLabels[formData.frequency]
+                  : 'Not selected'}
+              </p>
+            </div>
             </div>
             <div className="mt-2 rounded-lg border border-border/50 bg-gradient-to-br from-muted/40 to-muted/20 p-3">
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Breakdown</p>

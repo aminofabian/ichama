@@ -156,11 +156,11 @@ export function ContributionPaymentButtons({ contributions, onUpdate }: Contribu
           description: `Your contribution has been recorded and ${formatCurrency(savingsAmount)} has been credited to your savings account.`,
         })
       } else {
-        addToast({
-          variant: 'success',
-          title: 'Payment Recorded',
-          description: 'Your contribution has been recorded. An admin will confirm it and process your savings.',
-        })
+      addToast({
+        variant: 'success',
+        title: 'Payment Recorded',
+        description: 'Your contribution has been recorded. An admin will confirm it and process your savings.',
+      })
       }
 
       handleCloseModal()
@@ -182,27 +182,27 @@ export function ContributionPaymentButtons({ contributions, onUpdate }: Contribu
 
   return (
     <div className="space-y-2">
-      {contributions.map((contrib) => {
-        const daysRemaining = getDaysRemaining(contrib.due_date)
-        const remaining = contrib.amount_due - contrib.amount_paid
-        const effectiveSavings = contrib.custom_savings_amount ?? contrib.savings_amount
-        const hasSavings = effectiveSavings > 0 && (contrib.chama_type === 'savings' || contrib.chama_type === 'hybrid')
-        const buttonColor = getButtonColor(daysRemaining)
-        const isProcessing = processingId === contrib.id
+          {contributions.map((contrib) => {
+            const daysRemaining = getDaysRemaining(contrib.due_date)
+            const remaining = contrib.amount_due - contrib.amount_paid
+            const effectiveSavings = contrib.custom_savings_amount ?? contrib.savings_amount
+            const hasSavings = effectiveSavings > 0 && (contrib.chama_type === 'savings' || contrib.chama_type === 'hybrid')
+            const buttonColor = getButtonColor(daysRemaining)
+            const isProcessing = processingId === contrib.id
 
-        return (
-          <div
-            key={contrib.id}
+            return (
+              <div
+                key={contrib.id}
             className="rounded-lg border p-3 hover:bg-muted/50 transition-colors"
-          >
+              >
             <div className="flex items-center justify-between gap-3 mb-2">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
                   <h3 className="font-semibold text-sm truncate">{contrib.chama_name}</h3>
                   <Badge variant="default" className="text-[10px] px-1.5 py-0">
-                    {contrib.cycle_name}
-                  </Badge>
-                </div>
+                        {contrib.cycle_name}
+                      </Badge>
+                    </div>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
                   <span>Period {contrib.period_number}</span>
                   <span>•</span>
@@ -217,23 +217,23 @@ export function ContributionPaymentButtons({ contributions, onUpdate }: Contribu
                     </>
                   )}
                 </div>
-              </div>
+                  </div>
               <div className="flex items-center gap-2 flex-shrink-0">
-                <div className="text-right">
+                  <div className="text-right">
                   <p className="text-xs text-muted-foreground">Due {formatDate(contrib.due_date)}</p>
-                  <p className={`text-xs font-medium ${
-                    daysRemaining < 0 ? 'text-red-600' :
-                    daysRemaining <= 2 ? 'text-red-600' :
-                    daysRemaining <= 4 ? 'text-yellow-600' :
-                    'text-green-600'
-                  }`}>
-                    {daysRemaining < 0 
+                    <p className={`text-xs font-medium ${
+                      daysRemaining < 0 ? 'text-red-600' :
+                      daysRemaining <= 2 ? 'text-red-600' :
+                      daysRemaining <= 4 ? 'text-yellow-600' :
+                      'text-green-600'
+                    }`}>
+                      {daysRemaining < 0 
                       ? `${Math.abs(daysRemaining)}d overdue`
-                      : daysRemaining === 0
-                      ? 'Due today'
+                        : daysRemaining === 0
+                        ? 'Due today'
                       : `${daysRemaining}d left`
-                    }
-                  </p>
+                      }
+                    </p>
                 </div>
                 <div className="flex gap-1.5">
                   <Button
@@ -243,7 +243,7 @@ export function ContributionPaymentButtons({ contributions, onUpdate }: Contribu
                     className={`text-white text-xs px-3 py-1.5 h-auto ${buttonColor}`}
                   >
                     {isProcessing ? (
-                      <LoadingSpinner size="sm" />
+                        <LoadingSpinner size="sm" />
                     ) : (
                       <>
                         <Wallet className="h-3 w-3 mr-1" />
@@ -268,9 +268,9 @@ export function ContributionPaymentButtons({ contributions, onUpdate }: Contribu
                 Paid: {formatCurrency(contrib.amount_paid)} • Remaining: {formatCurrency(remaining)}
               </p>
             )}
-          </div>
-        )
-      })}
+              </div>
+            )
+          })}
 
       {/* Payment Modal */}
       {selectedContribution && (() => {

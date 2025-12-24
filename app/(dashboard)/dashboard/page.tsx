@@ -318,12 +318,12 @@ export default function DashboardPage() {
               <div className="relative flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-50/50 to-cyan-50/50 dark:from-blue-950/20 dark:to-cyan-950/20 border border-blue-200/30 dark:border-blue-800/30">
                 <Users className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                 <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">
-                  Active Chamas
+                Active Chamas
                 </span>
                 <div className="ml-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 dark:bg-blue-500">
                   <span className="text-[9px] font-bold text-white">{data.stats.activeChamas}</span>
                 </div>
-              </div>
+            </div>
             </div>
           </div>
           <Link

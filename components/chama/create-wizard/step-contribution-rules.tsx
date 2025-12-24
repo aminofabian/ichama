@@ -157,7 +157,7 @@ export function StepContributionRules({
               <div className="mt-2 p-2.5 rounded-lg bg-destructive/10 border border-destructive/20">
                 <p className="text-[10px] text-destructive font-medium">
                   ⚠️ Total breakdown ({formatCurrency(total)}) does not match contribution amount ({formatCurrency(formData.contributionAmount)})
-                </p>
+              </p>
               </div>
             )}
           </div>

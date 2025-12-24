@@ -103,7 +103,7 @@ export function Sidebar({ user, collapsed = false }: SidebarProps) {
               )}
             >
               <Icon className="h-5 w-5" />
-              {!collapsed && <span>{item.label}</span>}
+              {!collapsed && <span>{item.label}...</span>}
             </Link>
           )
         })}

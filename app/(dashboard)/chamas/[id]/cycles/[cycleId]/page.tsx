@@ -161,136 +161,150 @@ export default function CycleDashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+    <div className="min-h-screen bg-background pb-20 md:pb-8 overflow-x-hidden">
+      <div className="mx-auto max-w-7xl w-full px-4 pt-4 sm:pt-6 md:px-6 md:pt-8">
+        {/* Header */}
+        <div className="mb-4 sm:mb-6">
           <Button
             variant="ghost"
             onClick={() => router.push(`/chamas/${chamaId}`)}
-            className="mb-2"
+            className="mb-3 sm:mb-4 -ml-2"
+            size="sm"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Chama
+            <span className="hidden sm:inline">Back</span>
           </Button>
-          <h1 className="text-3xl font-bold">{cycle.name}</h1>
-          <p className="text-muted-foreground mt-1">
-            {cycle.status === 'active'
-              ? `Period ${cycle.current_period} of ${cycle.total_periods}`
-              : cycle.status.charAt(0).toUpperCase() + cycle.status.slice(1)}
-          </p>
-        </div>
-      </div>
-
-      {/* Summary Cards */}
-      <CycleSummary cycle={cycle} stats={stats} />
-
-      {/* Main Content Grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left Column - Period Tracker */}
-        <div className="lg:col-span-2 space-y-6">
-          <PeriodTracker cycle={cycle} />
-          
-          {isAdmin ? (
-            <MemberStatusTable
-              cycle={cycle}
-              chamaType={chama?.chama_type}
-              members={membersWithData}
-              isAdmin={isAdmin}
-              currentUserId={currentUserId}
-              onMemberAction={(memberId, action) => {
-                if (action === 'refresh') {
-                  fetchCycleData()
-                }
-              }}
-            />
-          ) : (
-            // Member view: Show their contribution card and savings info
-            <div className="space-y-6">
-              {currentUserContribution && (
-                <MyContributionCard
-                  contribution={currentUserContribution}
-                  onUpdate={fetchCycleData}
-                />
-              )}
-              {cycle.savings_amount > 0 && currentUserCycleMember && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>My Savings</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Savings Amount</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <p className="text-lg font-semibold">
-                          {formatCurrency(
-                            currentUserCycleMember.custom_savings_amount ?? cycle.savings_amount
-                          )}
-                        </p>
-                        {currentUserCycleMember.custom_savings_amount !== null && (
-                          <Badge variant="info" className="text-xs">
-                            Custom
-                          </Badge>
-                        )}
-                        {currentUserCycleMember.custom_savings_amount === null && (
-                          <span className="text-xs text-muted-foreground">(Default)</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between border-t pt-3">
-                      <div className="flex items-center gap-2 flex-1">
-                        {currentUserCycleMember.hide_savings === 1 ? (
-                          <EyeOff className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-muted-foreground" />
-                        )}
-                        <Label htmlFor="hide-savings-cycle" className="text-sm cursor-pointer">
-                          Hide my savings amount from other members
-                        </Label>
-                      </div>
-                      <Switch
-                        id="hide-savings-cycle"
-                        checked={currentUserCycleMember.hide_savings === 1}
-                        onCheckedChange={async (checked) => {
-                          if (!currentUserCycleMember) return
-                          try {
-                            const response = await fetch(
-                              `/api/chamas/${chamaId}/cycles/${cycleId}/members/${currentUserCycleMember.id}/savings`,
-                              {
-                                method: 'PATCH',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ hide_savings: checked ? 1 : 0 }),
-                              }
-                            )
-                            const result = await response.json()
-                            if (response.ok && result.success) {
-                              fetchCycleData()
-                            }
-                          } catch (error) {
-                            console.error('Failed to update privacy:', error)
-                          }
-                        }}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2 truncate">{cycle.name}</h1>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge
+                  variant={cycle.status === 'active' ? 'success' : cycle.status === 'completed' ? 'info' : 'default'}
+                  className="text-xs"
+                >
+                  {cycle.status === 'active'
+                    ? `Period ${cycle.current_period} of ${cycle.total_periods}`
+                    : cycle.status.charAt(0).toUpperCase() + cycle.status.slice(1)}
+                </Badge>
+              </div>
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Right Column - Payout & Controls */}
-        <div className="space-y-6">
-          <PayoutRecipient
-            payout={currentPeriodPayout}
-            recipient={currentPeriodRecipient || null}
-            isAdmin={isAdmin}
-            onConfirmPayout={handleConfirmPayout}
-          />
+        {/* Summary Cards */}
+        <div className="mb-4 sm:mb-6">
+          <CycleSummary cycle={cycle} stats={stats} />
+        </div>
 
-          {isAdmin && (
-            <AdminControls cycle={cycle} onCycleUpdate={fetchCycleData} />
-          )}
+        {/* Main Content Grid */}
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-3 w-full">
+          {/* Left Column - Main Content */}
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6 min-w-0">
+            {/* Period Tracker */}
+            <PeriodTracker cycle={cycle} />
+
+            {/* Member/Admin Content */}
+            {isAdmin ? (
+              <MemberStatusTable
+                cycle={cycle}
+                chamaType={chama?.chama_type}
+                members={membersWithData}
+                isAdmin={isAdmin}
+                currentUserId={currentUserId}
+                onMemberAction={(memberId, action) => {
+                  if (action === 'refresh') {
+                    fetchCycleData()
+                  }
+                }}
+              />
+            ) : (
+              <div className="space-y-4 sm:space-y-6">
+                {currentUserContribution && (
+                  <MyContributionCard
+                    contribution={currentUserContribution}
+                    onUpdate={fetchCycleData}
+                  />
+                )}
+                {cycle.savings_amount > 0 && currentUserCycleMember && (
+                  <Card className="border-border/50 shadow-sm">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base sm:text-lg">My Savings</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="rounded-lg border border-border/50 bg-muted/30 p-3 sm:p-4">
+                        <p className="text-xs font-medium text-muted-foreground mb-1">Savings Amount</p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-lg sm:text-xl font-bold">
+                            {formatCurrency(
+                              currentUserCycleMember.custom_savings_amount ?? cycle.savings_amount
+                            )}
+                          </p>
+                          {currentUserCycleMember.custom_savings_amount !== null && (
+                            <Badge variant="info" className="text-xs">
+                              Custom
+                            </Badge>
+                          )}
+                          {currentUserCycleMember.custom_savings_amount === null && (
+                            <span className="text-xs text-muted-foreground">(Default)</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border border-border/50 bg-muted/30 p-3 sm:p-4">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          {currentUserCycleMember.hide_savings === 1 ? (
+                            <EyeOff className="h-4 w-4 shrink-0 text-muted-foreground" />
+                          ) : (
+                            <Eye className="h-4 w-4 shrink-0 text-muted-foreground" />
+                          )}
+                          <Label htmlFor="hide-savings-cycle" className="text-xs sm:text-sm cursor-pointer">
+                            Hide my savings amount from other members
+                          </Label>
+                        </div>
+                        <Switch
+                          id="hide-savings-cycle"
+                          checked={currentUserCycleMember.hide_savings === 1}
+                          onCheckedChange={async (checked) => {
+                            if (!currentUserCycleMember) return
+                            try {
+                              const response = await fetch(
+                                `/api/chamas/${chamaId}/cycles/${cycleId}/members/${currentUserCycleMember.id}/savings`,
+                                {
+                                  method: 'PATCH',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ hide_savings: checked ? 1 : 0 }),
+                                }
+                              )
+                              const result = await response.json()
+                              if (response.ok && result.success) {
+                                fetchCycleData()
+                              }
+                            } catch (error) {
+                              console.error('Failed to update privacy:', error)
+                            }
+                          }}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
+
+            {/* Admin Controls */}
+            {isAdmin && (
+              <AdminControls cycle={cycle} onCycleUpdate={fetchCycleData} />
+            )}
+          </div>
+
+          {/* Right Column - Payout & Sidebar */}
+          <div className="space-y-4 sm:space-y-6 min-w-0">
+            <PayoutRecipient
+              payout={currentPeriodPayout}
+              recipient={currentPeriodRecipient || null}
+              isAdmin={isAdmin}
+              onConfirmPayout={handleConfirmPayout}
+            />
+          </div>
         </div>
       </div>
     </div>

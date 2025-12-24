@@ -187,15 +187,15 @@ export default function CreateChamaPage() {
           <div className="hidden md:flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
             <div className="h-px w-8 bg-gradient-to-r from-transparent to-muted-foreground/30" />
             <p className="text-sm md:text-base font-medium">
-              Set up your savings group in a few simple steps
-            </p>
+          Set up your savings group in a few simple steps
+        </p>
             <div className="h-px w-8 bg-gradient-to-l from-transparent to-muted-foreground/30" />
           </div>
-        </div>
+      </div>
 
         {/* Enhanced Step Indicator */}
         <div className="mb-4 md:mb-10">
-          <StepIndicator currentStep={currentStep} steps={steps} />
+      <StepIndicator currentStep={currentStep} steps={steps} />
         </div>
 
         {/* Premium Step Content Card */}
@@ -206,25 +206,25 @@ export default function CreateChamaPage() {
             {/* Subtle inner glow */}
             <div className="absolute inset-0 rounded-xl md:rounded-3xl bg-gradient-to-br from-primary/5 via-transparent to-purple-500/5 pointer-events-none" />
             <div className="relative">
-              {renderStep()}
+        {renderStep()}
             </div>
           </div>
-        </div>
+      </div>
 
         {/* Premium Navigation Section */}
         <div className="flex flex-col-reverse gap-2 md:gap-4 sm:flex-row sm:justify-between sm:items-center pb-4 md:pb-0">
-          <Button
+        <Button
             variant="outline"
-            onClick={prevStep}
-            disabled={currentStep === 1}
+          onClick={prevStep}
+          disabled={currentStep === 1}
             className="group relative w-full sm:w-auto overflow-hidden border-2 transition-all duration-300 hover:scale-[1.02] disabled:opacity-40 disabled:cursor-not-allowed"
-          >
+        >
             <span className="relative z-10">Back</span>
             {currentStep > 1 && (
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
             )}
-          </Button>
-          {currentStep < 4 ? (
+        </Button>
+        {currentStep < 4 ? (
             <Button 
               onClick={handleNext}
               className="group relative w-full sm:w-auto overflow-hidden bg-gradient-to-r from-primary via-primary/95 to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary/90 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
@@ -237,15 +237,15 @@ export default function CreateChamaPage() {
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
             </Button>
-          ) : (
+        ) : (
             <Button 
               onClick={handleSubmit} 
               disabled={isSubmitting}
               className="group relative w-full sm:w-auto overflow-hidden bg-gradient-to-r from-primary via-primary/95 to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary/90 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70"
             >
-              {isSubmitting ? (
+            {isSubmitting ? (
                 <span className="relative z-10 flex items-center gap-2">
-                  <LoadingSpinner size="sm" />
+                <LoadingSpinner size="sm" />
                   <span>Creating...</span>
                 </span>
               ) : (
@@ -258,9 +258,9 @@ export default function CreateChamaPage() {
                   </span>
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
                 </>
-              )}
-            </Button>
-          )}
+            )}
+          </Button>
+        )}
         </div>
       </div>
     </div>

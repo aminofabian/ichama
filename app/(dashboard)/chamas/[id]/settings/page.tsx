@@ -164,12 +164,12 @@ export default function ChamaSettingsPage() {
         <div className="relative z-10 mx-auto max-w-4xl px-3 pt-4 md:px-6 md:pt-12">
           {/* Header */}
           <div className="mb-4 md:mb-8">
-            <Link href={`/chamas/${chamaId}`}>
+          <Link href={`/chamas/${chamaId}`}>
               <Button variant="ghost" size="sm" className="mb-4 hover:bg-muted/80">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Chama
-              </Button>
-            </Link>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Chama
+            </Button>
+          </Link>
             <div className="relative inline-block mb-2 md:mb-3">
               <div className="absolute -inset-1 md:-inset-2 bg-gradient-to-r from-primary/30 via-purple-500/20 to-blue-500/30 rounded-xl md:rounded-2xl blur-xl opacity-60 animate-pulse" />
               <div className="absolute -inset-0.5 md:-inset-1 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-lg md:rounded-xl blur-md opacity-40" />
@@ -177,11 +177,11 @@ export default function ChamaSettingsPage() {
                 <Settings className="relative h-6 w-6 md:h-8 md:w-8 text-primary" />
                 <span>Settings</span>
               </h1>
-            </div>
+        </div>
             <p className="text-xs md:text-sm text-muted-foreground">
               Manage your chama settings and preferences
             </p>
-          </div>
+        </div>
 
           {/* General Settings Card */}
           <div className="group relative mb-4 md:mb-8">
@@ -193,40 +193,40 @@ export default function ChamaSettingsPage() {
                 <CardDescription className="text-xs md:text-sm">
                   Update your chama information and preferences
                 </CardDescription>
-              </CardHeader>
+          </CardHeader>
               <CardContent className="relative space-y-4 md:space-y-6">
                 <div className="space-y-1.5">
-                  <Input
-                    label="Chama Name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                </div>
+              <Input
+                label="Chama Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
 
                 <div className="space-y-1.5">
                   <Label htmlFor="description" className="text-sm font-medium">Description</Label>
-                  <textarea
-                    id="description"
+              <textarea
+                id="description"
                     className="flex min-h-[100px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all"
-                    placeholder="Describe your chama..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
-                </div>
+                placeholder="Describe your chama..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
 
                 <div className="flex items-center justify-between rounded-xl border border-border/50 bg-muted/30 p-3 md:p-5 transition-all hover:bg-muted/50">
                   <div className="space-y-0.5 flex-1 pr-4">
                     <Label htmlFor="privacy" className="text-sm md:text-base font-semibold">Private Chama</Label>
                     <p className="text-xs md:text-sm text-muted-foreground mt-1">
-                      Only members with invite links can join
-                    </p>
-                  </div>
-                  <Switch
-                    id="privacy"
-                    checked={isPrivate}
-                    onCheckedChange={setIsPrivate}
-                  />
-                </div>
+                  Only members with invite links can join
+                </p>
+              </div>
+              <Switch
+                id="privacy"
+                checked={isPrivate}
+                onCheckedChange={setIsPrivate}
+              />
+            </div>
 
                 <div className="flex justify-end pt-2">
                   <Button 
@@ -245,10 +245,10 @@ export default function ChamaSettingsPage() {
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
                       </>
                     )}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
           </div>
 
           {/* Danger Zone Card */}
@@ -263,27 +263,27 @@ export default function ChamaSettingsPage() {
                 </div>
                 <CardDescription className="text-xs md:text-sm">
                   Irreversible actions that will affect your chama permanently
-                </CardDescription>
-              </CardHeader>
+            </CardDescription>
+          </CardHeader>
               <CardContent className="relative">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-lg border border-destructive/30 bg-destructive/5 p-4 md:p-5">
                   <div className="flex-1">
                     <p className="font-semibold text-sm md:text-base mb-1">Delete Chama</p>
                     <p className="text-xs md:text-sm text-muted-foreground">
                       Permanently delete this chama and all its data. This action cannot be undone.
-                    </p>
-                  </div>
-                  <Button
-                    variant="danger"
-                    onClick={() => setShowDeleteModal(true)}
+                </p>
+              </div>
+              <Button
+                variant="danger"
+                onClick={() => setShowDeleteModal(true)}
                     className="group relative overflow-hidden shadow-lg hover:shadow-xl transition-all w-full sm:w-auto"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete Chama
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete Chama
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
           </div>
         </div>
       </div>
@@ -306,9 +306,9 @@ export default function ChamaSettingsPage() {
             </p>
             <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 md:p-4">
               <p className="text-xs md:text-sm text-muted-foreground">
-                This action cannot be undone. All chama data, including members, cycles,
-                and contributions will be permanently deleted.
-              </p>
+              This action cannot be undone. All chama data, including members, cycles,
+              and contributions will be permanently deleted.
+            </p>
             </div>
             <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
               <Button 

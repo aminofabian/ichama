@@ -81,7 +81,7 @@ export default function ChamaDetailPage() {
           <div className="absolute -right-1/4 top-1/3 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent blur-3xl animate-pulse delay-1000" />
         </div>
         <div className="relative z-10">
-          <LoadingSpinner size="lg" />
+        <LoadingSpinner size="lg" />
         </div>
       </div>
     )
@@ -94,10 +94,10 @@ export default function ChamaDetailPage() {
           <div className="absolute -left-1/4 -top-1/4 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-destructive/10 via-destructive/5 to-transparent blur-3xl animate-pulse" />
         </div>
         <div className="relative z-10 flex items-center justify-center min-h-[400px] px-4">
-          <EmptyState
-            title="Chama not found"
-            description={error || 'The chama you are looking for does not exist or you do not have access to it.'}
-          />
+      <EmptyState
+        title="Chama not found"
+        description={error || 'The chama you are looking for does not exist or you do not have access to it.'}
+      />
         </div>
       </div>
     )
@@ -125,36 +125,36 @@ export default function ChamaDetailPage() {
       <div className="relative z-10 mx-auto max-w-7xl px-3 pt-4 md:px-6 md:pt-8 pb-20 md:pb-12">
         {/* Header Section with enhanced spacing */}
         <div className="mb-6 md:mb-8">
-          <ChamaHeader
-            chama={chama}
-            memberCount={members.length}
-            isAdmin={isAdmin}
-          />
+      <ChamaHeader
+        chama={chama}
+        memberCount={members.length}
+        isAdmin={isAdmin}
+      />
         </div>
 
         {/* Content Section */}
         <div className="space-y-6 md:space-y-8">
-          {isAdmin ? (
-            <AdminView
-              chama={chama}
-              members={members}
-              activeCycle={data.activeCycle}
-              collectionRate={0}
-              savingsPot={0}
-              cycles={cycles}
-              pendingCycle={pendingCycle}
-              pendingCycleMembers={pendingCycleMembers}
-            />
-          ) : (
-            <MemberView
-              chama={chama}
-              member={member}
-              activeCycle={data.activeCycle}
-              cycleMember={data.cycleMember}
-              cycles={cycles}
-              totalMembers={members.length}
-            />
-          )}
+      {isAdmin ? (
+        <AdminView
+          chama={chama}
+          members={members}
+          activeCycle={data.activeCycle}
+          collectionRate={0}
+          savingsPot={0}
+          cycles={cycles}
+          pendingCycle={pendingCycle}
+          pendingCycleMembers={pendingCycleMembers}
+        />
+      ) : (
+        <MemberView
+          chama={chama}
+          member={member}
+          activeCycle={data.activeCycle}
+          cycleMember={data.cycleMember}
+          cycles={cycles}
+          totalMembers={members.length}
+        />
+      )}
         </div>
       </div>
     </div>

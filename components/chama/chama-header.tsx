@@ -40,12 +40,12 @@ export function ChamaHeader({ chama, memberCount, isAdmin }: ChamaHeaderProps) {
                 </h1>
               </div>
               <Badge variant={statusColors[chama.status] || 'default'} className="mt-1">
-                {chama.status}
-              </Badge>
-            </div>
-            {chama.description && (
+            {chama.status}
+          </Badge>
+        </div>
+        {chama.description && (
               <p className="text-sm md:text-base text-muted-foreground leading-relaxed">{chama.description}</p>
-            )}
+        )}
             <div className="flex flex-wrap items-center gap-2 md:gap-3">
               <div className="relative">
                 <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-lg blur-sm opacity-50" />
@@ -53,15 +53,15 @@ export function ChamaHeader({ chama, memberCount, isAdmin }: ChamaHeaderProps) {
                   <Users className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                   <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">
                     {memberCount} {memberCount !== 1 ? 'members' : 'member'}
-                  </span>
+          </span>
                 </div>
               </div>
               <Badge variant="info" className="text-xs">{chamaTypeLabels[chama.chama_type]}</Badge>
               <Badge variant={chama.is_private ? 'default' : 'info'} className="text-xs">
-                {chama.is_private ? 'Private' : 'Public'}
-              </Badge>
-            </div>
-          </div>
+            {chama.is_private ? 'Private' : 'Public'}
+          </Badge>
+        </div>
+      </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
             <Button 
@@ -69,21 +69,21 @@ export function ChamaHeader({ chama, memberCount, isAdmin }: ChamaHeaderProps) {
               size="sm"
               className="border-2 hover:border-primary/50 transition-all"
             >
-              <Share2 className="mr-2 h-4 w-4" />
-              Share
-            </Button>
-            {isAdmin && (
-              <Link href={`/chamas/${chama.id}/settings`}>
+          <Share2 className="mr-2 h-4 w-4" />
+          Share
+        </Button>
+        {isAdmin && (
+          <Link href={`/chamas/${chama.id}/settings`}>
                 <Button 
                   variant="primary" 
                   size="sm"
                   className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all"
                 >
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </Button>
-              </Link>
-            )}
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
+            </Button>
+          </Link>
+        )}
           </div>
         </div>
       </div>

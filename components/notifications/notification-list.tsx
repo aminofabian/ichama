@@ -152,16 +152,16 @@ export function NotificationList({
                       <div className={`flex-shrink-0 mt-0.5 ${getTypeColor(notification.type)}`}>
                         {getTypeIcon(notification.type)}
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 overflow-hidden">
                         <div className="flex items-start justify-between gap-2 mb-1">
-                          <p className="font-semibold text-sm">{notification.title}</p>
+                          <p className="font-semibold text-sm break-words whitespace-normal flex-1 min-w-0">{notification.title}</p>
                           {!notification.read_at && (
-                            <Badge variant="info" className="text-xs">
+                            <Badge variant="info" className="text-xs flex-shrink-0">
                               New
                             </Badge>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground mb-2">
+                        <p className="text-sm text-muted-foreground mb-2 break-words whitespace-normal">
                           {notification.message}
                         </p>
                         <p className="text-xs text-muted-foreground">

@@ -131,8 +131,8 @@ export function MemberList({ chamaId, members, isAdmin }: MemberListProps) {
             {members.length === 0 && (
               <div className="py-8 text-center">
                 <p className="text-sm text-muted-foreground">
-                  No members yet
-                </p>
+                No members yet
+              </p>
               </div>
             )}
           </div>

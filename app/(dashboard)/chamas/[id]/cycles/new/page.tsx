@@ -258,23 +258,23 @@ export default function CreateCyclePage() {
       <div className="relative z-10 mx-auto max-w-5xl px-3 pt-4 md:px-6 md:pt-12">
         {/* Header */}
         <div className="mb-4 md:mb-8">
-          <Link href={`/chamas/${chamaId}`}>
+        <Link href={`/chamas/${chamaId}`}>
             <Button variant="ghost" size="sm" className="mb-4 hover:bg-muted/80">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Chama
-            </Button>
-          </Link>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Chama
+          </Button>
+        </Link>
           <div className="relative inline-block mb-2 md:mb-3">
             <div className="absolute -inset-1 md:-inset-2 bg-gradient-to-r from-primary/30 via-purple-500/20 to-blue-500/30 rounded-xl md:rounded-2xl blur-xl opacity-60 animate-pulse" />
             <div className="absolute -inset-0.5 md:-inset-1 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-lg md:rounded-xl blur-md opacity-40" />
             <h1 className="relative bg-gradient-to-r from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-2xl md:text-4xl font-bold tracking-tight text-transparent">
               Create New Cycle
             </h1>
-          </div>
+      </div>
           <p className="text-xs md:text-sm text-muted-foreground">
-            Set up a new contribution cycle for {chamaData.chama.name}
-          </p>
-        </div>
+          Set up a new contribution cycle for {chamaData.chama.name}
+        </p>
+      </div>
 
         {/* Step Indicator */}
         <div className="relative mb-4 md:mb-8 py-3 md:py-6">
@@ -352,7 +352,7 @@ export default function CreateCyclePage() {
               )
             })}
           </div>
-        </div>
+      </div>
 
         {/* Step Content Card */}
         <div className="group relative mb-4 md:mb-10">
@@ -360,117 +360,117 @@ export default function CreateCyclePage() {
           <Card className="relative rounded-xl md:rounded-3xl border border-border/60 bg-card/80 backdrop-blur-xl p-4 md:p-10 shadow-2xl">
             <div className="absolute inset-0 rounded-xl md:rounded-3xl bg-gradient-to-br from-primary/5 via-transparent to-purple-500/5 pointer-events-none" />
             <CardContent className="relative pt-0">
-              {step === 1 && (
-                <CycleForm
-                  chama={chamaData.chama}
-                  formData={formData}
-                  updateField={(field, value) =>
-                    setFormData((prev) => ({ ...prev, [field]: value }))
+          {step === 1 && (
+            <CycleForm
+              chama={chamaData.chama}
+              formData={formData}
+              updateField={(field, value) =>
+                setFormData((prev) => ({ ...prev, [field]: value }))
+              }
+              errors={errors}
+            />
+          )}
+
+          {step === 2 && (
+            <MemberSelector
+              members={chamaData.members.map((m) => ({
+                id: m.id,
+                chama_member_id: m.id,
+                user_id: m.user_id,
+                full_name: m.user?.full_name || 'Unknown',
+                phone_number: m.user?.phone_number || '',
+                role: m.role,
+              }))}
+              selectedMemberIds={selectedMemberIds}
+              onToggle={(memberId) => {
+                const newSet = new Set(selectedMemberIds)
+                if (newSet.has(memberId)) {
+                  newSet.delete(memberId)
+                  setMemberSavings((prev) => {
+                    const next = new Map(prev)
+                    next.delete(memberId)
+                    return next
+                  })
+                  setMemberHideSavings((prev) => {
+                    const next = new Map(prev)
+                    next.delete(memberId)
+                    return next
+                  })
+                } else {
+                  newSet.add(memberId)
+                }
+                setSelectedMemberIds(newSet)
+              }}
+              onSelectAll={() => {
+                const allIds = new Set(chamaData.members.map((m) => m.id))
+                setSelectedMemberIds(allIds)
+              }}
+              onSelectNone={() => {
+                setSelectedMemberIds(new Set())
+                setMemberSavings(new Map())
+                setMemberHideSavings(new Map())
+              }}
+              chamaType={chamaData.chama.chama_type}
+              defaultSavingsAmount={formData.savings_amount}
+              contributionAmount={formData.contribution_amount}
+              memberSavings={memberSavings}
+              onSavingsChange={(memberId, amount) => {
+                setMemberSavings((prev) => {
+                  const next = new Map(prev)
+                  if (amount === null) {
+                    next.delete(memberId)
+                  } else {
+                    next.set(memberId, amount)
                   }
-                  errors={errors}
-                />
-              )}
+                  return next
+                })
+              }}
+              memberHideSavings={memberHideSavings}
+              onHideSavingsChange={(memberId, hide) => {
+                setMemberHideSavings((prev) => {
+                  const next = new Map(prev)
+                  next.set(memberId, hide)
+                  return next
+                })
+              }}
+            />
+          )}
 
-              {step === 2 && (
-                <MemberSelector
-                  members={chamaData.members.map((m) => ({
-                    id: m.id,
-                    chama_member_id: m.id,
-                    user_id: m.user_id,
-                    full_name: m.user?.full_name || 'Unknown',
-                    phone_number: m.user?.phone_number || '',
-                    role: m.role,
-                  }))}
-                  selectedMemberIds={selectedMemberIds}
-                  onToggle={(memberId) => {
-                    const newSet = new Set(selectedMemberIds)
-                    if (newSet.has(memberId)) {
-                      newSet.delete(memberId)
-                      setMemberSavings((prev) => {
-                        const next = new Map(prev)
-                        next.delete(memberId)
-                        return next
-                      })
-                      setMemberHideSavings((prev) => {
-                        const next = new Map(prev)
-                        next.delete(memberId)
-                        return next
-                      })
-                    } else {
-                      newSet.add(memberId)
-                    }
-                    setSelectedMemberIds(newSet)
-                  }}
-                  onSelectAll={() => {
-                    const allIds = new Set(chamaData.members.map((m) => m.id))
-                    setSelectedMemberIds(allIds)
-                  }}
-                  onSelectNone={() => {
-                    setSelectedMemberIds(new Set())
-                    setMemberSavings(new Map())
-                    setMemberHideSavings(new Map())
-                  }}
-                  chamaType={chamaData.chama.chama_type}
-                  defaultSavingsAmount={formData.savings_amount}
-                  contributionAmount={formData.contribution_amount}
-                  memberSavings={memberSavings}
-                  onSavingsChange={(memberId, amount) => {
-                    setMemberSavings((prev) => {
-                      const next = new Map(prev)
-                      if (amount === null) {
-                        next.delete(memberId)
-                      } else {
-                        next.set(memberId, amount)
-                      }
-                      return next
-                    })
-                  }}
-                  memberHideSavings={memberHideSavings}
-                  onHideSavingsChange={(memberId, hide) => {
-                    setMemberHideSavings((prev) => {
-                      const next = new Map(prev)
-                      next.set(memberId, hide)
-                      return next
-                    })
-                  }}
-                />
-              )}
-
-              {step === 3 && (
-                <TurnAssignment
-                  members={selectedMembers.map((m) => ({
-                    chama_member_id: m.id,
-                    user_id: m.user_id,
-                    full_name: m.user?.full_name || 'Unknown',
-                    phone_number: m.user?.phone_number || '',
-                  }))}
-                  turnOrder={turnOrder}
-                  onTurnOrderChange={(memberId, turn) => {
-                    const newTurnOrder = new Map(turnOrder)
-                    newTurnOrder.set(memberId, turn)
-                    setTurnOrder(newTurnOrder)
-                  }}
-                  onShuffle={handleShuffle}
-                />
-              )}
-            </CardContent>
-          </Card>
+          {step === 3 && (
+            <TurnAssignment
+              members={selectedMembers.map((m) => ({
+                chama_member_id: m.id,
+                user_id: m.user_id,
+                full_name: m.user?.full_name || 'Unknown',
+                phone_number: m.user?.phone_number || '',
+              }))}
+              turnOrder={turnOrder}
+              onTurnOrderChange={(memberId, turn) => {
+                const newTurnOrder = new Map(turnOrder)
+                newTurnOrder.set(memberId, turn)
+                setTurnOrder(newTurnOrder)
+              }}
+              onShuffle={handleShuffle}
+            />
+          )}
+        </CardContent>
+      </Card>
         </div>
 
         {/* Navigation Buttons */}
         <div className="flex flex-col-reverse gap-2 md:gap-4 sm:flex-row sm:justify-between sm:items-center pb-4 md:pb-0">
-          <Button
+        <Button
             variant="outline"
-            onClick={() => setStep(Math.max(1, step - 1))}
-            disabled={step === 1}
+          onClick={() => setStep(Math.max(1, step - 1))}
+          disabled={step === 1}
             className="group relative w-full sm:w-auto overflow-hidden border-2 transition-all duration-300 hover:scale-[1.02] disabled:opacity-40"
-          >
+        >
             <span className="relative z-10">Back</span>
             {step > 1 && (
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
             )}
-          </Button>
-          {step < 3 ? (
+        </Button>
+        {step < 3 ? (
             <Button 
               onClick={handleNext}
               className="group relative w-full sm:w-auto overflow-hidden bg-gradient-to-r from-primary via-primary/95 to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary/90 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
@@ -483,7 +483,7 @@ export default function CreateCyclePage() {
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
             </Button>
-          ) : (
+        ) : (
             <Button 
               onClick={handleSubmit} 
               disabled={isSubmitting}
@@ -505,8 +505,8 @@ export default function CreateCyclePage() {
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
                 </>
               )}
-            </Button>
-          )}
+          </Button>
+        )}
         </div>
       </div>
     </div>

@@ -20,9 +20,9 @@ export function MyContributionCard({ contribution, onUpdate }: MyContributionCar
 
   if (!contribution) {
     return (
-      <Card className="border-border/50 shadow-lg hover:shadow-xl transition-all">
+      <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">My Contribution</CardTitle>
+          <CardTitle className="text-lg font-semibold">My Contribution</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="rounded-lg border border-dashed border-border/50 bg-muted/30 p-6 text-center">
@@ -88,66 +88,66 @@ export function MyContributionCard({ contribution, onUpdate }: MyContributionCar
 
   return (
     <>
-      <Card className="border-border/50 shadow-lg hover:shadow-xl transition-all">
+      <Card className="border-border/50 shadow-sm w-full">
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-semibold">My Contribution</CardTitle>
-            {getStatusBadge()}
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="text-base sm:text-lg font-semibold truncate">My Contribution</CardTitle>
+            <div className="shrink-0">{getStatusBadge()}</div>
           </div>
-          <CardDescription className="text-xs">Period {contribution.period_number}</CardDescription>
+          <CardDescription className="text-xs sm:text-sm">Period {contribution.period_number}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-lg border border-border/50 bg-gradient-to-br from-muted/30 to-muted/10 p-3">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Amount Due</p>
-              <p className="text-base font-bold">{formatCurrency(contribution.amount_due)}</p>
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 w-full">
+            <div className="rounded-lg border border-border/50 bg-muted/30 p-2.5 sm:p-3 min-w-0">
+              <p className="text-[9px] sm:text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 truncate">Amount Due</p>
+              <p className="text-base sm:text-lg font-bold truncate">{formatCurrency(contribution.amount_due)}</p>
             </div>
-            <div className="rounded-lg border border-border/50 bg-gradient-to-br from-muted/30 to-muted/10 p-3">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Amount Paid</p>
-              <p className={`text-base font-bold ${contribution.amount_paid > 0 ? 'text-green-600 dark:text-green-400' : ''}`}>
+            <div className="rounded-lg border border-border/50 bg-muted/30 p-2.5 sm:p-3 min-w-0">
+              <p className="text-[9px] sm:text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 truncate">Amount Paid</p>
+              <p className={`text-base sm:text-lg font-bold truncate ${contribution.amount_paid > 0 ? 'text-green-600 dark:text-green-400' : ''}`}>
                 {formatCurrency(contribution.amount_paid)}
               </p>
             </div>
           </div>
 
           {remaining > 0 && (
-            <div className="p-3 bg-gradient-to-r from-orange-50 to-orange-100/50 dark:from-orange-950/30 dark:to-orange-900/20 rounded-lg border border-orange-200/50 dark:border-orange-800/30">
-              <p className="text-xs font-semibold text-orange-700 dark:text-orange-300">
+            <div className="rounded-lg border border-orange-200/50 bg-gradient-to-r from-orange-50 to-orange-100/50 dark:from-orange-950/30 dark:to-orange-900/20 dark:border-orange-800/30 p-2.5 sm:p-3">
+              <p className="text-xs font-semibold text-orange-700 dark:text-orange-300 truncate">
                 Remaining: {formatCurrency(remaining)}
               </p>
             </div>
           )}
 
-          <div className="rounded-lg border border-border/50 bg-muted/30 p-3">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Due Date</p>
-            <p className="text-sm font-semibold">
+          <div className="rounded-lg border border-border/50 bg-muted/30 p-2.5 sm:p-3">
+            <p className="text-[9px] sm:text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 truncate">Due Date</p>
+            <p className="text-xs sm:text-sm font-semibold truncate">
               {formatDate(contribution.due_date)}
               {isOverdue && (
-                <span className="ml-2 text-xs text-red-600 dark:text-red-400 font-medium">(Overdue)</span>
+                <span className="ml-2 text-[10px] sm:text-xs text-red-600 dark:text-red-400 font-medium">(Overdue)</span>
               )}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 truncate">
               {formatRelativeTime(contribution.due_date)}
             </p>
           </div>
 
           {contribution.paid_at && (
-            <div className="rounded-lg border border-border/50 bg-muted/30 p-3">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Paid On</p>
-              <p className="text-sm font-semibold">{formatDate(contribution.paid_at)}</p>
+            <div className="rounded-lg border border-border/50 bg-muted/30 p-2.5 sm:p-3">
+              <p className="text-[9px] sm:text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 truncate">Paid On</p>
+              <p className="text-xs sm:text-sm font-semibold truncate">{formatDate(contribution.paid_at)}</p>
             </div>
           )}
 
           {contribution.notes && (
-            <div className="rounded-lg border border-border/50 bg-muted/30 p-3">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Notes</p>
-              <p className="text-xs">{contribution.notes}</p>
+            <div className="rounded-lg border border-border/50 bg-muted/30 p-2.5 sm:p-3">
+              <p className="text-[9px] sm:text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 truncate">Notes</p>
+              <p className="text-[10px] sm:text-xs break-words">{contribution.notes}</p>
             </div>
           )}
 
           {canPay && (
             <Button
-              className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all"
+              className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all"
               onClick={() => setShowForm(true)}
             >
               {contribution.amount_paid > 0 ? 'Update Payment' : 'Record Payment'}

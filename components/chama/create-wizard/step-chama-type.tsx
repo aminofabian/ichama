@@ -89,14 +89,14 @@ export function StepChamaType({ formData, updateField }: StepChamaTypeProps) {
             <CardHeader className="relative z-10 pb-2 p-4">
               <div className="flex items-center gap-3 mb-2">
                 {/* Icon container */}
-                <div
-                  className={cn(
+              <div
+                className={cn(
                     'relative flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-lg transition-all duration-300 shadow-md flex-shrink-0',
                     isSelected 
                       ? `bg-gradient-to-br ${colors.gradient} text-white shadow-lg` 
                       : 'bg-muted group-hover:bg-muted/80'
-                  )}
-                >
+                )}
+              >
                   <Icon className={cn(
                     'h-5 w-5 md:h-6 md:w-6 transition-transform duration-300',
                     isSelected && 'scale-110'

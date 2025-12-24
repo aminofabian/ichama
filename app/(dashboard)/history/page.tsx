@@ -100,7 +100,7 @@ export default function HistoryPage() {
           <div className="absolute -right-1/4 top-1/3 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent blur-3xl animate-pulse delay-1000" />
         </div>
         <div className="relative z-10">
-          <LoadingSpinner size="lg" />
+        <LoadingSpinner size="lg" />
         </div>
       </div>
     )
@@ -113,10 +113,10 @@ export default function HistoryPage() {
           <div className="absolute -left-1/4 -top-1/4 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-destructive/10 via-destructive/5 to-transparent blur-3xl animate-pulse" />
         </div>
         <div className="relative z-10 flex items-center justify-center min-h-[400px] px-4">
-          <EmptyState
-            title="Failed to load history"
-            description={error}
-          />
+      <EmptyState
+        title="Failed to load history"
+        description={error}
+      />
         </div>
       </div>
     )
@@ -129,10 +129,10 @@ export default function HistoryPage() {
           <div className="absolute -left-1/4 -top-1/4 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-primary/10 via-primary/5 to-transparent blur-3xl animate-pulse" />
         </div>
         <div className="relative z-10 flex items-center justify-center min-h-[400px] px-4">
-          <EmptyState
-            title="No history available"
-            description="Your history will appear here once you start using the platform."
-          />
+      <EmptyState
+        title="No history available"
+        description="Your history will appear here once you start using the platform."
+      />
         </div>
       </div>
     )
@@ -161,72 +161,72 @@ export default function HistoryPage() {
             </h1>
           </div>
           <p className="text-xs md:text-sm text-muted-foreground">
-            View your complete chama history and transaction records
-          </p>
-        </div>
+          View your complete chama history and transaction records
+        </p>
+      </div>
 
         {/* Filters */}
         <div className="mb-4 md:mb-8">
-          <HistoryFilters
-            chamas={data.chamas.map((c) => ({ id: c.id, name: c.name }))}
-            onFilterChange={setFilters}
-          />
+      <HistoryFilters
+        chamas={data.chamas.map((c) => ({ id: c.id, name: c.name }))}
+        onFilterChange={setFilters}
+      />
         </div>
 
         {/* Tabs */}
         <div className="mb-4 md:mb-8">
           <div className="relative rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-1.5 inline-flex gap-1">
-            <Button
-              variant={activeTab === 'chamas' ? 'primary' : 'ghost'}
+          <Button
+            variant={activeTab === 'chamas' ? 'primary' : 'ghost'}
               className={`relative rounded-lg transition-all ${
-                activeTab === 'chamas'
+              activeTab === 'chamas'
                   ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-md'
                   : 'hover:bg-muted/50'
               }`}
-              onClick={() => setActiveTab('chamas')}
-            >
-              Chamas ({data.chamas.length})
-            </Button>
-            <Button
-              variant={activeTab === 'contributions' ? 'primary' : 'ghost'}
+            onClick={() => setActiveTab('chamas')}
+          >
+            Chamas ({data.chamas.length})
+          </Button>
+          <Button
+            variant={activeTab === 'contributions' ? 'primary' : 'ghost'}
               className={`relative rounded-lg transition-all ${
-                activeTab === 'contributions'
+              activeTab === 'contributions'
                   ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-md'
                   : 'hover:bg-muted/50'
               }`}
-              onClick={() => setActiveTab('contributions')}
-            >
-              Contributions ({data.contributions.length})
-            </Button>
-            <Button
-              variant={activeTab === 'payouts' ? 'primary' : 'ghost'}
+            onClick={() => setActiveTab('contributions')}
+          >
+            Contributions ({data.contributions.length})
+          </Button>
+          <Button
+            variant={activeTab === 'payouts' ? 'primary' : 'ghost'}
               className={`relative rounded-lg transition-all ${
-                activeTab === 'payouts'
+              activeTab === 'payouts'
                   ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-md'
                   : 'hover:bg-muted/50'
               }`}
-              onClick={() => setActiveTab('payouts')}
-            >
-              Payouts ({data.payouts.length})
-            </Button>
+            onClick={() => setActiveTab('payouts')}
+          >
+            Payouts ({data.payouts.length})
+          </Button>
           </div>
         </div>
 
         {/* Content */}
         <div className="space-y-6">
-          {activeTab === 'chamas' && <ChamaHistory chamas={data.chamas} />}
-          {activeTab === 'contributions' && (
-            <ContributionHistory contributions={data.contributions} />
-          )}
-          {activeTab === 'payouts' && <PayoutHistory payouts={data.payouts} />}
-        </div>
+        {activeTab === 'chamas' && <ChamaHistory chamas={data.chamas} />}
+        {activeTab === 'contributions' && (
+          <ContributionHistory contributions={data.contributions} />
+        )}
+        {activeTab === 'payouts' && <PayoutHistory payouts={data.payouts} />}
+      </div>
 
         {/* Error Message */}
-        {error && data && (
+      {error && data && (
           <div className="mt-6 rounded-xl border-2 border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive backdrop-blur-sm">
-            {error}
-          </div>
-        )}
+          {error}
+        </div>
+      )}
       </div>
     </div>
   )

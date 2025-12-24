@@ -83,7 +83,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
         {unreadCount > 0 && (
           <Badge
             variant="error"
-            className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+            className="text-slate-100 absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
           >
             {unreadCount > 9 ? '9+' : unreadCount}
           </Badge>
@@ -96,19 +96,19 @@ export function NotificationBell({ className }: NotificationBellProps) {
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          <Card className="absolute right-0 top-full mt-2 w-80 z-50 max-h-[500px] overflow-hidden shadow-lg">
-            <CardContent className="p-0">
+          <Card className="absolute right-0 top-full mt-2 z-50 max-h-[500px] shadow-lg" style={{ width: '320px', maxWidth: 'calc(100vw - 2rem)' }}>
+            <CardContent className="p-0" style={{ width: '100%', overflow: 'hidden' }}>
               <div className="p-4 border-b">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold">Notifications</h3>
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="font-semibold truncate flex-1 min-w-0">Notifications</h3>
                   {unreadCount > 0 && (
-                    <Badge variant="info" className="text-xs">
+                    <Badge variant="info" className="text-xs flex-shrink-0">
                       {unreadCount} new
                     </Badge>
                   )}
                 </div>
               </div>
-              <div className="max-h-[400px] overflow-y-auto">
+              <div className="max-h-[400px] overflow-y-auto" style={{ overflowX: 'hidden', maxWidth: '100%' }}>
                 {isLoading ? (
                   <div className="p-8 text-center text-sm text-muted-foreground">
                     Loading...
@@ -118,30 +118,57 @@ export function NotificationBell({ className }: NotificationBellProps) {
                     No notifications
                   </div>
                 ) : (
-                  <div className="divide-y">
+                  <div className="divide-y" style={{ width: '100%' }}>
                     {notifications.map((notification) => (
-                      <button
+                      <div
                         key={notification.id}
-                        onClick={() => handleNotificationClick(notification)}
-                        className={`w-full text-left p-4 hover:bg-muted transition-colors ${
+                        className={`p-4 hover:bg-muted transition-colors border-b ${
                           !notification.read_at ? 'bg-primary/5' : ''
                         }`}
+                        style={{ width: '100%', overflow: 'hidden' }}
                       >
-                        <div className="space-y-1">
-                          <div className="flex items-start justify-between gap-2">
-                            <p className="font-medium text-sm">{notification.title}</p>
-                            {!notification.read_at && (
-                              <span className="h-2 w-2 rounded-full bg-primary flex-shrink-0 mt-1" />
-                            )}
+                        <button
+                          onClick={() => handleNotificationClick(notification)}
+                          className="w-full text-left"
+                          style={{ width: '100%', overflow: 'hidden' }}
+                        >
+                          <div className="space-y-1" style={{ width: '100%' }}>
+                            <div className="flex items-start justify-between gap-2" style={{ width: '100%' }}>
+                              <p 
+                                className="font-medium text-sm flex-1 pr-1" 
+                                style={{ 
+                                  wordBreak: 'break-word', 
+                                  overflowWrap: 'break-word', 
+                                  whiteSpace: 'normal',
+                                  overflow: 'hidden'
+                                }}
+                              >
+                                {notification.title}
+                              </p>
+                              {!notification.read_at && (
+                                <span className="h-2 w-2 rounded-full bg-primary flex-shrink-0 mt-1" />
+                              )}
+                            </div>
+                            <p 
+                              className="text-xs text-muted-foreground"
+                              style={{ 
+                                wordBreak: 'break-word', 
+                                overflowWrap: 'break-word', 
+                                whiteSpace: 'normal',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden'
+                              }}
+                            >
+                              {notification.message}
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {formatRelativeTime(notification.created_at)}
+                            </p>
                           </div>
-                          <p className="text-xs text-muted-foreground line-clamp-2">
-                            {notification.message}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {formatRelativeTime(notification.created_at)}
-                          </p>
-                        </div>
-                      </button>
+                        </button>
+                      </div>
                     ))}
                   </div>
                 )}

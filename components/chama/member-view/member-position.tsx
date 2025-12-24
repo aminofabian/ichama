@@ -29,9 +29,9 @@ export function MemberPosition({
         <CardContent>
           <div className="rounded-lg border border-border/50 bg-gradient-to-br from-muted/30 to-muted/10 p-4">
             <p className="text-sm text-muted-foreground leading-relaxed">
-              This is a savings-only chama. Your contributions go directly to your
-              savings account.
-            </p>
+            This is a savings-only chama. Your contributions go directly to your
+            savings account.
+          </p>
           </div>
         </CardContent>
       </Card>
@@ -53,7 +53,7 @@ export function MemberPosition({
           <div className="relative">
             <div className="absolute -inset-2 bg-primary/10 rounded-full blur-lg animate-pulse" />
             <div className="relative flex h-24 w-24 md:h-32 md:w-32 items-center justify-center rounded-full border-4 border-primary bg-gradient-to-br from-primary/5 to-transparent">
-              <div className="text-center">
+            <div className="text-center">
                 <Trophy className="mx-auto h-5 w-5 md:h-6 md:w-6 text-primary mb-1" />
                 <span className="text-2xl md:text-3xl font-bold">{position}</span>
                 <span className="text-xs md:text-sm text-muted-foreground">/{totalMembers}</span>

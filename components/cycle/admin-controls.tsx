@@ -57,17 +57,17 @@ export function AdminControls({ cycle, onCycleUpdate }: AdminControlsProps) {
   const canCancel = cycle.status !== 'completed' && cycle.status !== 'cancelled'
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Cycle Controls</CardTitle>
-        <CardDescription>Manage cycle status and progression</CardDescription>
+    <Card className="border-border/50 shadow-sm">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base sm:text-lg">Cycle Controls</CardTitle>
+        <CardDescription className="text-xs sm:text-sm">Manage cycle status and progression</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
+        <div className="space-y-2.5 sm:space-y-3">
           {canAdvance && (
             <Button
               variant="primary"
-              className="w-full"
+              className="w-full text-sm sm:text-base"
               onClick={() => handleAction('advance')}
               disabled={isLoading !== null}
             >
@@ -79,7 +79,8 @@ export function AdminControls({ cycle, onCycleUpdate }: AdminControlsProps) {
               ) : (
                 <>
                   <SkipForward className="mr-2 h-4 w-4" />
-                  Advance to Next Period
+                  <span className="hidden sm:inline">Advance to Next Period</span>
+                  <span className="sm:hidden">Advance Period</span>
                 </>
               )}
             </Button>
@@ -88,7 +89,7 @@ export function AdminControls({ cycle, onCycleUpdate }: AdminControlsProps) {
           {canPause && (
             <Button
               variant="primary"
-              className="w-full"
+              className="w-full text-sm sm:text-base"
               onClick={() => handleAction('pause')}
               disabled={isLoading !== null}
             >
@@ -109,7 +110,7 @@ export function AdminControls({ cycle, onCycleUpdate }: AdminControlsProps) {
           {canResume && (
             <Button
               variant="primary"
-              className="w-full"
+              className="w-full text-sm sm:text-base"
               onClick={() => handleAction('resume')}
               disabled={isLoading !== null}
             >
@@ -130,7 +131,7 @@ export function AdminControls({ cycle, onCycleUpdate }: AdminControlsProps) {
           {canCancel && (
             <Button
               variant="primary"
-              className="w-full text-destructive hover:text-destructive"
+              className="w-full text-sm sm:text-base text-destructive hover:text-destructive"
               onClick={() => {
                 if (
                   confirm(
@@ -157,18 +158,18 @@ export function AdminControls({ cycle, onCycleUpdate }: AdminControlsProps) {
           )}
 
           {cycle.status === 'completed' && (
-            <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950 rounded-lg">
-              <AlertTriangle className="h-5 w-5 text-green-600" />
-              <p className="text-sm text-green-700 dark:text-green-300">
+            <div className="flex items-center gap-2 p-2.5 sm:p-3 bg-green-50 dark:bg-green-950 rounded-lg">
+              <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 shrink-0" />
+              <p className="text-xs sm:text-sm text-green-700 dark:text-green-300">
                 This cycle has been completed.
               </p>
             </div>
           )}
 
           {cycle.status === 'cancelled' && (
-            <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-950 rounded-lg">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
-              <p className="text-sm text-red-700 dark:text-red-300">
+            <div className="flex items-center gap-2 p-2.5 sm:p-3 bg-red-50 dark:bg-red-950 rounded-lg">
+              <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600 shrink-0" />
+              <p className="text-xs sm:text-sm text-red-700 dark:text-red-300">
                 This cycle has been cancelled.
               </p>
             </div>
