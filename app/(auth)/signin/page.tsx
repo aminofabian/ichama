@@ -280,9 +280,17 @@ function SignInForm() {
                         : ''
                     }
                     onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, '').slice(0, 9)
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 10)
                       setPhoneNumber(value)
                       setErrors({})
+                    }}
+                    onBlur={(e) => {
+                      let value = phoneNumber
+                      // Remove leading 0 if present after user finishes typing
+                      if (value.startsWith('0')) {
+                        value = value.slice(1)
+                        setPhoneNumber(value)
+                      }
                     }}
                     disabled={isLoading}
                     className="flex-1 border-0 bg-transparent py-3 pr-4 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
