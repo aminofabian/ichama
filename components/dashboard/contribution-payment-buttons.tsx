@@ -181,7 +181,7 @@ export function ContributionPaymentButtons({ contributions, onUpdate }: Contribu
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 sm:space-y-3">
           {contributions.map((contrib) => {
             const daysRemaining = getDaysRemaining(contrib.due_date)
             const remaining = contrib.amount_due - contrib.amount_paid
@@ -193,81 +193,161 @@ export function ContributionPaymentButtons({ contributions, onUpdate }: Contribu
             return (
               <div
                 key={contrib.id}
-            className="rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+                className="rounded-xl sm:rounded-2xl border border-border/50 bg-gradient-to-br from-background to-muted/20 p-3 sm:p-4 hover:shadow-md hover:border-border transition-all duration-200"
               >
-            <div className="flex items-center justify-between gap-3 mb-2">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <h3 className="font-semibold text-sm truncate">{contrib.chama_name}</h3>
-                  <Badge variant="default" className="text-[10px] px-1.5 py-0">
-                        {contrib.cycle_name}
-                      </Badge>
+                {/* Mobile Layout */}
+                <div className="sm:hidden">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-sm truncate">{contrib.chama_name}</h3>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <Badge variant="default" className="text-[9px] px-1.5 py-0">
+                          {contrib.cycle_name}
+                        </Badge>
+                        <span className="text-[10px] text-muted-foreground">P{contrib.period_number}</span>
+                      </div>
                     </div>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span>Period {contrib.period_number}</span>
-                  <span>•</span>
-                  <span className="font-medium text-foreground">{formatCurrency(contrib.amount_due)}</span>
-                  {hasSavings && (
-                    <>
-                      <span>•</span>
-                      <span className="flex items-center gap-1">
-                        <PiggyBank className="h-3 w-3" />
-                        {formatCurrency(effectiveSavings)}
-                      </span>
-                    </>
+                    <div className={`text-right shrink-0 px-2 py-1 rounded-lg ${
+                      daysRemaining < 0 ? 'bg-red-50 dark:bg-red-950/30' :
+                      daysRemaining <= 2 ? 'bg-red-50 dark:bg-red-950/30' :
+                      daysRemaining <= 4 ? 'bg-yellow-50 dark:bg-yellow-950/30' :
+                      'bg-green-50 dark:bg-green-950/30'
+                    }`}>
+                      <p className={`text-[10px] font-bold ${
+                        daysRemaining < 0 ? 'text-red-600 dark:text-red-400' :
+                        daysRemaining <= 2 ? 'text-red-600 dark:text-red-400' :
+                        daysRemaining <= 4 ? 'text-yellow-600 dark:text-yellow-400' :
+                        'text-green-600 dark:text-green-400'
+                      }`}>
+                        {daysRemaining < 0 
+                          ? `${Math.abs(daysRemaining)}d late`
+                          : daysRemaining === 0
+                          ? 'Today'
+                          : `${daysRemaining}d left`
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base font-bold text-foreground">{formatCurrency(contrib.amount_due)}</span>
+                      {hasSavings && (
+                        <span className="flex items-center gap-0.5 text-[10px] text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/30 px-1.5 py-0.5 rounded-full">
+                          <PiggyBank className="h-2.5 w-2.5" />
+                          +{formatCurrency(effectiveSavings)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => handleOpenPaymentModal(contrib, false)}
+                      disabled={isProcessing}
+                      size="sm"
+                      className={`flex-1 text-white text-xs px-2 py-2 h-auto ${buttonColor}`}
+                    >
+                      {isProcessing ? (
+                        <LoadingSpinner size="sm" />
+                      ) : (
+                        <>
+                          <Wallet className="h-3 w-3 mr-1" />
+                          Pay
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={() => handleOpenPaymentModal(contrib, true)}
+                      disabled={isProcessing}
+                      size="sm"
+                      className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white text-xs px-2 py-2 h-auto"
+                    >
+                      <PiggyBank className="h-3 w-3 mr-1" />
+                      Save
+                    </Button>
+                  </div>
+                  {contrib.amount_paid > 0 && (
+                    <p className="text-[10px] text-muted-foreground mt-2 pt-2 border-t border-border/50">
+                      Paid: {formatCurrency(contrib.amount_paid)} • Left: {formatCurrency(remaining)}
+                    </p>
                   )}
                 </div>
+
+                {/* Desktop Layout */}
+                <div className="hidden sm:block">
+                  <div className="flex items-center justify-between gap-3 mb-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <h3 className="font-semibold text-sm md:text-base truncate">{contrib.chama_name}</h3>
+                        <Badge variant="default" className="text-[10px] px-1.5 py-0">
+                          {contrib.cycle_name}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-2 md:gap-3 text-xs text-muted-foreground flex-wrap">
+                        <span>Period {contrib.period_number}</span>
+                        <span>•</span>
+                        <span className="font-semibold text-foreground">{formatCurrency(contrib.amount_due)}</span>
+                        {hasSavings && (
+                          <>
+                            <span>•</span>
+                            <span className="flex items-center gap-1 text-purple-600 dark:text-purple-400">
+                              <PiggyBank className="h-3 w-3" />
+                              {formatCurrency(effectiveSavings)}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
+                      <div className="text-right">
+                        <p className="text-[10px] md:text-xs text-muted-foreground">Due {formatDate(contrib.due_date)}</p>
+                        <p className={`text-xs font-medium ${
+                          daysRemaining < 0 ? 'text-red-600' :
+                          daysRemaining <= 2 ? 'text-red-600' :
+                          daysRemaining <= 4 ? 'text-yellow-600' :
+                          'text-green-600'
+                        }`}>
+                          {daysRemaining < 0 
+                            ? `${Math.abs(daysRemaining)}d overdue`
+                            : daysRemaining === 0
+                            ? 'Due today'
+                            : `${daysRemaining}d left`
+                          }
+                        </p>
+                      </div>
+                      <div className="flex gap-1.5 md:gap-2">
+                        <Button
+                          onClick={() => handleOpenPaymentModal(contrib, false)}
+                          disabled={isProcessing}
+                          size="sm"
+                          className={`text-white text-xs px-2.5 md:px-3 py-1.5 h-auto ${buttonColor}`}
+                        >
+                          {isProcessing ? (
+                            <LoadingSpinner size="sm" />
+                          ) : (
+                            <>
+                              <Wallet className="h-3 w-3 mr-1" />
+                              Pay
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          onClick={() => handleOpenPaymentModal(contrib, true)}
+                          disabled={isProcessing}
+                          size="sm"
+                          className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white text-xs px-2.5 md:px-3 py-1.5 h-auto"
+                        >
+                          <PiggyBank className="h-3 w-3 mr-1" />
+                          <span className="hidden md:inline">Pay &</span> Save
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                  <div className="text-right">
-                  <p className="text-xs text-muted-foreground">Due {formatDate(contrib.due_date)}</p>
-                    <p className={`text-xs font-medium ${
-                      daysRemaining < 0 ? 'text-red-600' :
-                      daysRemaining <= 2 ? 'text-red-600' :
-                      daysRemaining <= 4 ? 'text-yellow-600' :
-                      'text-green-600'
-                    }`}>
-                      {daysRemaining < 0 
-                      ? `${Math.abs(daysRemaining)}d overdue`
-                        : daysRemaining === 0
-                        ? 'Due today'
-                      : `${daysRemaining}d left`
-                      }
+                  {contrib.amount_paid > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1.5 pt-1.5 border-t border-border/50">
+                      Paid: {formatCurrency(contrib.amount_paid)} • Remaining: {formatCurrency(remaining)}
                     </p>
+                  )}
                 </div>
-                <div className="flex gap-1.5">
-                  <Button
-                    onClick={() => handleOpenPaymentModal(contrib, false)}
-                    disabled={isProcessing}
-                    size="sm"
-                    className={`text-white text-xs px-3 py-1.5 h-auto ${buttonColor}`}
-                  >
-                    {isProcessing ? (
-                        <LoadingSpinner size="sm" />
-                    ) : (
-                      <>
-                        <Wallet className="h-3 w-3 mr-1" />
-                        Pay
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    onClick={() => handleOpenPaymentModal(contrib, true)}
-                    disabled={isProcessing}
-                    size="sm"
-                    className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white text-xs px-3 py-1.5 h-auto"
-                  >
-                    <PiggyBank className="h-3 w-3 mr-1" />
-                    Pay & Save
-                  </Button>
-                </div>
-              </div>
-            </div>
-            {contrib.amount_paid > 0 && (
-              <p className="text-xs text-muted-foreground mt-1.5 pt-1.5 border-t">
-                Paid: {formatCurrency(contrib.amount_paid)} • Remaining: {formatCurrency(remaining)}
-              </p>
-            )}
               </div>
             )
           })}
