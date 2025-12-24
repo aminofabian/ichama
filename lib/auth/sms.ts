@@ -1,11 +1,14 @@
 function normalizeSmsApiUrl(url: string): string {
   if (!url) return url
   
+  const trimmed = url.trim()
+  if (!trimmed) return url
+  
   try {
-    new URL(url)
-    return url
+    new URL(trimmed)
+    return trimmed
   } catch {
-    return `https://${url}`
+    return `https://${trimmed}`
   }
 }
 
