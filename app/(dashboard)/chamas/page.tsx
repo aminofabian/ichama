@@ -90,8 +90,8 @@ export default function ChamasPage() {
     return (
       <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center">
         <div className="pointer-events-none fixed inset-0 overflow-hidden">
-          <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5 blur-3xl animate-pulse" />
-          <div className="absolute -right-1/4 -bottom-1/4 h-96 w-96 rounded-full bg-[#F5E6D3]/10 blur-3xl animate-pulse delay-1000" />
+          <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5  animate-pulse" />
+          <div className="absolute -right-1/4 -bottom-1/4 h-96 w-96 rounded-full bg-[#F5E6D3]/10  animate-pulse delay-1000" />
         </div>
         <div className="relative z-10">
           <LoadingSpinner size="lg" />
@@ -104,8 +104,8 @@ export default function ChamasPage() {
     return (
       <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
         <div className="pointer-events-none fixed inset-0 overflow-hidden">
-          <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5 blur-3xl animate-pulse" />
-          <div className="absolute -right-1/4 -bottom-1/4 h-96 w-96 rounded-full bg-[#F5E6D3]/10 blur-3xl animate-pulse delay-1000" />
+          <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5  animate-pulse" />
+          <div className="absolute -right-1/4 -bottom-1/4 h-96 w-96 rounded-full bg-[#F5E6D3]/10  animate-pulse delay-1000" />
         </div>
         <div className="relative z-10 flex items-center justify-center min-h-[400px] px-4">
           <EmptyState
@@ -155,88 +155,89 @@ export default function ChamasPage() {
     <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 pb-20 md:pb-8">
       {/* Animated Background Elements */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5 blur-3xl animate-pulse" />
-        <div className="absolute -right-1/4 -bottom-1/4 h-96 w-96 rounded-full bg-[#F5E6D3]/10 blur-3xl animate-pulse delay-1000" />
+        <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5 animate-pulse" />
+        <div className="absolute -right-1/4 -bottom-1/4 h-96 w-96 rounded-full bg-[#F5E6D3]/10 animate-pulse delay-1000" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-3 pt-4 md:px-6 md:pt-8">
+      <div className="relative z-10 mx-auto max-w-7xl px-3 md:px-4">
         {/* Header Section */}
-        <div className="mb-6 md:mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div className="mb-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">My Chamas</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-xl md:text-2xl font-bold mb-1">My Chamas</h1>
+              <p className="text-xs md:text-sm text-muted-foreground">
                 Manage and explore all your savings groups
               </p>
             </div>
             <Link href="/chamas/new">
               <Button
-                className="bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-lg shadow-[#FFD700]/25 hover:shadow-xl hover:shadow-[#FFD700]/30 transition-all"
+                size="sm"
+                className="h-8 px-3 text-xs bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30 transition-all"
               >
-                <Plus className="mr-2 h-4 w-4" />
+                <Plus className="mr-1.5 h-3.5 w-3.5" />
                 Create Chama
               </Button>
             </Link>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
-            <div className="rounded-xl border border-border/50 bg-card p-4 shadow-md">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-[#FFD700]/20 to-[#F5E6D3]/20">
-                  <Users className="h-4 w-4 text-[#FFC700]" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+            <div className="rounded-lg border border-border/50 bg-card p-3 shadow-md">
+              <div className="flex items-center gap-2 mb-1.5">
+                <div className="p-1.5 rounded-lg bg-gradient-to-br from-[#FFD700]/20 to-[#F5E6D3]/20">
+                  <Users className="h-3.5 w-3.5 text-[#FFC700]" />
                 </div>
-                <p className="text-xs text-muted-foreground">Total Chamas</p>
+                <p className="text-[10px] text-muted-foreground">Total Chamas</p>
               </div>
-              <p className="text-2xl font-bold">{data.chamas.length}</p>
+              <p className="text-lg font-bold">{data.chamas.length}</p>
             </div>
-            <div className="rounded-xl border border-border/50 bg-card p-4 shadow-md">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-green-500/20 to-emerald-500/20">
-                  <TrendingUp className="h-4 w-4 text-green-600" />
+            <div className="rounded-lg border border-border/50 bg-card p-3 shadow-md">
+              <div className="flex items-center gap-2 mb-1.5">
+                <div className="p-1.5 rounded-lg bg-gradient-to-br from-green-500/20 to-emerald-500/20">
+                  <TrendingUp className="h-3.5 w-3.5 text-green-600" />
                 </div>
-                <p className="text-xs text-muted-foreground">Active</p>
+                <p className="text-[10px] text-muted-foreground">Active</p>
               </div>
-              <p className="text-2xl font-bold">{activeChamas}</p>
+              <p className="text-lg font-bold">{activeChamas}</p>
             </div>
-            <div className="rounded-xl border border-border/50 bg-card p-4 shadow-md">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500/20 to-cyan-500/20">
-                  <Users className="h-4 w-4 text-blue-600" />
+            <div className="rounded-lg border border-border/50 bg-card p-3 shadow-md">
+              <div className="flex items-center gap-2 mb-1.5">
+                <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-500/20 to-cyan-500/20">
+                  <Users className="h-3.5 w-3.5 text-blue-600" />
                 </div>
-                <p className="text-xs text-muted-foreground">Total Members</p>
+                <p className="text-[10px] text-muted-foreground">Total Members</p>
               </div>
-              <p className="text-2xl font-bold">{totalMembers}</p>
+              <p className="text-lg font-bold">{totalMembers}</p>
             </div>
-            <div className="rounded-xl border border-border/50 bg-card p-4 shadow-md">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20">
-                  <Filter className="h-4 w-4 text-purple-600" />
+            <div className="rounded-lg border border-border/50 bg-card p-3 shadow-md">
+              <div className="flex items-center gap-2 mb-1.5">
+                <div className="p-1.5 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20">
+                  <Filter className="h-3.5 w-3.5 text-purple-600" />
                 </div>
-                <p className="text-xs text-muted-foreground">Filtered</p>
+                <p className="text-[10px] text-muted-foreground">Filtered</p>
               </div>
-              <p className="text-2xl font-bold">{sortedChamas.length}</p>
+              <p className="text-lg font-bold">{sortedChamas.length}</p>
             </div>
           </div>
 
           {/* Search and Filters */}
-          <div className="space-y-4">
-            <div className="flex flex-col md:flex-row gap-3">
+          <div className="space-y-2">
+            <div className="flex flex-col md:flex-row gap-2">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="text"
                   placeholder="Search chamas by name or description..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-12 rounded-xl border-input/50 bg-background/50 backdrop-blur-sm transition-all focus-visible:border-[#FFD700]/50 focus-visible:bg-background focus-visible:shadow-lg focus-visible:shadow-[#FFD700]/10"
+                  className="pl-9 h-8 text-xs rounded-lg border-input/50 bg-background/50 transition-all focus-visible:border-[#FFD700]/50 focus-visible:bg-background focus-visible:shadow-md focus-visible:shadow-[#FFD700]/10"
                 />
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-1.5">
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="h-12 px-4 rounded-xl border border-input/50 bg-background/50 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFD700]/50"
+                  className="h-8 px-3 rounded-lg border border-input/50 bg-background/50 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFD700]/50"
                 >
                   <option value="all">All Status</option>
                   <option value="active">Active</option>
@@ -246,7 +247,7 @@ export default function ChamasPage() {
                 <select
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
-                  className="h-12 px-4 rounded-xl border border-input/50 bg-background/50 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFD700]/50"
+                  className="h-8 px-3 rounded-lg border border-input/50 bg-background/50 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFD700]/50"
                 >
                   <option value="all">All Types</option>
                   <option value="savings">Savings</option>
@@ -256,33 +257,33 @@ export default function ChamasPage() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="h-12 px-4 rounded-xl border border-input/50 bg-background/50 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFD700]/50"
+                  className="h-8 px-3 rounded-lg border border-input/50 bg-background/50 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFD700]/50"
                 >
                   <option value="recent">Most Recent</option>
                   <option value="name">Name (A-Z)</option>
                   <option value="members">Most Members</option>
                   <option value="activity">Most Active</option>
                 </select>
-                <div className="flex rounded-xl border border-input/50 bg-background/50 p-1">
+                <div className="flex rounded-lg border border-input/50 bg-background/50 p-0.5">
                   <button
                     onClick={() => setViewMode('grid')}
-                    className={`p-2 rounded-lg transition-all ${
+                    className={`p-1.5 rounded transition-all ${
                       viewMode === 'grid'
                         ? 'bg-[#FFD700] text-white'
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
-                    <Grid className="h-4 w-4" />
+                    <Grid className="h-3.5 w-3.5" />
                   </button>
                   <button
                     onClick={() => setViewMode('list')}
-                    className={`p-2 rounded-lg transition-all ${
+                    className={`p-1.5 rounded transition-all ${
                       viewMode === 'list'
                         ? 'bg-[#FFD700] text-white'
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
-                    <List className="h-4 w-4" />
+                    <List className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>
@@ -291,7 +292,7 @@ export default function ChamasPage() {
         </div>
 
         {/* Chamas List/Grid */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {sortedChamas.length === 0 ? (
             <EmptyState
               title={searchQuery || statusFilter !== 'all' || typeFilter !== 'all' ? 'No chamas found' : 'No chamas yet'}
@@ -313,8 +314,8 @@ export default function ChamasPage() {
             <div
               className={
                 viewMode === 'grid'
-                  ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6'
-                  : 'space-y-4'
+                  ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'
+                  : 'space-y-3'
               }
             >
               {sortedChamas.map((chama) => (
