@@ -94,10 +94,10 @@ export default function HistoryPage() {
 
   if (isLoading) {
     return (
-      <div className="relative min-h-screen bg-background flex items-center justify-center">
+      <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center">
         <div className="pointer-events-none fixed inset-0 overflow-hidden">
-          <div className="absolute -left-1/4 -top-1/4 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-primary/10 via-primary/5 to-transparent blur-3xl animate-pulse" />
-          <div className="absolute -right-1/4 top-1/3 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent blur-3xl animate-pulse delay-1000" />
+          <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5 blur-3xl animate-pulse" />
+          <div className="absolute -right-1/4 -bottom-1/4 h-96 w-96 rounded-full bg-[#F5E6D3]/10 blur-3xl animate-pulse delay-1000" />
         </div>
         <div className="relative z-10">
         <LoadingSpinner size="lg" />
@@ -108,9 +108,10 @@ export default function HistoryPage() {
 
   if (error && !data) {
     return (
-      <div className="relative min-h-screen bg-background">
+      <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
         <div className="pointer-events-none fixed inset-0 overflow-hidden">
-          <div className="absolute -left-1/4 -top-1/4 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-destructive/10 via-destructive/5 to-transparent blur-3xl animate-pulse" />
+          <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5 blur-3xl animate-pulse" />
+          <div className="absolute -right-1/4 -bottom-1/4 h-96 w-96 rounded-full bg-[#F5E6D3]/10 blur-3xl animate-pulse delay-1000" />
         </div>
         <div className="relative z-10 flex items-center justify-center min-h-[400px] px-4">
       <EmptyState
@@ -124,9 +125,10 @@ export default function HistoryPage() {
 
   if (!data) {
     return (
-      <div className="relative min-h-screen bg-background">
+      <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
         <div className="pointer-events-none fixed inset-0 overflow-hidden">
-          <div className="absolute -left-1/4 -top-1/4 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-primary/10 via-primary/5 to-transparent blur-3xl animate-pulse" />
+          <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5 blur-3xl animate-pulse" />
+          <div className="absolute -right-1/4 -bottom-1/4 h-96 w-96 rounded-full bg-[#F5E6D3]/10 blur-3xl animate-pulse delay-1000" />
         </div>
         <div className="relative z-10 flex items-center justify-center min-h-[400px] px-4">
       <EmptyState
@@ -139,14 +141,11 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-background">
+    <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Animated Background Elements */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
-        <div className="absolute -left-1/4 -top-1/4 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-[#FFD700]/10 via-[#FFD700]/5 to-transparent blur-3xl animate-pulse" />
-        <div className="absolute -right-1/4 top-1/3 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent blur-3xl animate-pulse delay-1000" />
-        <div className="absolute bottom-1/4 left-1/3 h-[550px] w-[550px] rounded-full bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent blur-3xl animate-pulse delay-2000" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-transparent to-background/60" />
+        <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5 blur-3xl animate-pulse" />
+        <div className="absolute -right-1/4 -bottom-1/4 h-96 w-96 rounded-full bg-[#F5E6D3]/10 blur-3xl animate-pulse delay-1000" />
       </div>
 
       {/* Main Content */}
@@ -154,8 +153,6 @@ export default function HistoryPage() {
         {/* Header */}
         <div className="mb-4 md:mb-8">
           <div className="relative inline-block mb-2 md:mb-3">
-            <div className="absolute -inset-1 md:-inset-2 bg-gradient-to-r from-primary/30 via-purple-500/20 to-blue-500/30 rounded-xl md:rounded-2xl blur-xl opacity-60 animate-pulse" />
-            <div className="absolute -inset-0.5 md:-inset-1 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-lg md:rounded-xl blur-md opacity-40" />
             <h1 className="relative bg-gradient-to-r from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-2xl md:text-4xl font-bold tracking-tight text-transparent">
               History
             </h1>
@@ -175,12 +172,12 @@ export default function HistoryPage() {
 
         {/* Tabs */}
         <div className="mb-4 md:mb-8">
-          <div className="relative rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-1.5 inline-flex gap-1">
+          <div className="relative rounded-xl border border-border/50 bg-card/50 p-1.5 inline-flex gap-1">
           <Button
             variant={activeTab === 'chamas' ? 'primary' : 'ghost'}
               className={`relative rounded-lg transition-all ${
               activeTab === 'chamas'
-                  ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-md'
+                  ? 'bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25'
                   : 'hover:bg-muted/50'
               }`}
             onClick={() => setActiveTab('chamas')}
@@ -191,7 +188,7 @@ export default function HistoryPage() {
             variant={activeTab === 'contributions' ? 'primary' : 'ghost'}
               className={`relative rounded-lg transition-all ${
               activeTab === 'contributions'
-                  ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-md'
+                  ? 'bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25'
                   : 'hover:bg-muted/50'
               }`}
             onClick={() => setActiveTab('contributions')}
@@ -202,7 +199,7 @@ export default function HistoryPage() {
             variant={activeTab === 'payouts' ? 'primary' : 'ghost'}
               className={`relative rounded-lg transition-all ${
               activeTab === 'payouts'
-                  ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-md'
+                  ? 'bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25'
                   : 'hover:bg-muted/50'
               }`}
             onClick={() => setActiveTab('payouts')}

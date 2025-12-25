@@ -53,14 +53,12 @@ export function HistoryFilters({ chamas, onFilterChange }: HistoryFiltersProps) 
 
   return (
     <div className="group relative">
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 via-purple-500/20 to-blue-500/20 rounded-xl md:rounded-2xl blur opacity-30 group-hover:opacity-50 transition-opacity duration-500" />
-      <Card className="relative rounded-xl md:rounded-2xl border border-border/60 bg-card/80 backdrop-blur-xl shadow-xl">
+      <Card className="relative rounded-xl md:rounded-2xl border border-border/60 bg-card shadow-xl">
         <CardContent className="pt-4 md:pt-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
               <div className="relative">
-                <div className="absolute -inset-1 bg-primary/10 rounded-full blur-sm opacity-50" />
-                <Filter className="relative h-4 w-4 md:h-5 md:w-5 text-primary" />
+                <Filter className="relative h-4 w-4 md:h-5 md:w-5 text-[#FFC700]" />
               </div>
               <h3 className="font-semibold text-sm md:text-base">Filters</h3>
           </div>

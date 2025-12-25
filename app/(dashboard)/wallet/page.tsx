@@ -126,21 +126,32 @@ export default function WalletPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Wallet & Savings</h1>
-          <p className="text-muted-foreground mt-1">
-            View your savings balance and transaction history
-          </p>
-        </div>
-        {transactionsData && transactionsData.transactions.length > 0 && (
-          <Button variant="primary" onClick={handleExportCSV}>
-            <Download className="mr-2 h-4 w-4" />
-            Export CSV
-          </Button>
-        )}
+    <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 pb-20 md:pb-8">
+      {/* Animated Background Elements */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5 blur-3xl animate-pulse" />
+        <div className="absolute -right-1/4 -bottom-1/4 h-96 w-96 rounded-full bg-[#F5E6D3]/10 blur-3xl animate-pulse delay-1000" />
       </div>
+
+      <div className="relative z-10 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Wallet & Savings</h1>
+            <p className="text-muted-foreground mt-1">
+              View your savings balance and transaction history
+            </p>
+          </div>
+          {transactionsData && transactionsData.transactions.length > 0 && (
+            <Button 
+              variant="primary" 
+              onClick={handleExportCSV}
+              className="bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Export CSV
+            </Button>
+          )}
+        </div>
 
       {walletData && (
         <SavingsCard
@@ -163,6 +174,7 @@ export default function WalletPage() {
           {error}
         </div>
       )}
+      </div>
     </div>
   )
 }

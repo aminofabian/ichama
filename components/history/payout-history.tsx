@@ -87,8 +87,7 @@ export function PayoutHistory({ payouts }: PayoutHistoryProps) {
 
   return (
     <div className="group relative">
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 via-purple-500/20 to-blue-500/20 rounded-xl md:rounded-2xl blur opacity-30 group-hover:opacity-50 transition-opacity duration-500" />
-      <Card className="relative rounded-xl md:rounded-2xl border border-border/60 bg-card/80 backdrop-blur-xl shadow-xl">
+      <Card className="relative rounded-xl md:rounded-2xl border border-border/60 bg-card shadow-xl">
       <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
@@ -115,7 +114,7 @@ export function PayoutHistory({ payouts }: PayoutHistoryProps) {
                 <div className="flex items-start justify-between gap-3 mb-2 md:mb-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <Gift className="h-4 w-4 md:h-5 md:w-5 text-primary flex-shrink-0" />
+                      <Gift className="h-4 w-4 md:h-5 md:w-5 text-[#FFC700] flex-shrink-0" />
                       <h3 className="font-semibold text-sm md:text-base">{payout.cycle_name}</h3>
                     {getStatusBadge(payout.status)}
                   </div>
