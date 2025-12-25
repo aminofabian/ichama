@@ -67,7 +67,7 @@ export function AdminActions({
                 <Link href={`/chamas/${chamaId}/cycles/new`}>
                   <Button 
                     size="sm"
-                    className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all"
+                    className="bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30 transition-all"
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     Create New Cycle
@@ -77,7 +77,7 @@ export function AdminActions({
                   <Button 
                     size="sm"
                     onClick={() => setShowStartCycleModal(true)}
-                    className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all"
+                    className="bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30 transition-all"
                   >
                     <Play className="mr-2 h-4 w-4" />
                     Start Cycle
@@ -90,7 +90,7 @@ export function AdminActions({
               variant="primary" 
               size="sm"
               onClick={() => setShowInviteModal(true)}
-              className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all"
+              className="bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30 transition-all"
             >
               <Users className="mr-2 h-4 w-4" />
               Invite Members
@@ -100,7 +100,7 @@ export function AdminActions({
               <Button 
                 variant="primary"
                 size="sm"
-                className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all"
+                className="bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30 transition-all"
               >
                 <Users className="mr-2 h-4 w-4" />
                 Manage Members
@@ -120,7 +120,7 @@ export function AdminActions({
                 variant="primary"
                 size="sm"
                 onClick={handleCopyLink}
-                className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all"
+                className="bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30 transition-all"
               >
                 {copied ? (
                   <>

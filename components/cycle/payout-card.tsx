@@ -192,7 +192,7 @@ export function PayoutCard({
         <div className="flex gap-2 pt-4">
           {isAdmin && (payout.status === 'scheduled' || payout.status === 'pending') && (
             <Button
-              className="flex-1"
+              className="flex-1 bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30"
               variant="primary"
               onClick={handleSend}
               disabled={isSending}
@@ -213,7 +213,7 @@ export function PayoutCard({
 
           {isRecipient && payout.status === 'paid' && payout.confirmed_by_member === 0 && (
             <Button
-              className="flex-1"
+              className="flex-1 bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30"
               variant="primary"
               onClick={handleConfirm}
               disabled={isConfirming}

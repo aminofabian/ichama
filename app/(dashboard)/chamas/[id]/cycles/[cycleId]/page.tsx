@@ -161,12 +161,11 @@ export default function CycleDashboardPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-b from-background via-background to-muted/20 pb-20 md:pb-8 overflow-x-hidden">
+    <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 pb-20 md:pb-8 overflow-x-hidden">
       {/* Animated Background Elements */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5 blur-3xl animate-pulse" />
-        <div className="absolute -right-1/4 top-1/4 h-96 w-96 rounded-full bg-blue-500/5 blur-3xl animate-pulse delay-1000" />
-        <div className="absolute bottom-1/4 left-1/4 h-96 w-96 rounded-full bg-purple-500/5 blur-3xl animate-pulse delay-2000" />
+        <div className="absolute -right-1/4 -bottom-1/4 h-96 w-96 rounded-full bg-[#F5E6D3]/10 blur-3xl animate-pulse delay-1000" />
       </div>
 
       <div className="relative z-10">
@@ -186,7 +185,7 @@ export default function CycleDashboardPage() {
 
           {/* Hero Section */}
           <div className="mb-6 sm:mb-8">
-            <div className="relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 p-4 sm:p-5 md:p-6">
+            <div className="relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-br from-[#FFD700]/10 via-[#F5E6D3]/10 to-transparent border border-[#FFD700]/20 p-4 sm:p-5 md:p-6">
               <div className="relative z-10">
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex-1 min-w-0">
@@ -212,9 +211,6 @@ export default function CycleDashboardPage() {
                   </div>
                 </div>
               </div>
-              {/* Decorative elements */}
-              <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-              <div className="absolute bottom-0 left-0 w-36 h-36 bg-primary/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
             </div>
           </div>
 
@@ -285,7 +281,7 @@ export default function CycleDashboardPage() {
                       <Card className="border-border/50 shadow-sm">
                         <CardHeader className="pb-3">
                           <div className="flex items-center gap-2">
-                            <PiggyBank className="h-5 w-5 text-primary" />
+                            <PiggyBank className="h-5 w-5 text-[#FFC700]" />
                             <CardTitle className="text-base sm:text-lg">My Savings</CardTitle>
                           </div>
                         </CardHeader>

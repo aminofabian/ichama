@@ -39,7 +39,7 @@ export function PeriodTracker({ cycle, onPeriodClick }: PeriodTrackerProps) {
       return 'bg-green-500'
     }
     if (status === 'current') {
-      return 'bg-primary'
+      return 'bg-[#FFD700]'
     }
     return 'bg-muted'
   }
@@ -88,7 +88,7 @@ export function PeriodTracker({ cycle, onPeriodClick }: PeriodTrackerProps) {
                 className={`
                   relative flex flex-col items-center justify-center p-1.5 sm:p-2 md:p-3 rounded-lg border-2 transition-all min-w-0
                   ${status === 'completed' ? 'border-green-500 bg-green-50 dark:bg-green-950' : ''}
-                  ${status === 'current' ? 'border-primary bg-primary/10 shadow-sm' : ''}
+                  ${status === 'current' ? 'border-[#FFD700] bg-[#FFD700]/10 shadow-sm' : ''}
                   ${status === 'upcoming' ? 'border-muted bg-muted/50' : ''}
                   ${isClickable ? 'cursor-pointer hover:scale-105 hover:shadow-md' : 'cursor-default'}
                 `}

@@ -101,7 +101,7 @@ export function MemberView({
             <Button 
               variant="primary" 
               onClick={() => router.push(`/chamas/${chama.id}/cycles/${activeCycle.id}`)}
-              className="flex-1 sm:flex-none bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all"
+              className="flex-1 sm:flex-none bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-lg shadow-[#FFD700]/25 hover:shadow-xl hover:shadow-[#FFD700]/30 transition-all"
             >
               View All Contributions
             </Button>

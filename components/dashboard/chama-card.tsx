@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowRight, PiggyBank, Clock, MessageSquare } from 'lucide-react'
 import type { ChamaWithMember } from '@/lib/db/queries/chamas'
 import { formatCurrency, formatRelativeTime } from '@/lib/utils/format'
+import { useToast } from '@/components/ui/toast'
 
 interface UnconfirmedContribution {
   id: string
@@ -80,6 +81,7 @@ function getDaysUntil(dateString: string): number {
 
 export function ChamaCard({ chama, memberCount, savingsAmount = 0, unconfirmedContributions = [] }: ChamaCardProps) {
   const [sendingReminder, setSendingReminder] = useState<string | null>(null)
+  const { addToast } = useToast()
 
   const handleSendReminder = async (e: React.MouseEvent, contributionId: string) => {
     e.preventDefault()
@@ -106,22 +108,34 @@ export function ChamaCard({ chama, memberCount, savingsAmount = 0, unconfirmedCo
         const notificationCount = result.data?.notificationsSent || 0
         const adminCount = result.data?.adminsNotified || 1
         
-        let message = `Reminder sent to ${adminCount} admin${adminCount !== 1 ? 's' : ''}!`
+        let title = `Reminder sent to ${adminCount} admin${adminCount !== 1 ? 's' : ''}!`
+        let description = ''
         if (smsCount > 0) {
-          message += ` SMS sent to ${smsCount} admin${smsCount !== 1 ? 's' : ''}.`
-        }
-        if (notificationCount > 0 && smsCount === 0) {
-          message += ` In-app notification sent.`
+          description = `SMS sent to ${smsCount} admin${smsCount !== 1 ? 's' : ''}`
+        } else if (notificationCount > 0) {
+          description = 'In-app notification sent'
         }
         
-        alert(message)
+        addToast({
+          variant: 'success',
+          title,
+          description: description || undefined,
+        })
       } else {
         console.error('Reminder API error:', result)
-        alert(result.error || 'Failed to send reminder. Please try again.')
+        addToast({
+          variant: 'error',
+          title: 'Failed to send reminder',
+          description: result.error || 'Please try again.',
+        })
       }
     } catch (error) {
       console.error('Error sending reminder:', error)
-      alert('Failed to send reminder. Please check your connection and try again.')
+      addToast({
+        variant: 'error',
+        title: 'Failed to send reminder',
+        description: 'Please check your connection and try again.',
+      })
     } finally {
       setSendingReminder(null)
     }

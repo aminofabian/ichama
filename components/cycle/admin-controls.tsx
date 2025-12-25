@@ -67,7 +67,7 @@ export function AdminControls({ cycle, onCycleUpdate }: AdminControlsProps) {
           {canAdvance && (
             <Button
               variant="primary"
-              className="w-full lg:flex-1 text-sm sm:text-base"
+              className="w-full lg:flex-1 text-sm sm:text-base bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30"
               onClick={() => handleAction('advance')}
               disabled={isLoading !== null}
             >
@@ -89,7 +89,7 @@ export function AdminControls({ cycle, onCycleUpdate }: AdminControlsProps) {
           {canPause && (
             <Button
               variant="primary"
-              className="w-full lg:flex-1 text-sm sm:text-base"
+              className="w-full lg:flex-1 text-sm sm:text-base bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30"
               onClick={() => handleAction('pause')}
               disabled={isLoading !== null}
             >
@@ -110,7 +110,7 @@ export function AdminControls({ cycle, onCycleUpdate }: AdminControlsProps) {
           {canResume && (
             <Button
               variant="primary"
-              className="w-full lg:flex-1 text-sm sm:text-base"
+              className="w-full lg:flex-1 text-sm sm:text-base bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30"
               onClick={() => handleAction('resume')}
               disabled={isLoading !== null}
             >

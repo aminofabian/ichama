@@ -121,7 +121,7 @@ export function PayoutRecipient({
 
         {isAdmin && payout.status === 'scheduled' && (
           <Button
-            className="w-full text-sm sm:text-base bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all"
+            className="w-full text-sm sm:text-base bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30 transition-all"
             onClick={() => onConfirmPayout?.(payout.id)}
           >
             Confirm Payout

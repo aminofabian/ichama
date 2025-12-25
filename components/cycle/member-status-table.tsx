@@ -436,7 +436,7 @@ export function MemberStatusTable({
                               <Button
                                 variant="primary"
                                 size="sm"
-                                  className="h-5 sm:h-6 px-1.5 sm:px-2"
+                                  className="h-5 sm:h-6 px-1.5 sm:px-2 bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white"
                                 onClick={() => handleSaveSavings(member)}
                                 disabled={isSaving}
                               >

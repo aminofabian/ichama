@@ -163,12 +163,11 @@ export default function DashboardPage() {
   const greeting = getGreeting()
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-b from-background via-background to-muted/20 pb-20 md:pb-8">
+    <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 pb-20 md:pb-8">
       {/* Animated Background Elements */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5 blur-3xl animate-pulse" />
-        <div className="absolute -right-1/4 top-1/4 h-96 w-96 rounded-full bg-blue-500/5 blur-3xl animate-pulse delay-1000" />
-        <div className="absolute bottom-1/4 left-1/4 h-96 w-96 rounded-full bg-purple-500/5 blur-3xl animate-pulse delay-2000" />
+        <div className="absolute -right-1/4 -bottom-1/4 h-96 w-96 rounded-full bg-[#F5E6D3]/10 blur-3xl animate-pulse delay-1000" />
       </div>
 
       <div className="relative z-10">
@@ -176,8 +175,8 @@ export default function DashboardPage() {
         <div className="mb-8 flex items-center justify-between px-4 pt-6 md:px-0 md:pt-0">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#FFD700]/30 to-primary/20 blur-md" />
-              <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary/30 via-primary/20 to-primary/10 text-base font-bold text-primary shadow-lg backdrop-blur-sm">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#FFD700]/20 to-[#F5E6D3]/20" />
+              <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#FFD700]/20 to-[#F5E6D3]/30 text-base font-bold text-[#FFC700] shadow-lg">
                 {userName.charAt(0).toUpperCase()}
               </div>
             </div>
@@ -193,7 +192,7 @@ export default function DashboardPage() {
             className="group relative flex h-11 w-11 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm shadow-md transition-all hover:scale-110 hover:shadow-lg"
           >
             <Bell className="h-5 w-5 transition-transform group-hover:scale-110" />
-            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#FFD700] text-[10px] font-bold text-foreground">
+            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#FFD700] text-[10px] font-bold text-white">
               3
             </span>
           </Link>
@@ -311,9 +310,8 @@ export default function DashboardPage() {
             onUpdate={handleUpdate}
           />
         ) : (
-          <div className="rounded-xl border border-dashed border-muted-foreground/20 bg-gradient-to-br from-muted/40 to-muted/20 p-8 text-center backdrop-blur-sm">
+          <div className="rounded-xl border border-dashed border-muted-foreground/20 bg-gradient-to-br from-muted/40 to-muted/20 p-8 text-center">
             <div className="relative inline-block mb-3">
-              <div className="absolute inset-0 bg-purple-500/10 rounded-full blur-xl" />
               <PiggyBank className="relative h-10 w-10 text-muted-foreground/60" />
             </div>
             <p className="text-sm font-medium text-foreground mb-1">
@@ -331,13 +329,12 @@ export default function DashboardPage() {
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-lg blur-sm opacity-50" />
-              <div className="relative flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-50/50 to-cyan-50/50 dark:from-blue-950/20 dark:to-cyan-950/20 border border-blue-200/30 dark:border-blue-800/30">
-                <Users className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">
+              <div className="relative flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#FFD700]/10 to-[#F5E6D3]/10 border border-[#FFD700]/30">
+                <Users className="h-3.5 w-3.5 text-[#FFC700]" />
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#FFC700]">
                 Active Chamas
                 </span>
-                <div className="ml-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 dark:bg-blue-500">
+                <div className="ml-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#FFD700]">
                   <span className="text-[9px] font-bold text-white">{data.stats.activeChamas}</span>
                 </div>
             </div>
@@ -345,7 +342,7 @@ export default function DashboardPage() {
           </div>
           <Link
             href="/chamas/new"
-            className="group relative flex items-center gap-2 overflow-hidden rounded-lg bg-gradient-to-r from-primary via-primary/95 to-primary/90 px-4 py-2 text-sm font-semibold text-primary-foreground shadow-lg transition-all hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+            className="group relative flex items-center gap-2 overflow-hidden rounded-lg bg-gradient-to-r from-[#FFD700] to-[#FFC700] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[#FFD700]/25 transition-all hover:shadow-xl hover:shadow-[#FFD700]/30 hover:scale-[1.02] active:scale-[0.98]"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
             <Plus className="relative h-4 w-4 transition-transform group-hover:rotate-90" />
@@ -360,7 +357,7 @@ export default function DashboardPage() {
         <div className="mb-5 flex items-center justify-end">
           <Link
             href="/chamas"
-            className="group flex items-center gap-1.5 text-xs font-semibold text-muted-foreground transition-all hover:gap-2 hover:text-primary"
+            className="group flex items-center gap-1.5 text-xs font-semibold text-muted-foreground transition-all hover:gap-2 hover:text-[#FFD700]"
           >
             <span>View All</span>
             <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />

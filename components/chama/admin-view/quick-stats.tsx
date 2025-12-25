@@ -57,8 +57,7 @@ export function QuickStats({
         const Icon = stat.icon
         return (
           <Card key={stat.label} className="border-border/50 shadow-lg hover:shadow-xl transition-all overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-muted/20 to-transparent pointer-events-none" />
-            <CardContent className="relative p-4 md:p-5">
+            <CardContent className="p-4 md:p-5">
               <div className="flex items-center gap-3">
                 <div className={`rounded-lg p-2.5 md:p-3 ${stat.bgColor} flex-shrink-0`}>
                   <Icon className={`h-4 w-4 md:h-5 md:w-5 ${stat.color}`} />
