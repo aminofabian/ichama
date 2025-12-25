@@ -28,9 +28,19 @@ interface PendingContribution {
   custom_savings_amount: number | null
 }
 
+interface ChamaStat {
+  chamaId: string
+  chamaName: string
+  chamaType: 'savings' | 'merry_go_round' | 'hybrid'
+  contributionPaid: number
+  savingsPaid: number
+  totalPaid: number
+}
+
 interface DashboardData {
   chamas: ChamaWithMember[]
   pendingContributions?: PendingContribution[]
+  chamaStats?: ChamaStat[]
   stats: {
     activeChamas: number
     totalContributions: number
@@ -295,6 +305,62 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Per-Chama Stats Section */}
+      {data.chamaStats && data.chamaStats.length > 0 && (
+        <div className="mb-6 sm:mb-8 px-3 sm:px-4 md:px-0">
+          <div className="mb-4 sm:mb-5 flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border border-emerald-500/20">
+              <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-500" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">My Contributions</h2>
+              <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Per-chama breakdown</p>
+            </div>
+            <div className="h-px flex-1 bg-gradient-to-r from-border via-border/50 to-transparent ml-2 sm:ml-4" />
+          </div>
+          <div className="grid gap-3 sm:gap-4">
+            {data.chamaStats.map((stat) => (
+              <div
+                key={stat.chamaId}
+                className="rounded-xl sm:rounded-2xl border border-border/50 bg-gradient-to-br from-background to-muted/20 p-4 sm:p-5"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-sm sm:text-base">{stat.chamaName}</h3>
+                    {(stat.chamaType === 'savings' || stat.chamaType === 'hybrid') && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 font-medium">
+                        {stat.chamaType === 'hybrid' ? 'Hybrid' : 'Savings'}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-sm font-bold text-foreground">
+                    {formatCurrency(stat.totalPaid)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-2.5 w-2.5 rounded-full bg-blue-500"></div>
+                    <span className="text-muted-foreground">Contributions:</span>
+                    <span className="font-semibold text-blue-600 dark:text-blue-400">
+                      {formatCurrency(stat.contributionPaid)}
+                    </span>
+                  </div>
+                  {(stat.chamaType === 'savings' || stat.chamaType === 'hybrid') && (
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-2.5 w-2.5 rounded-full bg-purple-500"></div>
+                      <span className="text-muted-foreground">Savings:</span>
+                      <span className="font-semibold text-purple-600 dark:text-purple-400">
+                        {formatCurrency(stat.savingsPaid)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Contributions Section */}
       <div className="mb-6 sm:mb-8 px-3 sm:px-4 md:px-0">

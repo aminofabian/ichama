@@ -21,16 +21,19 @@ export async function recordContribution(
     throw new Error('Contribution not found')
   }
 
-  // Determine status based on amount paid
+  // Add to existing amount paid (cumulative)
+  const newTotalPaid = (contribution.amount_paid || 0) + data.amount_paid
+
+  // Determine status based on total amount paid
   let status: Contribution['status'] = 'pending'
-  if (data.amount_paid >= contribution.amount_due) {
+  if (newTotalPaid >= contribution.amount_due) {
     status = 'paid'
-  } else if (data.amount_paid > 0) {
+  } else if (newTotalPaid > 0) {
     status = 'partial'
   }
 
   const updatedContribution = await updateContribution(contributionId, {
-    amount_paid: data.amount_paid,
+    amount_paid: newTotalPaid,
     paid_at: data.paid_at || new Date().toISOString(),
     status,
     notes: data.notes || null,
@@ -114,7 +117,9 @@ async function processContributionConfirmation(
   const memberSavingsAmount = cycleMember?.custom_savings_amount ?? cycle.savings_amount
   
   if (memberSavingsAmount > 0) {
-    const savingsAmount = Math.min(memberSavingsAmount, totalAmount)
+    // Calculate savings portion: amount paid beyond contribution, capped at savings target
+    const savingsFromPayment = Math.max(0, totalAmount - cycle.contribution_amount)
+    const savingsAmount = Math.min(memberSavingsAmount, savingsFromPayment)
     
     // Get or create savings account
     let savingsAccount = await getSavingsAccount(contribution.user_id)

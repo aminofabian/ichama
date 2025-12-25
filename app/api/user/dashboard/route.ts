@@ -21,6 +21,43 @@ export async function GET(request: NextRequest) {
     const totalContributions =
       (totalContributionsResult.rows[0]?.total as number) || 0
 
+    // Get per-chama contribution and savings breakdown
+    const perChamaStatsResult = await db.execute({
+      sql: `SELECT 
+              ch.id as chama_id,
+              ch.name as chama_name,
+              ch.chama_type,
+              COALESCE(SUM(c.amount_paid), 0) as total_paid,
+              COALESCE(SUM(cy.contribution_amount), 0) as total_contribution_target,
+              COALESCE(SUM(COALESCE(cm.custom_savings_amount, cy.savings_amount)), 0) as total_savings_target
+            FROM contributions c
+            INNER JOIN cycles cy ON c.cycle_id = cy.id
+            INNER JOIN chamas ch ON cy.chama_id = ch.id
+            LEFT JOIN cycle_members cm ON c.cycle_member_id = cm.id
+            WHERE c.user_id = ? AND c.status IN ('paid', 'confirmed')
+            GROUP BY ch.id, ch.name, ch.chama_type`,
+      args: [user.id],
+    })
+    
+    const chamaStats = perChamaStatsResult.rows.map((row: any) => {
+      const totalPaid = row.total_paid || 0
+      const contributionTarget = row.total_contribution_target || 0
+      const savingsTarget = row.total_savings_target || 0
+      
+      // Calculate contribution paid vs savings paid
+      const contributionPaid = Math.min(totalPaid, contributionTarget)
+      const savingsPaid = Math.max(0, totalPaid - contributionTarget)
+      
+      return {
+        chamaId: row.chama_id,
+        chamaName: row.chama_name,
+        chamaType: row.chama_type,
+        contributionPaid,
+        savingsPaid,
+        totalPaid,
+      }
+    })
+
     const upcomingPayoutResult = await db.execute({
       sql: `SELECT p.*, c.name as cycle_name, ch.name as chama_name
             FROM payouts p
@@ -37,6 +74,9 @@ export async function GET(request: NextRequest) {
         : null
 
     // Get pending contributions with cycle and chama info
+    // Show contributions where:
+    // 1. Contribution not fully paid, OR
+    // 2. User started paying savings (paid > contribution) but didn't finish
     const pendingContributionsResult = await db.execute({
       sql: `SELECT 
               c.id, c.cycle_id, c.cycle_member_id, c.user_id, c.period_number,
@@ -49,8 +89,15 @@ export async function GET(request: NextRequest) {
             INNER JOIN chamas ch ON cy.chama_id = ch.id
             LEFT JOIN cycle_members cm ON c.cycle_member_id = cm.id
             WHERE c.user_id = ? 
-              AND c.status IN ('pending', 'partial')
-              AND c.amount_paid < c.amount_due
+              AND c.status != 'confirmed'
+              AND (
+                -- Contribution not fully paid
+                c.amount_paid < cy.contribution_amount
+                OR
+                -- User started paying savings but didn't finish (paid more than contribution but less than total)
+                (c.amount_paid > cy.contribution_amount 
+                 AND c.amount_paid < (cy.contribution_amount + COALESCE(cm.custom_savings_amount, cy.savings_amount)))
+              )
             ORDER BY c.due_date ASC`,
       args: [user.id],
     })
@@ -79,6 +126,7 @@ export async function GET(request: NextRequest) {
       data: {
         chamas,
         pendingContributions,
+        chamaStats,
         stats: {
           activeChamas: chamas.length,
           totalContributions,
