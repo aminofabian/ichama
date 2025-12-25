@@ -174,11 +174,59 @@ export async function GET(request: NextRequest) {
       custom_savings_amount: row.custom_savings_amount,
     }))
 
+    // Get unconfirmed contributions (paid but not confirmed) grouped by chama
+    const unconfirmedContributionsResult = await db.execute({
+      sql: `SELECT 
+              c.id, c.cycle_id, c.cycle_member_id, c.user_id, c.period_number,
+              c.amount_due, c.amount_paid, c.due_date, c.status, c.paid_at,
+              cy.name as cycle_name, cy.contribution_amount, cy.savings_amount,
+              ch.id as chama_id, ch.name as chama_name, ch.chama_type,
+              cm.custom_savings_amount
+            FROM contributions c
+            INNER JOIN cycles cy ON c.cycle_id = cy.id
+            INNER JOIN chamas ch ON cy.chama_id = ch.id
+            LEFT JOIN cycle_members cm ON c.cycle_member_id = cm.id
+            WHERE c.user_id = ? 
+              AND c.status = 'paid'
+              AND c.amount_paid >= cy.contribution_amount
+            ORDER BY c.paid_at DESC`,
+      args: [user.id],
+    })
+
+    const unconfirmedContributions = unconfirmedContributionsResult.rows.map((row: any) => ({
+      id: row.id,
+      cycle_id: row.cycle_id,
+      cycle_member_id: row.cycle_member_id,
+      user_id: row.user_id,
+      period_number: row.period_number,
+      amount_due: row.amount_due,
+      amount_paid: row.amount_paid,
+      due_date: row.due_date,
+      status: row.status,
+      paid_at: row.paid_at,
+      cycle_name: row.cycle_name,
+      contribution_amount: row.contribution_amount,
+      savings_amount: row.savings_amount,
+      chama_id: row.chama_id,
+      chama_name: row.chama_name,
+      chama_type: row.chama_type,
+      custom_savings_amount: row.custom_savings_amount,
+    }))
+
+    // Group unconfirmed contributions by chama_id
+    const unconfirmedByChama = new Map<string, typeof unconfirmedContributions>()
+    unconfirmedContributions.forEach((contrib) => {
+      const existing = unconfirmedByChama.get(contrib.chama_id) || []
+      existing.push(contrib)
+      unconfirmedByChama.set(contrib.chama_id, existing)
+    })
+
     return NextResponse.json<ApiResponse>({
       success: true,
       data: {
         chamas,
         pendingContributions,
+        unconfirmedContributions: Object.fromEntries(unconfirmedByChama),
         chamaStats,
         stats: {
           activeChamas: chamas.length,

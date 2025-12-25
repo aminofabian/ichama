@@ -17,9 +17,26 @@ export function formatDate(date: string | Date): string {
 }
 
 export function formatRelativeTime(date: string | Date): string {
+  if (!date) {
+    return 'unknown time'
+  }
+
   const dateObj = typeof date === 'string' ? new Date(date) : date
+  
+  // Check if date is valid
+  if (isNaN(dateObj.getTime())) {
+    return 'invalid date'
+  }
+
   const now = new Date()
-  const diffInSeconds = Math.floor((now.getTime() - dateObj.getTime()) / 1000)
+  const diffInMs = now.getTime() - dateObj.getTime()
+  
+  // Handle future dates (shouldn't happen, but just in case)
+  if (diffInMs < 0) {
+    return 'just now'
+  }
+
+  const diffInSeconds = Math.floor(diffInMs / 1000)
 
   if (diffInSeconds < 60) {
     return 'just now'

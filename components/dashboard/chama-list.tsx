@@ -17,13 +17,34 @@ interface ChamaStat {
   actualSavings: number
 }
 
+interface UnconfirmedContribution {
+  id: string
+  cycle_id: string
+  cycle_member_id: string
+  user_id: string
+  period_number: number
+  amount_due: number
+  amount_paid: number
+  due_date: string
+  status: string
+  paid_at: string
+  cycle_name: string
+  contribution_amount: number
+  savings_amount: number
+  chama_id: string
+  chama_name: string
+  chama_type: 'savings' | 'merry_go_round' | 'hybrid'
+  custom_savings_amount: number | null
+}
+
 interface ChamaListProps {
   chamas: ChamaWithMember[]
   chamaStats?: ChamaStat[]
+  unconfirmedContributions?: Record<string, UnconfirmedContribution[]>
   loading?: boolean
 }
 
-export function ChamaList({ chamas, chamaStats, loading }: ChamaListProps) {
+export function ChamaList({ chamas, chamaStats, unconfirmedContributions, loading }: ChamaListProps) {
   const [memberCounts, setMemberCounts] = useState<Record<string, number>>({})
 
   useEffect(() => {
@@ -75,6 +96,10 @@ export function ChamaList({ chamas, chamaStats, loading }: ChamaListProps) {
     return stat?.actualSavings || 0
   }
 
+  const getUnconfirmedForChama = (chamaId: string): UnconfirmedContribution[] => {
+    return unconfirmedContributions?.[chamaId] || []
+  }
+
   return (
     <div className="space-y-3">
       {chamas.map((chama) => (
@@ -83,6 +108,7 @@ export function ChamaList({ chamas, chamaStats, loading }: ChamaListProps) {
           chama={chama}
           memberCount={memberCounts[chama.id]}
           savingsAmount={getSavingsForChama(chama.id)}
+          unconfirmedContributions={getUnconfirmedForChama(chama.id)}
         />
       ))}
     </div>

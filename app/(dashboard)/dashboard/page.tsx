@@ -38,9 +38,30 @@ interface ChamaStat {
   actualSavings: number
 }
 
+interface UnconfirmedContribution {
+  id: string
+  cycle_id: string
+  cycle_member_id: string
+  user_id: string
+  period_number: number
+  amount_due: number
+  amount_paid: number
+  due_date: string
+  status: string
+  paid_at: string
+  cycle_name: string
+  contribution_amount: number
+  savings_amount: number
+  chama_id: string
+  chama_name: string
+  chama_type: 'savings' | 'merry_go_round' | 'hybrid'
+  custom_savings_amount: number | null
+}
+
 interface DashboardData {
   chamas: ChamaWithMember[]
   pendingContributions?: PendingContribution[]
+  unconfirmedContributions?: Record<string, UnconfirmedContribution[]>
   chamaStats?: ChamaStat[]
   stats: {
     activeChamas: number
@@ -345,7 +366,11 @@ export default function DashboardPage() {
             <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
-        <ChamaList chamas={data.chamas} chamaStats={data.chamaStats} />
+        <ChamaList 
+          chamas={data.chamas} 
+          chamaStats={data.chamaStats}
+          unconfirmedContributions={data.unconfirmedContributions}
+        />
       </div>
       </div>
     </div>
