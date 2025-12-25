@@ -72,6 +72,17 @@ export default function CreateCyclePage() {
 
         setChamaData(result.data)
 
+        // Pre-populate form with chama's default contribution values
+        const chama = result.data.chama
+        setFormData(prev => ({
+          ...prev,
+          contribution_amount: chama.contribution_amount ?? null,
+          payout_amount: chama.payout_amount ?? null,
+          savings_amount: chama.savings_amount ?? null,
+          service_fee: chama.service_fee ?? null,
+          frequency: chama.frequency ?? null,
+        }))
+
         // Select all members by default
         const allMemberIds = new Set<string>(
           result.data.members.map((m: MemberWithUser) => m.id) // chama_member_id
@@ -100,29 +111,30 @@ export default function CreateCyclePage() {
     if (step === 1) {
       const newErrors: Record<string, string> = {}
       if (!formData.name) newErrors.name = 'Cycle name is required'
-      if (!formData.contribution_amount) newErrors.contribution_amount = 'Required'
-      
-      const chamaType = chamaData?.chama.chama_type
-      if (chamaType !== 'savings' && !formData.payout_amount) {
-        newErrors.payout_amount = 'Required'
-      }
-      if (chamaType !== 'merry_go_round' && !formData.savings_amount) {
-        newErrors.savings_amount = 'Required'
-      }
-      
-      if (!formData.service_fee) newErrors.service_fee = 'Required'
-      if (!formData.frequency) newErrors.frequency = 'Required'
-      if (!formData.start_date) newErrors.start_date = 'Required'
+      if (!formData.frequency) newErrors.frequency = 'Please select a frequency'
+      if (!formData.start_date) newErrors.start_date = 'Start date is required'
       if (!formData.total_periods || formData.total_periods < 1) {
         newErrors.total_periods = 'Must be at least 1'
       }
+      
+      // Validate based on chama type
+      const chamaType = chamaData?.chama.chama_type
+      const isSavingsOnly = chamaType === 'savings'
+      const isMerryGoRound = chamaType === 'merry_go_round'
 
-      const total =
-        (formData.payout_amount || 0) +
-        (formData.savings_amount || 0) +
-        (formData.service_fee || 0)
-      if (total !== formData.contribution_amount) {
-        newErrors.contribution_amount = 'Total breakdown must match contribution amount'
+      // Savings and Hybrid need savings amount
+      if (!isMerryGoRound && !formData.savings_amount) {
+        newErrors.savings_amount = 'Savings amount is required'
+      }
+
+      // Merry-go-round and Hybrid need payout amount
+      if (!isSavingsOnly && !formData.payout_amount) {
+        newErrors.payout_amount = 'Payout amount is required'
+      }
+
+      // Contribution amount is auto-calculated, just verify it exists
+      if (!formData.contribution_amount) {
+        newErrors.contribution_amount = 'Please enter the required amounts to calculate contribution'
       }
 
       if (Object.keys(newErrors).length > 0) {

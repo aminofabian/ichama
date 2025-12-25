@@ -54,19 +54,34 @@ export default function CreateChamaPage() {
     }
 
     if (step === 3) {
-      if (!formData.contributionAmount) {
-        newErrors.contributionAmount = 'Contribution amount is required'
-      } else {
+      if (!formData.frequency) {
+        newErrors.frequency = 'Please select a frequency'
+      }
+
+      // Validate based on chama type
+      const isSavingsOnly = formData.chamaType === 'savings'
+      const isMerryGoRound = formData.chamaType === 'merry_go_round'
+
+      // Savings and Hybrid need savings amount
+      if (!isMerryGoRound && !formData.savingsAmount) {
+        newErrors.savingsAmount = 'Savings amount is required'
+      }
+
+      // Merry-go-round and Hybrid need payout amount
+      if (!isSavingsOnly && !formData.payoutAmount) {
+        newErrors.payoutAmount = 'Payout amount is required'
+      }
+
+      // Validate the auto-calculated contribution amount
+      if (formData.contributionAmount) {
         const amountValidation = validateContributionAmount(
           formData.contributionAmount
         )
         if (!amountValidation.valid) {
           newErrors.contributionAmount = amountValidation.error || ''
         }
-      }
-
-      if (!formData.frequency) {
-        newErrors.frequency = 'Please select a frequency'
+      } else {
+        newErrors.contributionAmount = 'Please enter the required amounts to calculate contribution'
       }
     }
 
