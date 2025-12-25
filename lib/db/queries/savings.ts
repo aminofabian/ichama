@@ -127,3 +127,19 @@ export async function getSavingsTransactions(userId: string, limit?: number): Pr
   const result = await (db.execute as any)({ sql, args })
   return result.rows as unknown as SavingsTransaction[]
 }
+
+export async function getSavingsTransactionByReference(
+  referenceId: string,
+  reason: 'contribution' | 'withdrawal' | 'bonus' | 'penalty' | 'adjustment'
+): Promise<SavingsTransaction | null> {
+  const result = await db.execute({
+    sql: 'SELECT * FROM savings_transactions WHERE reference_id = ? AND reason = ? LIMIT 1',
+    args: [referenceId, reason],
+  })
+
+  if (result.rows.length === 0) {
+    return null
+  }
+
+  return result.rows[0] as unknown as SavingsTransaction
+}

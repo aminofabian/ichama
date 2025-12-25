@@ -1,7 +1,7 @@
 import { getContributionById, updateContribution } from '@/lib/db/queries/contributions'
 import { getCycleById } from '@/lib/db/queries/cycles'
 import { getCycleMemberByCycleMemberId } from '@/lib/db/queries/cycle-members'
-import { getSavingsAccount, updateSavingsBalance, createSavingsTransaction } from '@/lib/db/queries/savings'
+import { getSavingsAccount, updateSavingsBalance, createSavingsTransaction, getSavingsTransactionByReference } from '@/lib/db/queries/savings'
 import { createWalletTransaction } from '@/lib/db/queries/wallet'
 import { createNotification } from '@/lib/db/queries/notifications'
 import { creditSavings } from '@/lib/services/savings-service'
@@ -117,46 +117,56 @@ async function processContributionConfirmation(
   const memberSavingsAmount = cycleMember?.custom_savings_amount ?? cycle.savings_amount
   
   if (memberSavingsAmount > 0) {
+    // Check if savings have already been processed for this contribution
+    const existingSavingsTransaction = await getSavingsTransactionByReference(contribution.id, 'contribution')
+    
+    if (existingSavingsTransaction) {
+      // Savings already processed for this contribution, skip to avoid duplicates
+      return
+    }
+
     // Calculate savings portion: amount paid beyond contribution, capped at savings target
     const savingsFromPayment = Math.max(0, totalAmount - cycle.contribution_amount)
     const savingsAmount = Math.min(memberSavingsAmount, savingsFromPayment)
     
-    // Get or create savings account
-    let savingsAccount = await getSavingsAccount(contribution.user_id)
-    if (!savingsAccount) {
-      const { createSavingsAccount } = await import('@/lib/db/queries/savings')
-      savingsAccount = await createSavingsAccount(contribution.user_id)
+    if (savingsAmount > 0) {
+      // Get or create savings account
+      let savingsAccount = await getSavingsAccount(contribution.user_id)
+      if (!savingsAccount) {
+        const { createSavingsAccount } = await import('@/lib/db/queries/savings')
+        savingsAccount = await createSavingsAccount(contribution.user_id)
+      }
+
+      // Update savings balance
+      const newBalance = (savingsAccount.balance || 0) + savingsAmount
+      await updateSavingsBalance(savingsAccount.id, newBalance)
+
+      // Create savings transaction
+      await createSavingsTransaction({
+        user_id: contribution.user_id,
+        savings_account_id: savingsAccount.id,
+        cycle_id: contribution.cycle_id,
+        amount: savingsAmount,
+        type: 'credit',
+        reason: 'contribution',
+        balance_after: newBalance,
+        reference_id: contribution.id,
+        notes: `Savings from contribution period ${contribution.period_number}`,
+      })
+
+      // Create wallet transaction for savings credit
+      await createWalletTransaction({
+        user_id: contribution.user_id,
+        chama_id: cycle.chama_id,
+        cycle_id: contribution.cycle_id,
+        type: 'savings_credit',
+        amount: savingsAmount,
+        direction: 'in',
+        reference_type: 'savings_transaction',
+        reference_id: contribution.id,
+        description: `Savings credit from contribution`,
+      })
     }
-
-    // Update savings balance
-    const newBalance = (savingsAccount.balance || 0) + savingsAmount
-    await updateSavingsBalance(savingsAccount.id, newBalance)
-
-    // Create savings transaction
-    await createSavingsTransaction({
-      user_id: contribution.user_id,
-      savings_account_id: savingsAccount.id,
-      cycle_id: contribution.cycle_id,
-      amount: savingsAmount,
-      type: 'credit',
-      reason: 'contribution',
-      balance_after: newBalance,
-      reference_id: contribution.id,
-      notes: `Savings from contribution period ${contribution.period_number}`,
-    })
-
-    // Create wallet transaction for savings credit
-    await createWalletTransaction({
-      user_id: contribution.user_id,
-      chama_id: cycle.chama_id,
-      cycle_id: contribution.cycle_id,
-      type: 'savings_credit',
-      amount: savingsAmount,
-      direction: 'in',
-      reference_type: 'savings_transaction',
-      reference_id: contribution.id,
-      description: `Savings credit from contribution`,
-    })
   }
 
   // 3. Handle service fee if applicable

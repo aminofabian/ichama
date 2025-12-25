@@ -7,12 +7,23 @@ import { Plus } from 'lucide-react'
 import type { ChamaWithMember } from '@/lib/db/queries/chamas'
 import { useEffect, useState } from 'react'
 
+interface ChamaStat {
+  chamaId: string
+  chamaName: string
+  chamaType: 'savings' | 'merry_go_round' | 'hybrid'
+  contributionPaid: number
+  savingsPaid: number
+  totalPaid: number
+  actualSavings: number
+}
+
 interface ChamaListProps {
   chamas: ChamaWithMember[]
+  chamaStats?: ChamaStat[]
   loading?: boolean
 }
 
-export function ChamaList({ chamas, loading }: ChamaListProps) {
+export function ChamaList({ chamas, chamaStats, loading }: ChamaListProps) {
   const [memberCounts, setMemberCounts] = useState<Record<string, number>>({})
 
   useEffect(() => {
@@ -59,6 +70,11 @@ export function ChamaList({ chamas, loading }: ChamaListProps) {
     )
   }
 
+  const getSavingsForChama = (chamaId: string): number => {
+    const stat = chamaStats?.find((s) => s.chamaId === chamaId)
+    return stat?.actualSavings || 0
+  }
+
   return (
     <div className="space-y-3">
       {chamas.map((chama) => (
@@ -66,6 +82,7 @@ export function ChamaList({ chamas, loading }: ChamaListProps) {
           key={chama.id}
           chama={chama}
           memberCount={memberCounts[chama.id]}
+          savingsAmount={getSavingsForChama(chama.id)}
         />
       ))}
     </div>

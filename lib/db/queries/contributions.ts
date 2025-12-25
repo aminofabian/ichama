@@ -48,6 +48,23 @@ export async function getContributionById(id: string): Promise<Contribution | nu
   return result.rows[0] as unknown as Contribution
 }
 
+export async function getContributionByMemberAndPeriod(
+  cycleId: string,
+  cycleMemberId: string,
+  periodNumber: number
+): Promise<Contribution | null> {
+  const result = await db.execute({
+    sql: 'SELECT * FROM contributions WHERE cycle_id = ? AND cycle_member_id = ? AND period_number = ?',
+    args: [cycleId, cycleMemberId, periodNumber],
+  })
+
+  if (result.rows.length === 0) {
+    return null
+  }
+
+  return result.rows[0] as unknown as Contribution
+}
+
 export async function createContribution(data: {
   cycle_id: string
   cycle_member_id: string

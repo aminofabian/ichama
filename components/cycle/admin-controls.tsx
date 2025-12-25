@@ -63,11 +63,11 @@ export function AdminControls({ cycle, onCycleUpdate }: AdminControlsProps) {
         <CardDescription className="text-xs sm:text-sm">Manage cycle status and progression</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2.5 sm:space-y-3">
+        <div className="flex flex-col gap-2.5 sm:gap-3 lg:flex-row lg:gap-3">
           {canAdvance && (
             <Button
               variant="primary"
-              className="w-full text-sm sm:text-base"
+              className="w-full lg:flex-1 text-sm sm:text-base"
               onClick={() => handleAction('advance')}
               disabled={isLoading !== null}
             >
@@ -89,7 +89,7 @@ export function AdminControls({ cycle, onCycleUpdate }: AdminControlsProps) {
           {canPause && (
             <Button
               variant="primary"
-              className="w-full text-sm sm:text-base"
+              className="w-full lg:flex-1 text-sm sm:text-base"
               onClick={() => handleAction('pause')}
               disabled={isLoading !== null}
             >
@@ -110,7 +110,7 @@ export function AdminControls({ cycle, onCycleUpdate }: AdminControlsProps) {
           {canResume && (
             <Button
               variant="primary"
-              className="w-full text-sm sm:text-base"
+              className="w-full lg:flex-1 text-sm sm:text-base"
               onClick={() => handleAction('resume')}
               disabled={isLoading !== null}
             >
@@ -131,7 +131,7 @@ export function AdminControls({ cycle, onCycleUpdate }: AdminControlsProps) {
           {canCancel && (
             <Button
               variant="primary"
-              className="w-full text-sm sm:text-base text-destructive hover:text-destructive"
+              className="w-full lg:flex-1 text-sm sm:text-base text-destructive hover:text-destructive"
               onClick={() => {
                 if (
                   confirm(

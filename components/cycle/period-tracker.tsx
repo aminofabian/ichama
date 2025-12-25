@@ -47,41 +47,31 @@ export function PeriodTracker({ cycle, onPeriodClick }: PeriodTrackerProps) {
   const progress = cycle.total_periods > 0 ? (currentPeriod / cycle.total_periods) * 100 : 0
 
   return (
-    <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow duration-300 w-full overflow-hidden relative">
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5" />
-      <CardHeader className="pb-3 relative">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-lg sm:text-xl font-bold">Cycle Progress</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">
-              Period {currentPeriod} of {cycle.total_periods}
-            </CardDescription>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
-            <span className="text-lg font-bold text-primary">{Math.round(progress)}%</span>
-          </div>
-        </div>
+    <Card className="border-border/50 shadow-sm w-full overflow-hidden">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base sm:text-lg">Cycle Progress</CardTitle>
+        <CardDescription className="text-xs sm:text-sm">
+          Period {currentPeriod} of {cycle.total_periods}
+        </CardDescription>
       </CardHeader>
-      <CardContent className="overflow-hidden relative">
+      <CardContent className="overflow-hidden">
         {/* Progress Bar */}
-        <div className="mb-5 sm:mb-6">
-          <div className="flex justify-between text-xs md:text-sm text-muted-foreground mb-3">
-            <span className="font-medium">Progress</span>
-            <span className="font-semibold text-foreground">{currentPeriod} / {cycle.total_periods} Periods</span>
+        <div className="mb-4 sm:mb-5">
+          <div className="flex justify-between text-xs md:text-sm text-muted-foreground mb-2">
+            <span className="font-medium truncate">{Math.round(progress)}% Complete</span>
+            <span className="truncate ml-2">{currentPeriod} / {cycle.total_periods} Periods</span>
           </div>
-          <div className="w-full bg-muted/50 rounded-full h-3 md:h-4 overflow-hidden shadow-inner">
+          <div className="w-full bg-muted rounded-full h-2.5 md:h-3 overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-primary via-primary to-purple-500 rounded-full transition-all duration-500 relative"
+              className={`h-full transition-all duration-300 ${getPeriodColor(currentPeriod)}`}
               style={{ width: `${progress}%` }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent" />
-            </div>
+            />
           </div>
         </div>
 
         {/* Period Grid */}
-        <div className="overflow-x-auto w-full pb-2">
-          <div className={`grid gap-2 sm:gap-3 ${
+        <div className="overflow-x-auto w-full">
+          <div className={`grid gap-1.5 sm:gap-2 ${
             cycle.total_periods <= 10 
               ? 'grid-cols-5 md:grid-cols-10 w-full' 
               : 'grid-cols-5 md:grid-cols-10 min-w-max'
@@ -96,30 +86,22 @@ export function PeriodTracker({ cycle, onPeriodClick }: PeriodTrackerProps) {
                 onClick={() => isClickable && onPeriodClick(period)}
                 disabled={!isClickable}
                 className={`
-                  group relative flex flex-col items-center justify-center p-2 sm:p-3 md:p-4 rounded-xl border-2 transition-all duration-200 min-w-0
-                  ${status === 'completed' ? 'border-emerald-400 bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/50 dark:to-green-950/30 shadow-sm shadow-emerald-500/10' : ''}
-                  ${status === 'current' ? 'border-primary bg-gradient-to-br from-primary/15 to-purple-500/10 shadow-md shadow-primary/20 ring-2 ring-primary/20' : ''}
-                  ${status === 'upcoming' ? 'border-border/50 bg-muted/30 hover:bg-muted/50' : ''}
-                  ${isClickable ? 'cursor-pointer hover:scale-105 hover:shadow-lg' : 'cursor-default'}
+                  relative flex flex-col items-center justify-center p-1.5 sm:p-2 md:p-3 rounded-lg border-2 transition-all min-w-0
+                  ${status === 'completed' ? 'border-green-500 bg-green-50 dark:bg-green-950' : ''}
+                  ${status === 'current' ? 'border-primary bg-primary/10 shadow-sm' : ''}
+                  ${status === 'upcoming' ? 'border-muted bg-muted/50' : ''}
+                  ${isClickable ? 'cursor-pointer hover:scale-105 hover:shadow-md' : 'cursor-default'}
                 `}
               >
-                {status === 'current' && (
-                  <div className="absolute -top-1 -right-1">
-                    <span className="relative flex h-3 w-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-primary" />
-                    </span>
-                  </div>
-                )}
-                <div className="mb-1 shrink-0 transform group-hover:scale-110 transition-transform">{getPeriodIcon(period)}</div>
-                <span className={`text-xs sm:text-sm font-bold ${
-                  status === 'current' ? 'text-primary' : status === 'completed' ? 'text-emerald-700 dark:text-emerald-400' : 'text-muted-foreground'
+                <div className="mb-0.5 sm:mb-1 shrink-0">{getPeriodIcon(period)}</div>
+                <span className={`text-[10px] sm:text-xs font-semibold truncate ${
+                  status === 'current' ? 'text-primary' : status === 'completed' ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'
                 }`}>
                   {period}
                 </span>
                 {status === 'current' && (
-                  <Badge variant="info" className="mt-1 text-[9px] sm:text-[10px] px-1.5 py-0.5 bg-primary text-primary-foreground">
-                    Now
+                  <Badge variant="info" className="mt-0.5 sm:mt-1 text-[9px] sm:text-[10px] px-0.5 sm:px-1 py-0">
+                    Current
                   </Badge>
                 )}
               </button>
@@ -129,18 +111,18 @@ export function PeriodTracker({ cycle, onPeriodClick }: PeriodTrackerProps) {
         </div>
 
         {/* Legend */}
-        <div className="mt-5 sm:mt-6 pt-4 border-t border-border/50 flex flex-wrap gap-4 sm:gap-6 text-xs md:text-sm">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/50 dark:border-emerald-800/30">
-            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-            <span className="font-medium text-emerald-700 dark:text-emerald-400">Completed</span>
+        <div className="mt-4 sm:mt-5 flex flex-wrap gap-2 sm:gap-3 md:gap-4 text-xs md:text-sm text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <CheckCircle2 className="h-3.5 w-3.5 md:h-4 md:w-4 text-green-500" />
+            <span>Completed</span>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
-            <Clock className="h-4 w-4 text-primary" />
-            <span className="font-medium text-primary">Current</span>
+          <div className="flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
+            <span>Current</span>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
-            <Circle className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium text-muted-foreground">Upcoming</span>
+          <div className="flex items-center gap-1.5">
+            <Circle className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
+            <span>Upcoming</span>
           </div>
         </div>
       </CardContent>

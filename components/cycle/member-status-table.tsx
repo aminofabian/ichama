@@ -6,8 +6,10 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Modal, ModalContent, ModalHeader, ModalTitle, ModalClose, ModalFooter } from '@/components/ui/modal'
+import { LoadingSpinner } from '@/components/shared/loading-spinner'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
-import { CheckCircle2, Clock, XCircle, AlertCircle, Gift, Edit2, Check, X, EyeOff } from 'lucide-react'
+import { CheckCircle2, Clock, XCircle, AlertCircle, Gift, Edit2, Check, X, EyeOff, Wallet, Sparkles, Zap } from 'lucide-react'
 import { useToast } from '@/components/ui/toast'
 import type { Cycle } from '@/lib/types/cycle'
 import type { CycleMember } from '@/lib/types/cycle'
@@ -44,6 +46,20 @@ export function MemberStatusTable({
   const [editingSavings, setEditingSavings] = useState<string | null>(null)
   const [savingsValue, setSavingsValue] = useState<string>('')
   const [isSaving, setIsSaving] = useState(false)
+  const [paymentModal, setPaymentModal] = useState<{
+    open: boolean
+    member: MemberWithContributions | null
+    period: number | null
+    contribution: Contribution | null
+  }>({
+    open: false,
+    member: null,
+    period: null,
+    contribution: null,
+  })
+  const [paymentAmount, setPaymentAmount] = useState<string>('')
+  const [isRecordingPayment, setIsRecordingPayment] = useState(false)
+  const [confirmingIds, setConfirmingIds] = useState<Set<string>>(new Set())
 
   const handleStartEdit = (member: MemberWithContributions) => {
     const currentAmount = member.custom_savings_amount ?? cycle.savings_amount
@@ -131,33 +147,213 @@ export function MemberStatusTable({
       amount: savingsAmount,
     }
   }
+  const handleOpenPaymentModal = (member: MemberWithContributions, period: number) => {
+    const contribution = member.contributions.find((c) => c.period_number === period)
+    setPaymentModal({
+      open: true,
+      member,
+      period,
+      contribution: contribution || null,
+    })
+    setPaymentAmount(contribution?.amount_paid?.toString() || contribution?.amount_due?.toString() || '')
+  }
+
+  const handleClosePaymentModal = () => {
+    setPaymentModal({
+      open: false,
+      member: null,
+      period: null,
+      contribution: null,
+    })
+    setPaymentAmount('')
+  }
+
+  const handleRecordPayment = async () => {
+    if (!paymentModal.member || !paymentModal.period) return
+
+    const amount = parseFloat(paymentAmount)
+    if (isNaN(amount) || amount < 0) {
+      addToast({
+        variant: 'error',
+        title: 'Invalid Amount',
+        description: 'Please enter a valid payment amount',
+      })
+      return
+    }
+
+    setIsRecordingPayment(true)
+    try {
+      // Use the admin endpoint which can create contribution if it doesn't exist
+      const response = await fetch(`/api/cycles/${cycle.id}/admin/record-payment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cycle_member_id: paymentModal.member.id,
+          period_number: paymentModal.period,
+          amount_paid: amount,
+        }),
+      })
+
+      const result = await response.json()
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to record payment')
+      }
+
+      addToast({
+        variant: 'success',
+        title: 'Payment Recorded',
+        description: `Successfully recorded ${formatCurrency(amount)} for ${paymentModal.member.user?.full_name || 'member'}`,
+      })
+
+      handleClosePaymentModal()
+      if (onMemberAction) {
+        onMemberAction(paymentModal.member.id, 'refresh')
+      } else {
+        window.location.reload()
+      }
+    } catch (error) {
+      addToast({
+        variant: 'error',
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to record payment',
+      })
+    } finally {
+      setIsRecordingPayment(false)
+    }
+  }
+
+  const handleConfirmContribution = async (contributionId: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation()
+    }
+    
+    setConfirmingIds(prev => new Set(prev).add(contributionId))
+    
+    try {
+      const response = await fetch(`/api/contributions/${contributionId}/confirm`, {
+        method: 'POST',
+      })
+
+      const result = await response.json()
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to confirm contribution')
+      }
+
+      addToast({
+        variant: 'success',
+        title: 'Payment Confirmed',
+        description: 'Contribution has been confirmed and savings credited.',
+      })
+
+      if (onMemberAction) {
+        onMemberAction('', 'refresh')
+      } else {
+        window.location.reload()
+      }
+    } catch (error) {
+      addToast({
+        variant: 'error',
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to confirm contribution',
+      })
+    } finally {
+      setConfirmingIds(prev => {
+        const next = new Set(prev)
+        next.delete(contributionId)
+        return next
+      })
+    }
+  }
+
   const getContributionStatus = (member: MemberWithContributions, period: number) => {
     const contribution = member.contributions.find((c) => c.period_number === period)
     if (!contribution) return null
 
     switch (contribution.status) {
-      case 'paid':
       case 'confirmed':
-        return { icon: CheckCircle2, color: 'text-green-500', label: 'Paid' }
+        return { icon: CheckCircle2, color: 'text-green-500', label: 'Confirmed', isConfirmed: true }
+      case 'paid':
+        return { icon: CheckCircle2, color: 'text-blue-500', label: 'Paid', isConfirmed: false }
       case 'partial':
-        return { icon: AlertCircle, color: 'text-orange-500', label: 'Partial' }
+        return { icon: AlertCircle, color: 'text-orange-500', label: 'Partial', isConfirmed: false }
       case 'late':
-        return { icon: Clock, color: 'text-orange-500', label: 'Late' }
+        return { icon: Clock, color: 'text-orange-500', label: 'Late', isConfirmed: false }
       case 'missed':
-        return { icon: XCircle, color: 'text-red-500', label: 'Missed' }
+        return { icon: XCircle, color: 'text-red-500', label: 'Missed', isConfirmed: false }
       default:
-        return { icon: Clock, color: 'text-gray-500', label: 'Pending' }
+        return { icon: Clock, color: 'text-gray-500', label: 'Pending', isConfirmed: false }
     }
   }
+
+  // Get all pending confirmations for admin
+  const pendingConfirmations = isAdmin ? members.flatMap(member => 
+    member.contributions
+      .filter(c => c.status === 'paid' && c.amount_paid >= c.amount_due)
+      .map(c => ({ contribution: c, member }))
+  ) : []
 
   const periods = Array.from({ length: cycle.total_periods }, (_, i) => i + 1)
 
   return (
-    <Card className="border-border/50 shadow-sm w-full overflow-hidden">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base sm:text-lg">Member Status</CardTitle>
-        <CardDescription className="text-xs sm:text-sm">Contribution status for all cycle members</CardDescription>
-      </CardHeader>
+    <div className="space-y-4">
+      {/* Pending Confirmations Banner - Creative Design */}
+      {isAdmin && pendingConfirmations.length > 0 && (
+        <Card className="border-2 border-blue-200 dark:border-blue-800 bg-gradient-to-r from-blue-50/50 via-blue-50/30 to-transparent dark:from-blue-950/20 dark:via-blue-950/10 shadow-md">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-blue-400/20 rounded-full blur-lg animate-pulse" />
+                  <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg">
+                    <Sparkles className="h-5 w-5 text-white" />
+                  </div>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-sm text-foreground">
+                    {pendingConfirmations.length} Payment{pendingConfirmations.length !== 1 ? 's' : ''} Ready to Confirm
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Confirm to credit savings and finalize transactions
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                {pendingConfirmations.slice(0, 3).map(({ contribution, member }) => (
+                  <button
+                    key={contribution.id}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleConfirmContribution(contribution.id)
+                    }}
+                    disabled={confirmingIds.has(contribution.id)}
+                    className="group relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-800 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-md transition-all disabled:opacity-50"
+                  >
+                    {confirmingIds.has(contribution.id) ? (
+                      <LoadingSpinner size="sm" />
+                    ) : (
+                      <>
+                        <Zap className="h-3.5 w-3.5 text-blue-500 group-hover:scale-110 transition-transform" />
+                        <span className="text-xs font-medium">{member.user?.full_name?.split(' ')[0] || 'Member'}</span>
+                      </>
+                    )}
+                  </button>
+                ))}
+                {pendingConfirmations.length > 3 && (
+                  <Badge variant="info" className="text-xs">
+                    +{pendingConfirmations.length - 3} more
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card className="border-border/50 shadow-sm w-full overflow-hidden">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base sm:text-lg">Member Status</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">Contribution status for all cycle members</CardDescription>
+        </CardHeader>
       <CardContent className="p-0 sm:p-6 overflow-hidden">
         <div className="overflow-x-auto w-full">
           <div className="inline-block min-w-full align-middle">
@@ -181,7 +377,9 @@ export function MemberStatusTable({
                       </div>
                   </th>
                 ))}
-                  <th className="text-center p-2 sm:p-3 font-semibold text-xs sm:text-sm">Payout</th>
+                  {(chamaType === 'merry_go_round' || chamaType === 'hybrid') && (
+                    <th className="text-center p-2 sm:p-3 font-semibold text-xs sm:text-sm">Payout</th>
+                  )}
                   {isAdmin && <th className="text-center p-2 sm:p-3 font-semibold text-xs sm:text-sm">Actions</th>}
               </tr>
             </thead>
@@ -301,18 +499,53 @@ export function MemberStatusTable({
                       const contribution = member.contributions.find(
                         (c) => c.period_number === period
                       )
+                      const isConfirming = contribution && confirmingIds.has(contribution.id)
+                      const needsConfirmation = isAdmin && contribution && contribution.status === 'paid' && contribution.amount_paid >= contribution.amount_due
 
                       return (
-                          <td key={period} className="text-center p-1 sm:p-2">
+                          <td 
+                            key={period} 
+                            className={`text-center p-1 sm:p-2 relative ${isAdmin && !needsConfirmation ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
+                            onClick={isAdmin && !needsConfirmation ? () => handleOpenPaymentModal(member, period) : undefined}
+                            title={isAdmin && !needsConfirmation ? 'Click to record payment' : status?.label}
+                          >
                           {status ? (
-                              <div className="flex flex-col items-center gap-0.5 sm:gap-1" title={status.label}>
-                              <status.icon
-                                  className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${status.color}`}
-                              />
+                              <div className="flex flex-col items-center gap-0.5 sm:gap-1 relative">
+                              {status.isConfirmed && (
+                                <div className="absolute -inset-1 bg-green-500/20 rounded-full blur-sm animate-pulse" />
+                              )}
+                              <div className="relative flex items-center gap-1">
+                                <status.icon
+                                  className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${status.color} ${status.isConfirmed ? 'drop-shadow-lg' : ''}`}
+                                />
+                                {status.isConfirmed && (
+                                  <Sparkles className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-green-400 animate-pulse" />
+                                )}
+                              </div>
                               {contribution && contribution.amount_paid > 0 && (
-                                  <span className="text-[9px] sm:text-xs text-muted-foreground">
+                                  <span className={`text-[9px] sm:text-xs ${status.isConfirmed ? 'font-semibold text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
                                   {formatCurrency(contribution.amount_paid)}
                                 </span>
+                              )}
+                              {needsConfirmation && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleConfirmContribution(contribution.id, e)
+                                  }}
+                                  disabled={isConfirming}
+                                  className="mt-0.5 flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-medium bg-blue-500 hover:bg-blue-600 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                  title="Confirm payment"
+                                >
+                                  {isConfirming ? (
+                                    <LoadingSpinner size="sm" />
+                                  ) : (
+                                    <>
+                                      <Zap className="h-2.5 w-2.5" />
+                                      <span>Confirm</span>
+                                    </>
+                                  )}
+                                </button>
                               )}
                             </div>
                           ) : (
@@ -321,33 +554,35 @@ export function MemberStatusTable({
                         </td>
                       )
                     })}
-                      <td className="text-center p-2 sm:p-3">
-                      {member.payout ? (
-                          <div className="flex flex-col items-center gap-0.5 sm:gap-1">
-                          <Gift
-                              className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${
-                              member.payout.status === 'paid' ||
-                              member.payout.status === 'confirmed'
-                                ? 'text-green-500'
-                                : 'text-gray-500'
-                            }`}
-                          />
-                          <Badge
-                            variant={
-                              member.payout.status === 'paid' ||
-                              member.payout.status === 'confirmed'
-                                ? 'success'
-                                : 'default'
-                            }
-                              className="text-[9px] sm:text-xs"
-                          >
-                            {member.payout.status}
-                          </Badge>
-                        </div>
-                      ) : (
-                          <span className="text-[9px] sm:text-xs text-muted-foreground">—</span>
+                      {(chamaType === 'merry_go_round' || chamaType === 'hybrid') && (
+                        <td className="text-center p-2 sm:p-3">
+                          {member.payout ? (
+                            <div className="flex flex-col items-center gap-0.5 sm:gap-1">
+                              <Gift
+                                className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${
+                                  member.payout.status === 'paid' ||
+                                  member.payout.status === 'confirmed'
+                                    ? 'text-green-500'
+                                    : 'text-gray-500'
+                                }`}
+                              />
+                              <Badge
+                                variant={
+                                  member.payout.status === 'paid' ||
+                                  member.payout.status === 'confirmed'
+                                    ? 'success'
+                                    : 'default'
+                                }
+                                className="text-[9px] sm:text-xs"
+                              >
+                                {member.payout.status}
+                              </Badge>
+                            </div>
+                          ) : (
+                            <span className="text-[9px] sm:text-xs text-muted-foreground">—</span>
+                          )}
+                        </td>
                       )}
-                    </td>
                     {isAdmin && (
                         <td className="text-center p-2 sm:p-3">
                         <button
@@ -369,7 +604,14 @@ export function MemberStatusTable({
         {/* Legend */}
         <div className="mt-4 pt-4 border-t flex flex-wrap gap-3 sm:gap-4 text-[10px] sm:text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <CheckCircle2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-green-500" />
+            <div className="relative">
+              <CheckCircle2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-green-500" />
+              <Sparkles className="absolute -top-0.5 -right-0.5 h-2 w-2 text-green-400" />
+            </div>
+            <span>Confirmed</span>
+          </div>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <CheckCircle2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-blue-500" />
             <span>Paid</span>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2">
@@ -386,7 +628,100 @@ export function MemberStatusTable({
           </div>
         </div>
       </CardContent>
-    </Card>
+      </Card>
+      {/* Payment Recording Modal */}
+      <Modal open={paymentModal.open} onOpenChange={(open) => !open && handleClosePaymentModal()}>
+        <ModalContent>
+          <ModalClose onClose={handleClosePaymentModal} />
+          <ModalHeader>
+            <ModalTitle>Record Payment</ModalTitle>
+          </ModalHeader>
+          <div className="space-y-4">
+            {paymentModal.member && (
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                <Avatar name={paymentModal.member.user?.full_name || 'Unknown'} size="md" />
+                <div>
+                  <p className="font-semibold">{paymentModal.member.user?.full_name || 'Unknown Member'}</p>
+                  <p className="text-sm text-muted-foreground">Period {paymentModal.period}</p>
+                </div>
+              </div>
+            )}
+
+            {!paymentModal.contribution && (
+              <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  No contribution exists for this period. A new contribution will be created when you record the payment.
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <div className="flex justify-between items-center p-2 rounded bg-muted/30">
+                <span className="text-sm text-muted-foreground">Amount Due:</span>
+                <span className="font-semibold">
+                  {paymentModal.contribution 
+                    ? formatCurrency(paymentModal.contribution.amount_due)
+                    : formatCurrency(cycle.contribution_amount)}
+                </span>
+              </div>
+              {paymentModal.contribution && paymentModal.contribution.amount_paid > 0 && (
+                <div className="flex justify-between items-center p-2 rounded bg-muted/30">
+                  <span className="text-sm text-muted-foreground">Already Paid:</span>
+                  <span className="font-semibold">{formatCurrency(paymentModal.contribution.amount_paid)}</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center p-2 rounded bg-muted/30">
+                <span className="text-sm text-muted-foreground">Remaining:</span>
+                <span className="font-semibold text-orange-600">
+                  {formatCurrency(
+                    (paymentModal.contribution?.amount_due || cycle.contribution_amount) - 
+                    (paymentModal.contribution?.amount_paid || 0)
+                  )}
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Payment Amount (KES)</label>
+              <Input
+                type="number"
+                value={paymentAmount}
+                onChange={(e) => setPaymentAmount(e.target.value)}
+                placeholder="Enter amount"
+                min={0}
+                max={paymentModal.contribution ? paymentModal.contribution.amount_due : undefined}
+                disabled={isRecordingPayment}
+                autoFocus
+              />
+              <p className="text-xs text-muted-foreground">
+                Maximum: {formatCurrency(paymentModal.contribution?.amount_due || cycle.contribution_amount)}
+              </p>
+            </div>
+          </div>
+          <ModalFooter>
+            <Button variant="outline" onClick={handleClosePaymentModal} disabled={isRecordingPayment}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRecordPayment}
+              disabled={isRecordingPayment || !paymentAmount || parseFloat(paymentAmount) <= 0}
+            >
+              {isRecordingPayment ? (
+                <>
+                  <LoadingSpinner size="sm" />
+                  <span className="ml-2">Recording...</span>
+                </>
+              ) : (
+                <>
+                  <Wallet className="h-4 w-4 mr-2" />
+                  Record Payment
+                </>
+              )}
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </div>
   )
 }
 

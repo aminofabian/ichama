@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Bell, Plus, Eye, EyeOff, PiggyBank, Calendar, ArrowRight, TrendingUp, Users, DollarSign, Wallet, Sparkles, Activity, ChevronRight, Zap, Target, Gift } from 'lucide-react'
+import { Bell, Plus, Eye, EyeOff, PiggyBank, Calendar, ArrowRight, TrendingUp, Users, DollarSign } from 'lucide-react'
 import { ChamaList } from '@/components/dashboard/chama-list'
 import { ContributionPaymentButtons } from '@/components/dashboard/contribution-payment-buttons'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
@@ -35,6 +35,7 @@ interface ChamaStat {
   contributionPaid: number
   savingsPaid: number
   totalPaid: number
+  actualSavings: number
 }
 
 interface DashboardData {
@@ -141,133 +142,108 @@ export default function DashboardPage() {
   const greeting = getGreeting()
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/10 pb-20 md:pb-8">
+    <div className="relative min-h-screen bg-gradient-to-b from-background via-background to-muted/20 pb-20 md:pb-8">
       {/* Animated Background Elements */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute top-1/4 -left-20 w-72 h-72 bg-purple-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/3 right-1/4 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 left-1/3 w-48 h-48 bg-amber-500/5 rounded-full blur-3xl" />
+        <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5 blur-3xl animate-pulse" />
+        <div className="absolute -right-1/4 top-1/4 h-96 w-96 rounded-full bg-blue-500/5 blur-3xl animate-pulse delay-1000" />
+        <div className="absolute bottom-1/4 left-1/4 h-96 w-96 rounded-full bg-purple-500/5 blur-3xl animate-pulse delay-2000" />
       </div>
 
       <div className="relative z-10">
-        {/* Hero Header Section */}
-        <div className="mb-6 sm:mb-8 px-3 sm:px-4 pt-4 sm:pt-6 md:px-0 md:pt-0">
-          <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-primary/10 via-primary/5 to-purple-500/5 border border-primary/10 shadow-xl shadow-primary/5 p-4 sm:p-6 md:p-8">
-            {/* Decorative elements */}
-            <div className="absolute inset-0 opacity-30">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(var(--primary-rgb),0.15),transparent_50%)]" />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(147,51,234,0.1),transparent_50%)]" />
-            </div>
-            <div className="absolute top-0 right-0 w-24 sm:w-32 h-24 sm:h-32 bg-gradient-to-br from-primary/20 to-transparent rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-            
-            <div className="relative flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 sm:gap-4 md:gap-5 min-w-0 flex-1">
-                <div className="relative shrink-0">
-                  <div className="absolute -inset-1 rounded-xl sm:rounded-2xl bg-gradient-to-br from-primary/40 to-purple-500/30 blur-lg opacity-70" />
-                  <div className="relative flex h-12 w-12 sm:h-16 sm:w-16 md:h-20 md:w-20 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-primary to-purple-600 text-xl sm:text-2xl md:text-3xl font-bold text-white shadow-xl shadow-primary/30">
-                    {userName.charAt(0).toUpperCase()}
-                  </div>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-0.5 sm:mb-1">
-                    <span className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-background/60 backdrop-blur-sm border border-border/50 text-[10px] sm:text-xs font-medium text-muted-foreground">
-                      <Sparkles className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-amber-500" />
-                      {greeting}
-                    </span>
-                  </div>
-                  <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-foreground tracking-tight truncate">
-                    Hello, {userName}
-                  </h1>
-                  <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 hidden sm:block truncate">Welcome back to your dashboard</p>
-                </div>
+        {/* Header */}
+        <div className="mb-8 flex items-center justify-between px-4 pt-6 md:px-0 md:pt-0">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#FFD700]/30 to-primary/20 blur-md" />
+              <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary/30 via-primary/20 to-primary/10 text-base font-bold text-primary shadow-lg backdrop-blur-sm">
+                {userName.charAt(0).toUpperCase()}
               </div>
-              <Link
-                href="/notifications"
-                className="group relative shrink-0 flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-background/70 backdrop-blur-sm border border-border/50 shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-xl hover:bg-background"
-              >
-                <Bell className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 transition-transform group-hover:rotate-12" />
-                <span className="absolute -right-0.5 sm:-right-1 -top-0.5 sm:-top-1 flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-[9px] sm:text-[10px] font-bold text-white shadow-lg shadow-amber-500/30 animate-pulse">
-                  3
-                </span>
-              </Link>
+            </div>
+            <div>
+              <h1 className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-sm font-semibold tracking-tight text-transparent">
+                Hello, {userName}
+              </h1>
+              <p className="text-xs font-medium text-muted-foreground">{greeting}</p>
             </div>
           </div>
+          <Link
+            href="/notifications"
+            className="group relative flex h-11 w-11 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm shadow-md transition-all hover:scale-110 hover:shadow-lg"
+          >
+            <Bell className="h-5 w-5 transition-transform group-hover:scale-110" />
+            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#FFD700] text-[10px] font-bold text-foreground">
+              3
+            </span>
+          </Link>
         </div>
 
       {/* Overview Section */}
-      <div className="mb-6 sm:mb-8 px-3 sm:px-4 md:px-0">
-        <div className="mb-4 sm:mb-5 flex items-center gap-2 sm:gap-3">
-          <div className="flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
-            <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-          </div>
-          <div className="min-w-0">
-            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">Overview</h2>
-            <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Your financial snapshot</p>
-          </div>
-          <div className="h-px flex-1 bg-gradient-to-r from-border via-border/50 to-transparent ml-2 sm:ml-4" />
+      <div className="mb-8 px-4 md:px-0">
+        <div className="mb-3 flex items-center gap-2">
+          <h2 className="text-[8px] md:text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
+            OVERVIEW
+          </h2>
+          <div className="h-px flex-1 bg-gradient-to-r from-muted to-transparent" />
         </div>
-        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4 lg:gap-5">
+        <div className="grid grid-cols-2 gap-2 md:gap-4 lg:grid-cols-4">
           {/* Active Chamas Card */}
-          <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl md:rounded-3xl border border-blue-200/50 dark:border-blue-800/30 bg-gradient-to-br from-blue-50 via-indigo-50/80 to-sky-50/50 dark:from-blue-950/40 dark:via-indigo-950/30 dark:to-sky-950/20 p-2.5 sm:p-4 md:p-5 lg:p-6 shadow-lg shadow-blue-500/5 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-0.5 sm:hover:-translate-y-1 hover:border-blue-300/50">
-            <div className="absolute top-0 right-0 w-16 sm:w-20 md:w-24 h-16 sm:h-20 md:h-24 bg-gradient-to-br from-blue-400/20 to-transparent rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500" />
+          <div className="group relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/50 p-1.5 md:p-2.5 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg dark:from-blue-950/30 dark:to-blue-900/20">
+            <div className="absolute -right-1 -top-1 md:-right-2 md:-top-2 h-6 w-6 md:h-10 md:w-10 rounded-full bg-blue-400/20 blur-xl" />
             <div className="relative">
-              <div className="mb-2 sm:mb-3 md:mb-4 flex items-center justify-between">
-                <div className="flex h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 items-center justify-center rounded-lg sm:rounded-xl md:rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30">
-                  <Users className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-white" />
+              <div className="mb-1 md:mb-2 flex items-center justify-between">
+                <div className="flex h-4 w-4 md:h-6 md:w-6 items-center justify-center rounded-md md:rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-md">
+                  <Users className="h-2.5 w-2.5 md:h-4 md:w-4 text-white" />
                 </div>
               </div>
-              <p className="mb-0.5 sm:mb-1 md:mb-2 text-[9px] sm:text-[10px] md:text-xs font-semibold text-blue-700/70 dark:text-blue-400/70 uppercase tracking-wider">Active Chamas</p>
-              <p className="mb-0.5 sm:mb-1 md:mb-2 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-blue-900 dark:text-blue-100">{data.stats.activeChamas}</p>
-              <p className="text-[9px] sm:text-[10px] md:text-xs text-blue-600/80 dark:text-blue-400/80">Groups you're in</p>
+              <p className="mb-0.5 md:mb-1 text-[9px] md:text-[10px] font-medium text-muted-foreground">Active Chamas</p>
+              <p className="text-base md:text-xl font-bold text-foreground">{data.stats.activeChamas}</p>
             </div>
           </div>
 
           {/* Total Contributed Card */}
-          <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl md:rounded-3xl border border-emerald-200/50 dark:border-emerald-800/30 bg-gradient-to-br from-emerald-50 via-green-50/80 to-teal-50/50 dark:from-emerald-950/40 dark:via-green-950/30 dark:to-teal-950/20 p-2.5 sm:p-4 md:p-5 lg:p-6 shadow-lg shadow-emerald-500/5 transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-0.5 sm:hover:-translate-y-1 hover:border-emerald-300/50">
-            <div className="absolute top-0 right-0 w-16 sm:w-20 md:w-24 h-16 sm:h-20 md:h-24 bg-gradient-to-br from-emerald-400/20 to-transparent rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500" />
+          <div className="group relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-br from-green-50 to-emerald-100/50 p-1.5 md:p-2.5 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg dark:from-green-950/30 dark:to-emerald-900/20">
+            <div className="absolute -right-1 -top-1 md:-right-2 md:-top-2 h-6 w-6 md:h-10 md:w-10 rounded-full bg-green-400/20 blur-xl" />
             <div className="relative">
-              <div className="mb-2 sm:mb-3 md:mb-4 flex items-center justify-between">
-                <div className="flex h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 items-center justify-center rounded-lg sm:rounded-xl md:rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 shadow-lg shadow-emerald-500/30">
-                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-white" />
+              <div className="mb-1 md:mb-2 flex items-center justify-between">
+                <div className="flex h-4 w-4 md:h-6 md:w-6 items-center justify-center rounded-md md:rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 shadow-md">
+                  <DollarSign className="h-2.5 w-2.5 md:h-4 md:w-4 text-white" />
                 </div>
               </div>
-              <p className="mb-0.5 sm:mb-1 md:mb-2 text-[9px] sm:text-[10px] md:text-xs font-semibold text-emerald-700/70 dark:text-emerald-400/70 uppercase tracking-wider">Contributed</p>
-              <p className="mb-0.5 sm:mb-1 md:mb-2 text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-emerald-900 dark:text-emerald-100 truncate">
+              <p className="mb-0.5 md:mb-1 text-[9px] md:text-[10px] font-medium text-muted-foreground">Total Contributed</p>
+              <p className="text-sm md:text-lg font-bold text-foreground">
                 {formatCurrency(data.stats.totalContributions)}
               </p>
-              <p className="text-[9px] sm:text-[10px] md:text-xs text-emerald-600/80 dark:text-emerald-400/80">All-time total</p>
             </div>
           </div>
 
           {/* Savings Balance Card */}
-          <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl md:rounded-3xl border border-purple-200/50 dark:border-purple-800/30 bg-gradient-to-br from-purple-50 via-violet-50/80 to-fuchsia-50/50 dark:from-purple-950/40 dark:via-violet-950/30 dark:to-fuchsia-950/20 p-2.5 sm:p-4 md:p-5 lg:p-6 shadow-lg shadow-purple-500/5 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10 hover:-translate-y-0.5 sm:hover:-translate-y-1 hover:border-purple-300/50">
-            <div className="absolute top-0 right-0 w-16 sm:w-20 md:w-24 h-16 sm:h-20 md:h-24 bg-gradient-to-br from-purple-400/20 to-transparent rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500" />
+          <div className="group relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-br from-purple-50 to-purple-100/50 p-1.5 md:p-2.5 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg dark:from-purple-950/30 dark:to-purple-900/20">
+            <div className="absolute -right-1 -top-1 md:-right-2 md:-top-2 h-6 w-6 md:h-10 md:w-10 rounded-full bg-purple-400/20 blur-xl" />
             <div className="relative">
-              <div className="mb-2 sm:mb-3 md:mb-4 flex items-center justify-between">
-                <div className="flex h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 items-center justify-center rounded-lg sm:rounded-xl md:rounded-2xl bg-gradient-to-br from-purple-500 to-violet-600 shadow-lg shadow-purple-500/30">
-                  <PiggyBank className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-white" />
+              <div className="mb-1 md:mb-2 flex items-center justify-between">
+                <div className="flex h-4 w-4 md:h-6 md:w-6 items-center justify-center rounded-md md:rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 shadow-md">
+                  <PiggyBank className="h-2.5 w-2.5 md:h-4 md:w-4 text-white" />
                 </div>
                 <button
                   onClick={() => setShowSavings(!showSavings)}
-                  className="flex h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 lg:h-9 lg:w-9 items-center justify-center rounded-md sm:rounded-lg bg-background/70 backdrop-blur-sm border border-border/50 transition-all hover:bg-background hover:scale-110 hover:shadow-md"
+                  className="flex h-3 w-3 md:h-5 md:w-5 items-center justify-center rounded-sm md:rounded-md bg-background/50 backdrop-blur-sm transition-all hover:bg-background hover:scale-110"
                 >
                   {showSavings ? (
-                    <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-purple-600 dark:text-purple-400" />
+                    <Eye className="h-2 w-2 md:h-3 md:w-3 text-muted-foreground" />
                   ) : (
-                    <EyeOff className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-muted-foreground" />
+                    <EyeOff className="h-2 w-2 md:h-3 md:w-3 text-muted-foreground" />
                   )}
                 </button>
               </div>
-              <p className="mb-0.5 sm:mb-1 md:mb-2 text-[9px] sm:text-[10px] md:text-xs font-semibold text-purple-700/70 dark:text-purple-400/70 uppercase tracking-wider">Savings</p>
-              <p className="mb-0.5 sm:mb-1 md:mb-2 text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-purple-900 dark:text-purple-100 truncate">
-                {showSavings ? formatCurrency(data.stats.savingsBalance) : '••••••'}
-              </p>
-              <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 flex-wrap">
-                <p className="text-[9px] sm:text-[10px] md:text-xs text-purple-600/80 dark:text-purple-400/80">Your balance</p>
+              <p className="mb-0.5 md:mb-1 text-[9px] md:text-[10px] font-medium text-muted-foreground">Savings Balance</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-sm md:text-lg font-bold text-foreground">
+                  {showSavings ? formatCurrency(data.stats.savingsBalance) : '••••••'}
+                </p>
                 {showSavings && (
-                  <div className="flex items-center gap-0.5 sm:gap-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 px-1 sm:px-1.5 md:px-2 py-0.5 text-[8px] sm:text-[9px] md:text-[10px] font-bold text-emerald-700 dark:text-emerald-400">
-                    <TrendingUp className="h-2 w-2 sm:h-2.5 sm:w-2.5 md:h-3 md:w-3" />
+                  <div className="flex items-center gap-0.5 rounded-full bg-green-100 px-0.5 md:px-1 py-0 text-[7px] md:text-[9px] font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                    <TrendingUp className="h-1.5 w-1.5 md:h-2 md:w-2" />
                     <span>+12%</span>
                   </div>
                 )}
@@ -276,110 +252,37 @@ export default function DashboardPage() {
           </div>
 
           {/* Upcoming Payout Card */}
-          <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl md:rounded-3xl border border-amber-200/50 dark:border-amber-800/30 bg-gradient-to-br from-amber-50 via-orange-50/80 to-yellow-50/50 dark:from-amber-950/40 dark:via-orange-950/30 dark:to-yellow-950/20 p-2.5 sm:p-4 md:p-5 lg:p-6 shadow-lg shadow-amber-500/5 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/10 hover:-translate-y-0.5 sm:hover:-translate-y-1 hover:border-amber-300/50">
-            <div className="absolute top-0 right-0 w-16 sm:w-20 md:w-24 h-16 sm:h-20 md:h-24 bg-gradient-to-br from-amber-400/20 to-transparent rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500" />
+          <div className="group relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-br from-orange-50 to-amber-100/50 p-1.5 md:p-2.5 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg dark:from-orange-950/30 dark:to-amber-900/20">
+            <div className="absolute -right-1 -top-1 md:-right-2 md:-top-2 h-6 w-6 md:h-10 md:w-10 rounded-full bg-orange-400/20 blur-xl" />
             <div className="relative">
-              <div className="mb-2 sm:mb-3 md:mb-4 flex items-center justify-between">
-                <div className="flex h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 items-center justify-center rounded-lg sm:rounded-xl md:rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-500/30">
-                  <Gift className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 text-white" />
+              <div className="mb-1 md:mb-2 flex items-center justify-between">
+                <div className="flex h-4 w-4 md:h-6 md:w-6 items-center justify-center rounded-md md:rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 shadow-md">
+                  <Calendar className="h-2.5 w-2.5 md:h-4 md:w-4 text-white" />
                 </div>
-                {data.stats.upcomingPayout && (
-                  <span className="flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-[8px] sm:text-[9px] md:text-[10px] font-bold text-amber-700 dark:text-amber-400">
-                    <Zap className="h-2 w-2 sm:h-2.5 sm:w-2.5" />
-                    Soon
-                  </span>
-                )}
               </div>
-              <p className="mb-0.5 sm:mb-1 md:mb-2 text-[9px] sm:text-[10px] md:text-xs font-semibold text-amber-700/70 dark:text-amber-400/70 uppercase tracking-wider">Next Payout</p>
-              <p className="mb-0.5 sm:mb-1 md:mb-2 text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-amber-900 dark:text-amber-100 truncate">
+              <p className="mb-0.5 md:mb-1 text-[9px] md:text-[10px] font-medium text-muted-foreground">Upcoming Payout</p>
+              <p className="text-sm md:text-lg font-bold text-foreground">
                 {data.stats.upcomingPayout
                   ? formatCurrency(data.stats.upcomingPayout.amount)
                   : formatCurrency(0)}
-              </p>
-              <p className="text-[9px] sm:text-[10px] md:text-xs text-amber-600/80 dark:text-amber-400/80 truncate">
-                {data.stats.upcomingPayout
-                  ? `From ${data.stats.upcomingPayout.chamaName}`
-                  : 'No scheduled payouts'}
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Per-Chama Stats Section */}
-      {data.chamaStats && data.chamaStats.length > 0 && (
-        <div className="mb-6 sm:mb-8 px-3 sm:px-4 md:px-0">
-          <div className="mb-4 sm:mb-5 flex items-center gap-2 sm:gap-3">
-            <div className="flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border border-emerald-500/20">
-              <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-500" />
-            </div>
-            <div className="min-w-0">
-              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">My Contributions</h2>
-              <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Per-chama breakdown</p>
-            </div>
-            <div className="h-px flex-1 bg-gradient-to-r from-border via-border/50 to-transparent ml-2 sm:ml-4" />
-          </div>
-          <div className="grid gap-3 sm:gap-4">
-            {data.chamaStats.map((stat) => (
-              <div
-                key={stat.chamaId}
-                className="rounded-xl sm:rounded-2xl border border-border/50 bg-gradient-to-br from-background to-muted/20 p-4 sm:p-5"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-sm sm:text-base">{stat.chamaName}</h3>
-                    {(stat.chamaType === 'savings' || stat.chamaType === 'hybrid') && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 font-medium">
-                        {stat.chamaType === 'hybrid' ? 'Hybrid' : 'Savings'}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-sm font-bold text-foreground">
-                    {formatCurrency(stat.totalPaid)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 text-xs">
-                  <div className="flex items-center gap-1.5">
-                    <div className="h-2.5 w-2.5 rounded-full bg-blue-500"></div>
-                    <span className="text-muted-foreground">Contributions:</span>
-                    <span className="font-semibold text-blue-600 dark:text-blue-400">
-                      {formatCurrency(stat.contributionPaid)}
-                    </span>
-                  </div>
-                  {(stat.chamaType === 'savings' || stat.chamaType === 'hybrid') && (
-                    <div className="flex items-center gap-1.5">
-                      <div className="h-2.5 w-2.5 rounded-full bg-purple-500"></div>
-                      <span className="text-muted-foreground">Savings:</span>
-                      <span className="font-semibold text-purple-600 dark:text-purple-400">
-                        {formatCurrency(stat.savingsPaid)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Contributions Section */}
-      <div className="mb-6 sm:mb-8 px-3 sm:px-4 md:px-0">
-        <div className="mb-4 sm:mb-5 flex items-center gap-2 sm:gap-3">
-          <div className="flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-500/10 to-purple-500/5 border border-purple-500/20">
-            <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">Contributions</h2>
-              {data.pendingContributions && data.pendingContributions.length > 0 && (
-                <span className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-violet-600 text-[9px] sm:text-[10px] font-bold text-white shadow-lg shadow-purple-500/30">
-                  {data.pendingContributions.length}
-                </span>
-              )}
-            </div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Pending payments due</p>
-          </div>
-          <div className="h-px flex-1 bg-gradient-to-r from-border via-border/50 to-transparent" />
+      <div className="mb-6 px-4 md:px-0">
+        <div className="mb-3 flex items-center gap-2">
+          <h2 className="text-[8px] md:text-[9px] font-semibold uppercase tracking-wider text-muted-foreground relative">
+            CONTRIBUTIONS
+            {data.pendingContributions && data.pendingContributions.length > 0 && (
+              <sup className="ml-0.5 text-[6px] md:text-[7px] font-bold text-primary align-super">
+                {data.pendingContributions.length}
+              </sup>
+            )}
+          </h2>
+          <div className="h-px flex-1 bg-gradient-to-r from-muted to-transparent" />
         </div>
         {data.pendingContributions && data.pendingContributions.length > 0 ? (
           <ContributionPaymentButtons
@@ -387,64 +290,62 @@ export default function DashboardPage() {
             onUpdate={handleUpdate}
           />
         ) : (
-          <div className="rounded-xl sm:rounded-2xl border-2 border-dashed border-border/50 bg-gradient-to-br from-muted/30 via-muted/20 to-transparent p-6 sm:p-8 md:p-10 text-center">
-            <div className="relative inline-flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 mb-3 sm:mb-4">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-violet-500/10 rounded-xl sm:rounded-2xl blur-xl" />
-              <div className="relative flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-purple-100 to-violet-100 dark:from-purple-900/30 dark:to-violet-900/20 border border-purple-200/50 dark:border-purple-800/30">
-                <Target className="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7 text-purple-500" />
-              </div>
+          <div className="rounded-xl border border-dashed border-muted-foreground/20 bg-gradient-to-br from-muted/40 to-muted/20 p-8 text-center backdrop-blur-sm">
+            <div className="relative inline-block mb-3">
+              <div className="absolute inset-0 bg-purple-500/10 rounded-full blur-xl" />
+              <PiggyBank className="relative h-10 w-10 text-muted-foreground/60" />
             </div>
-            <p className="text-sm sm:text-base font-semibold text-foreground mb-1 sm:mb-2">
-              All caught up!
+            <p className="text-sm font-medium text-foreground mb-1">
+              No pending contributions
             </p>
-            <p className="text-xs sm:text-sm text-muted-foreground max-w-xs mx-auto">
-              No pending contributions. When payments are due, they'll appear here.
+            <p className="text-xs text-muted-foreground">
+              When you have contributions due, you'll see them here with options to pay and save.
             </p>
           </div>
         )}
       </div>
 
       {/* Active Chamas Section */}
-      <div className="mb-4 sm:mb-6 px-3 sm:px-4 md:px-0">
-        <div className="flex items-center justify-between gap-2 sm:gap-3">
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-            <div className="flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-500/20 shrink-0">
-              <Users className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground truncate">My Chamas</h2>
-                <span className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-[9px] sm:text-[10px] font-bold text-white shadow-lg shadow-blue-500/30 shrink-0">
-                  {data.stats.activeChamas}
+      <div className="mb-8 px-4 md:px-0">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-lg blur-sm opacity-50" />
+              <div className="relative flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-50/50 to-cyan-50/50 dark:from-blue-950/20 dark:to-cyan-950/20 border border-blue-200/30 dark:border-blue-800/30">
+                <Users className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">
+                Active Chamas
                 </span>
-              </div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Groups you're part of</p>
+                <div className="ml-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 dark:bg-blue-500">
+                  <span className="text-[9px] font-bold text-white">{data.stats.activeChamas}</span>
+                </div>
+            </div>
             </div>
           </div>
           <Link
             href="/chamas/new"
-            className="group relative shrink-0 flex items-center gap-1.5 sm:gap-2 overflow-hidden rounded-lg sm:rounded-xl bg-gradient-to-r from-primary to-purple-600 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98]"
+            className="group relative flex items-center gap-2 overflow-hidden rounded-lg bg-gradient-to-r from-primary via-primary/95 to-primary/90 px-4 py-2 text-sm font-semibold text-primary-foreground shadow-lg transition-all hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
-            <Plus className="relative h-3.5 w-3.5 sm:h-4 sm:w-4 transition-transform group-hover:rotate-90" />
-            <span className="relative hidden xs:inline">New Chama</span>
-            <span className="relative xs:hidden">New</span>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
+            <Plus className="relative h-4 w-4 transition-transform group-hover:rotate-90" />
+            <span className="relative hidden sm:inline">New Chama</span>
+            <span className="relative sm:hidden">New</span>
           </Link>
         </div>
       </div>
 
       {/* My Groups Section */}
-      <div className="px-3 sm:px-4 md:px-0">
-        <div className="mb-3 sm:mb-4 flex items-center justify-end">
+      <div className="px-4 md:px-0">
+        <div className="mb-5 flex items-center justify-end">
           <Link
             href="/chamas"
-            className="group flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold text-muted-foreground transition-all hover:text-primary hover:bg-primary/5"
+            className="group flex items-center gap-1.5 text-xs font-semibold text-muted-foreground transition-all hover:gap-2 hover:text-primary"
           >
             <span>View All</span>
-            <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 transition-transform group-hover:translate-x-0.5" />
+            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
-        <ChamaList chamas={data.chamas} />
+        <ChamaList chamas={data.chamas} chamaStats={data.chamaStats} />
       </div>
       </div>
     </div>

@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, PiggyBank } from 'lucide-react'
 import type { ChamaWithMember } from '@/lib/db/queries/chamas'
+import { formatCurrency } from '@/lib/utils/format'
 
 interface ChamaCardProps {
   chama: ChamaWithMember
   memberCount?: number
+  savingsAmount?: number
 }
 
 interface CycleData {
@@ -55,7 +57,7 @@ function getDaysUntil(dateString: string): number {
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 }
 
-export function ChamaCard({ chama, memberCount }: ChamaCardProps) {
+export function ChamaCard({ chama, memberCount, savingsAmount = 0 }: ChamaCardProps) {
   const [cycleData, setCycleData] = useState<CycleData | null>(null)
   const [nextContribution, setNextContribution] = useState<PendingContribution | null>(null)
   const [loading, setLoading] = useState(true)
@@ -160,6 +162,19 @@ export function ChamaCard({ chama, memberCount }: ChamaCardProps) {
                           : `${Math.abs(daysUntil)} day${Math.abs(daysUntil) !== 1 ? 's' : ''} overdue`}
                     </strong>
                   </span>
+                </div>
+              </div>
+            )}
+
+            {/* Savings Amount */}
+            {savingsAmount > 0 && (
+              <div className="mb-3 flex items-center gap-2 rounded-lg bg-purple-50/50 dark:bg-purple-950/20 px-3 py-2">
+                <PiggyBank className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                <div className="flex-1">
+                  <span className="text-[10px] font-medium text-muted-foreground">Saved</span>
+                  <p className="text-sm font-bold text-purple-700 dark:text-purple-300">
+                    {formatCurrency(savingsAmount)}
+                  </p>
                 </div>
               </div>
             )}

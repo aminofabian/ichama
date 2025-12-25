@@ -202,7 +202,7 @@ export function ContributionPaymentButtons({ contributions, onUpdate }: Contribu
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {contributions.map((contrib) => {
         const daysRemaining = getDaysRemaining(contrib.due_date)
         const { hasSavings, effectiveSavings, total, contributionPaid, savingsPaid, remaining, progress, contributionAmount } = getAmounts(contrib)
@@ -213,26 +213,26 @@ export function ContributionPaymentButtons({ contributions, onUpdate }: Contribu
         return (
           <div
             key={contrib.id}
-            className="rounded-xl border border-border/50 bg-gradient-to-br from-background to-muted/20 p-4 hover:shadow-md hover:border-border transition-all"
+            className="group relative overflow-hidden rounded-lg border border-border/50 bg-gradient-to-br from-background to-muted/10 p-2 hover:shadow-sm hover:border-border/80 transition-all"
           >
-            {/* Header: Chama name, cycle, due date */}
-            <div className="flex items-start justify-between gap-2 mb-3">
+            {/* Header Row */}
+            <div className="flex items-center justify-between gap-2 mb-1.5">
               <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-sm truncate">{contrib.chama_name}</h3>
-                <div className="flex items-center gap-1.5 mt-1">
-                  <Badge variant="default" className="text-[9px] px-1.5 py-0">
+                <h3 className="font-semibold text-xs text-foreground truncate">{contrib.chama_name}</h3>
+                <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                  <Badge variant="default" className="text-[8px] px-1 py-0 h-auto">
                     {contrib.cycle_name}
                   </Badge>
-                  <span className="text-[10px] text-muted-foreground">Period {contrib.period_number}</span>
+                  <span className="text-[9px] text-muted-foreground">Period {contrib.period_number}</span>
                 </div>
               </div>
-              <div className={`text-right shrink-0 px-2 py-1 rounded-lg ${
+              <div className={`shrink-0 px-1.5 py-0.5 rounded text-center min-w-[50px] ${
                 daysRemaining < 0 ? 'bg-red-50 dark:bg-red-950/30' :
                 daysRemaining <= 2 ? 'bg-red-50 dark:bg-red-950/30' :
                 daysRemaining <= 4 ? 'bg-yellow-50 dark:bg-yellow-950/30' :
                 'bg-green-50 dark:bg-green-950/30'
               }`}>
-                <p className={`text-[10px] font-bold ${
+                <p className={`text-[9px] font-bold ${
                   daysRemaining < 0 ? 'text-red-600 dark:text-red-400' :
                   daysRemaining <= 2 ? 'text-red-600 dark:text-red-400' :
                   daysRemaining <= 4 ? 'text-yellow-600 dark:text-yellow-400' :
@@ -248,84 +248,94 @@ export function ContributionPaymentButtons({ contributions, onUpdate }: Contribu
               </div>
             </div>
 
-            {/* Amount Display */}
-            <div className="flex items-center gap-2 mb-3">
-              <div className="flex items-center gap-1">
-                <Wallet className="h-4 w-4 text-blue-500" />
-                <span className="font-bold">{formatCurrency(contributionAmount)}</span>
+            {/* Amount Breakdown */}
+            <div className="mb-1.5 space-y-1">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <div className="flex items-center gap-1">
+                  <Wallet className="h-3 w-3 text-blue-500 shrink-0" />
+                  <span className="font-semibold text-xs">{formatCurrency(contributionAmount)}</span>
+                </div>
+                {hasSavings && (
+                  <>
+                    <span className="text-muted-foreground text-xs">+</span>
+                    <div className="flex items-center gap-1">
+                      <PiggyBank className="h-3 w-3 text-purple-500 shrink-0" />
+                      <span className="font-semibold text-xs text-purple-600 dark:text-purple-400">{formatCurrency(effectiveSavings)}</span>
+                    </div>
+                    <span className="text-muted-foreground text-xs">=</span>
+                    <span className="font-bold text-sm text-foreground">{formatCurrency(total)}</span>
+                  </>
+                )}
               </div>
-              {hasSavings && (
-                <>
-                  <span className="text-muted-foreground">+</span>
-                  <div className="flex items-center gap-1">
-                    <PiggyBank className="h-4 w-4 text-purple-500" />
-                    <span className="font-bold text-purple-600 dark:text-purple-400">{formatCurrency(effectiveSavings)}</span>
+
+              {/* Progress Section (only if partial payment) */}
+              {hasPartialPayment && (
+                <div className="space-y-1 pt-1.5 border-t border-border/50">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] text-muted-foreground">Paid</span>
+                    <span className="text-[10px] font-semibold">{Math.round(progress)}%</span>
                   </div>
-                  <span className="text-muted-foreground">=</span>
-                  <span className="font-bold text-lg">{formatCurrency(total)}</span>
-                </>
+                  <div className="h-1.5 bg-muted rounded-full overflow-hidden flex">
+                    <div 
+                      className="h-full bg-blue-500 transition-all"
+                      style={{ width: `${(contributionPaid / total) * 100}%` }}
+                    />
+                    {savingsPaid > 0 && (
+                      <div 
+                        className="h-full bg-purple-500 transition-all"
+                        style={{ width: `${(savingsPaid / total) * 100}%` }}
+                      />
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between text-[9px]">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="flex items-center gap-0.5">
+                        <span className="h-1 w-1 rounded-full bg-blue-500"></span>
+                        <span className="text-blue-600 dark:text-blue-400 font-medium">{formatCurrency(contributionPaid)}</span>
+                        {contributionPaid >= contributionAmount && <CheckCircle2 className="h-2 w-2 text-blue-500" />}
+                      </span>
+                      {hasSavings && (
+                        <span className="flex items-center gap-0.5">
+                          <span className="h-1 w-1 rounded-full bg-purple-500"></span>
+                          <span className="text-purple-600 dark:text-purple-400 font-medium">{formatCurrency(savingsPaid)}</span>
+                          {savingsPaid >= effectiveSavings && <CheckCircle2 className="h-2 w-2 text-purple-500" />}
+                        </span>
+                      )}
+                    </div>
+                    <span className="font-semibold text-orange-600 dark:text-orange-400">
+                      Left: {formatCurrency(remaining)}
+                    </span>
+                  </div>
+                </div>
               )}
             </div>
 
-            {/* Progress Bar (only if partial payment made) */}
+            {/* Action Button */}
             {hasPartialPayment ? (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">Paid</span>
-                  <span className="font-semibold">{Math.round(progress)}%</span>
-                </div>
-                <div className="h-2.5 bg-muted rounded-full overflow-hidden flex">
-                  <div 
-                    className="h-full bg-blue-500 transition-all"
-                    style={{ width: `${(contributionPaid / total) * 100}%` }}
-                  />
-                  {savingsPaid > 0 && (
-                    <div 
-                      className="h-full bg-purple-500 transition-all"
-                      style={{ width: `${(savingsPaid / total) * 100}%` }}
-                    />
-                  )}
-                </div>
-                <div className="flex items-center justify-between text-[10px]">
-                  <div className="flex items-center gap-2">
-                    <span className="flex items-center gap-1">
-                      <span className="h-2 w-2 rounded-full bg-blue-500"></span>
-                      <span className="text-blue-600 dark:text-blue-400">{formatCurrency(contributionPaid)}</span>
-                      {contributionPaid >= contributionAmount && <CheckCircle2 className="h-3 w-3 text-blue-500" />}
-                    </span>
-                    {hasSavings && (
-                      <span className="flex items-center gap-1">
-                        <span className="h-2 w-2 rounded-full bg-purple-500"></span>
-                        <span className="text-purple-600 dark:text-purple-400">{formatCurrency(savingsPaid)}</span>
-                        {savingsPaid >= effectiveSavings && <CheckCircle2 className="h-3 w-3 text-purple-500" />}
-                      </span>
-                    )}
-                  </div>
-                  <span className="font-semibold text-orange-600 dark:text-orange-400">
-                    Left: {formatCurrency(remaining)}
-                  </span>
-                </div>
-                <Button
-                  onClick={() => handleOpenPaymentModal(contrib)}
-                  disabled={isProcessing}
-                  size="sm"
-                  className="w-full mt-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white"
-                >
-                  {isProcessing ? <LoadingSpinner size="sm" /> : (
-                    <>Clear Balance • {formatCurrency(remaining)}</>
-                  )}
-                </Button>
-              </div>
+              <Button
+                onClick={() => handleOpenPaymentModal(contrib)}
+                disabled={isProcessing}
+                size="sm"
+                className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-[10px] h-7"
+              >
+                {isProcessing ? (
+                  <LoadingSpinner size="sm" />
+                ) : (
+                  <>Clear Balance • {formatCurrency(remaining)}</>
+                )}
+              </Button>
             ) : (
               <Button
                 onClick={() => handleOpenPaymentModal(contrib)}
                 disabled={isProcessing}
                 size="sm"
-                className={`w-full text-white ${buttonColor}`}
+                className={`w-full text-white text-[10px] h-7 ${buttonColor}`}
               >
-                {isProcessing ? <LoadingSpinner size="sm" /> : (
+                {isProcessing ? (
+                  <LoadingSpinner size="sm" />
+                ) : (
                   <>
-                    <Wallet className="h-4 w-4 mr-2" />
+                    <Wallet className="h-3 w-3 mr-1" />
                     Pay {formatCurrency(total)}
                   </>
                 )}

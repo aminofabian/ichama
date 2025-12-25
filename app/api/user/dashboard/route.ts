@@ -10,7 +10,6 @@ export async function GET(request: NextRequest) {
     const user = await requireAuth(request)
 
     const chamas = await getUserChamas(user.id)
-    const savingsAccount = await getSavingsAccount(user.id)
 
     const totalContributionsResult = await db.execute({
       sql: `SELECT COALESCE(SUM(amount_paid), 0) as total
@@ -39,6 +38,56 @@ export async function GET(request: NextRequest) {
       args: [user.id],
     })
     
+    // Calculate actual savings per chama directly from confirmed contributions
+    // This matches the logic in processContributionConfirmation
+    const savingsPerChamaResult = await db.execute({
+      sql: `SELECT 
+              ch.id as chama_id,
+              ch.chama_type,
+              c.id as contribution_id,
+              c.amount_paid,
+              cy.contribution_amount,
+              COALESCE(cm.custom_savings_amount, cy.savings_amount) as member_savings_amount
+            FROM contributions c
+            INNER JOIN cycles cy ON c.cycle_id = cy.id
+            INNER JOIN chamas ch ON cy.chama_id = ch.id
+            LEFT JOIN cycle_members cm ON c.cycle_member_id = cm.id
+            WHERE c.user_id = ? 
+              AND c.status = 'confirmed'
+            ORDER BY ch.id`,
+      args: [user.id],
+    })
+
+    // Calculate savings per chama using the same logic as processContributionConfirmation
+    const savingsPerChamaMap = new Map<string, number>()
+    savingsPerChamaResult.rows.forEach((row: any) => {
+      const chamaId = row.chama_id
+      const chamaType = row.chama_type
+      const amountPaid = row.amount_paid || 0
+      const contributionAmount = row.contribution_amount || 0
+      const memberSavingsAmount = row.member_savings_amount || 0
+      
+      if (memberSavingsAmount > 0 && (chamaType === 'savings' || chamaType === 'hybrid')) {
+        let savingsAmount = 0
+        
+        if (chamaType === 'savings') {
+          // For savings chamas: all amount paid is savings (up to the savings target)
+          // When custom_savings_amount is set, that IS the target amount
+          savingsAmount = Math.min(amountPaid, memberSavingsAmount)
+        } else if (chamaType === 'hybrid') {
+          // For hybrid chamas: savings = amount paid beyond contribution, capped at savings target
+          const savingsFromPayment = Math.max(0, amountPaid - contributionAmount)
+          savingsAmount = Math.min(memberSavingsAmount, savingsFromPayment)
+        }
+        
+        const currentSavings = savingsPerChamaMap.get(chamaId) || 0
+        savingsPerChamaMap.set(chamaId, currentSavings + savingsAmount)
+      }
+    })
+
+    // Calculate total savings balance from all chamas (user-specific)
+    const totalSavingsBalance = Array.from(savingsPerChamaMap.values()).reduce((sum, savings) => sum + savings, 0)
+
     const chamaStats = perChamaStatsResult.rows.map((row: any) => {
       const totalPaid = row.total_paid || 0
       const contributionTarget = row.total_contribution_target || 0
@@ -48,6 +97,9 @@ export async function GET(request: NextRequest) {
       const contributionPaid = Math.min(totalPaid, contributionTarget)
       const savingsPaid = Math.max(0, totalPaid - contributionTarget)
       
+      // Get actual savings credited from savings_transactions
+      const actualSavings = savingsPerChamaMap.get(row.chama_id) || 0
+      
       return {
         chamaId: row.chama_id,
         chamaName: row.chama_name,
@@ -55,6 +107,7 @@ export async function GET(request: NextRequest) {
         contributionPaid,
         savingsPaid,
         totalPaid,
+        actualSavings,
       }
     })
 
@@ -130,7 +183,7 @@ export async function GET(request: NextRequest) {
         stats: {
           activeChamas: chamas.length,
           totalContributions,
-          savingsBalance: savingsAccount?.balance || 0,
+          savingsBalance: totalSavingsBalance,
           upcomingPayout: upcomingPayout
             ? {
                 amount: upcomingPayout.amount,
