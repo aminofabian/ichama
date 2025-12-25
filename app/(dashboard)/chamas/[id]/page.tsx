@@ -99,9 +99,9 @@ export default function ChamaDetailPage() {
   return (
     <div className="relative min-h-screen bg-background">
       {/* Main Content Container */}
-      <div className="relative mx-auto max-w-7xl px-3 pt-4 md:px-6 md:pt-8 pb-20 md:pb-12">
-        {/* Header Section with enhanced spacing */}
-        <div className="mb-6 md:mb-8">
+      <div className="relative mx-auto max-w-7xl px-3 pt-2 md:px-4 md:pt-4 pb-20 md:pb-8">
+        {/* Header Section */}
+        <div className="mb-4">
       <ChamaHeader
         chama={chama}
         memberCount={members.length}
@@ -110,7 +110,7 @@ export default function ChamaDetailPage() {
         </div>
 
         {/* Content Section */}
-        <div className="space-y-6 md:space-y-8">
+        <div className="space-y-4">
       {isAdmin ? (
         <AdminView
           chama={chama}

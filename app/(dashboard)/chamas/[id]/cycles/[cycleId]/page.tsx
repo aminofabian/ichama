@@ -169,13 +169,13 @@ export default function CycleDashboardPage() {
       </div>
 
       <div className="relative z-10">
-        <div className="mx-auto max-w-7xl w-full px-4 pt-4 sm:pt-6 md:px-6 md:pt-8">
+        <div className="mx-auto max-w-7xl w-full px-3 md:px-4">
           {/* Navigation */}
-          <div className="mb-4 sm:mb-6">
+          <div>
             <Button
               variant="ghost"
               onClick={() => router.push(`/chamas/${chamaId}`)}
-              className="mb-3 sm:mb-4 -ml-2"
+              className="mb-2 -ml-2"
               size="sm"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -184,12 +184,12 @@ export default function CycleDashboardPage() {
           </div>
 
           {/* Hero Section */}
-          <div className="mb-6 sm:mb-8">
-            <div className="relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-br from-[#FFD700]/10 via-[#F5E6D3]/10 to-transparent border border-[#FFD700]/20 p-4 sm:p-5 md:p-6">
+          <div className="mb-4">
+            <div className="relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-br from-[#FFD700]/10 via-[#F5E6D3]/10 to-transparent border border-[#FFD700]/20 p-3 md:p-4">
               <div className="relative z-10">
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex-1 min-w-0">
-                    <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-2 truncate">
+                    <h1 className="text-sm md:text-base font-bold text-foreground mb-2 truncate capitalize">
                       {cycle.name}
                     </h1>
                     <div className="flex items-center gap-2 flex-wrap">
@@ -215,8 +215,8 @@ export default function CycleDashboardPage() {
           </div>
 
           {/* Quick Stats Overview */}
-          <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <div className="mb-3 flex items-center gap-2">
+          <div className="mb-4 px-3 md:px-0">
+            <div className="mb-2 flex items-center gap-2">
               <h2 className="text-[8px] md:text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
                 OVERVIEW
               </h2>
@@ -226,12 +226,12 @@ export default function CycleDashboardPage() {
           </div>
 
           {/* Main Content Layout */}
-          <div className={`grid gap-6 sm:gap-8 w-full px-4 md:px-0 ${(chama?.chama_type === 'merry_go_round' || chama?.chama_type === 'hybrid') ? 'lg:grid-cols-12' : ''}`}>
+          <div className={`grid gap-4 w-full px-3 md:px-0 ${(chama?.chama_type === 'merry_go_round' || chama?.chama_type === 'hybrid') ? 'lg:grid-cols-12' : ''}`}>
             {/* Left Column - Primary Content */}
-            <div className={`space-y-6 sm:space-y-8 min-w-0 ${(chama?.chama_type === 'merry_go_round' || chama?.chama_type === 'hybrid') ? 'lg:col-span-8' : ''}`}>
+            <div className={`space-y-4 min-w-0 ${(chama?.chama_type === 'merry_go_round' || chama?.chama_type === 'hybrid') ? 'lg:col-span-8' : ''}`}>
               {/* Cycle Progress Section */}
               <section>
-                <div className="mb-3 flex items-center gap-2">
+                <div className="mb-2 flex items-center gap-2">
                   <h2 className="text-[8px] md:text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
                     CYCLE PROGRESS
                   </h2>
@@ -244,7 +244,7 @@ export default function CycleDashboardPage() {
               <section>
                 {isAdmin ? (
                   <>
-                    <div className="mb-3 flex items-center gap-2">
+                    <div className="mb-2 flex items-center gap-2">
                       <h2 className="text-[8px] md:text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
                         MEMBER STATUS
                       </h2>
@@ -264,8 +264,8 @@ export default function CycleDashboardPage() {
                     />
                   </>
                 ) : (
-                  <div className="space-y-6">
-                    <div className="mb-3 flex items-center gap-2">
+                  <div className="space-y-4">
+                    <div className="mb-2 flex items-center gap-2">
                       <h2 className="text-[8px] md:text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
                         MY CONTRIBUTION
                       </h2>
@@ -349,7 +349,7 @@ export default function CycleDashboardPage() {
               {/* Admin Controls Section */}
               {isAdmin && (
                 <section>
-                  <div className="mb-3 flex items-center gap-2">
+                  <div className="mb-2 flex items-center gap-2">
                     <h2 className="text-[8px] md:text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
                       CYCLE CONTROLS
                     </h2>
@@ -362,10 +362,10 @@ export default function CycleDashboardPage() {
 
             {/* Right Sidebar - Secondary Information */}
             {(chama?.chama_type === 'merry_go_round' || chama?.chama_type === 'hybrid') && (
-              <div className="lg:col-span-4 space-y-6 min-w-0">
+              <div className="lg:col-span-4 space-y-4 min-w-0">
                 {/* Payout Recipient Card */}
                 <section>
-                  <div className="mb-3 flex items-center gap-2">
+                  <div className="mb-2 flex items-center gap-2">
                     <h2 className="text-[8px] md:text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
                       CURRENT PAYOUT
                     </h2>

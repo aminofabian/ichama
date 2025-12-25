@@ -21,32 +21,32 @@ function CycleCard({
   return (
     <Link
       href={`/chamas/${chamaId}/cycles/${cycle.id}`}
-      className="group block rounded-lg border border-border/50 bg-gradient-to-br from-card/80 to-card/50 p-4 transition-all hover:shadow-lg hover:border-primary/30 hover:scale-[1.01]"
+      className="group block rounded-lg border border-border/50 bg-gradient-to-br from-card/80 to-card/50 p-3 transition-all hover:shadow-md hover:border-[#FFD700]/30 hover:scale-[1.01]"
     >
       <div className="flex items-start justify-between">
-        <div className="flex-1 space-y-2.5">
+        <div className="flex-1 space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-semibold text-sm md:text-base">{cycle.name}</h3>
+            <h3 className="font-semibold text-sm">{cycle.name}</h3>
             {getStatusBadge(cycle.status)}
           </div>
-          <div className="grid grid-cols-2 gap-2 md:gap-4 text-xs md:text-sm text-muted-foreground md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground md:grid-cols-4">
             <div className="flex items-center gap-1.5">
-              <TrendingUp className="h-3.5 w-3.5 md:h-4 md:w-4 flex-shrink-0" />
+              <TrendingUp className="h-3.5 w-3.5 flex-shrink-0" />
               <span className="truncate">{formatCurrency(cycle.contribution_amount)}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5 md:h-4 md:w-4 flex-shrink-0" />
+              <Users className="h-3.5 w-3.5 flex-shrink-0" />
               <span className="truncate">
                 Period {cycle.current_period} / {cycle.total_periods}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
-              <Calendar className="h-3.5 w-3.5 md:h-4 md:w-4 flex-shrink-0" />
+              <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
               <span className="truncate">{cycle.start_date ? formatDate(cycle.start_date) : 'N/A'}</span>
             </div>
             {cycle.end_date && (
               <div className="flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5 md:h-4 md:w-4 flex-shrink-0" />
+                <Clock className="h-3.5 w-3.5 flex-shrink-0" />
                 <span className="truncate">Ends: {formatDate(cycle.end_date)}</span>
               </div>
             )}
@@ -152,27 +152,38 @@ export function CyclesList({ cycles, chamaId, isAdmin = false }: CyclesListProps
   }
 
   return (
-    <Card className="border-border/50 shadow-lg hover:shadow-xl transition-all">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+    <Card className="border-border/50 shadow-md hover:shadow-lg transition-all">
+      <CardContent className="pt-0 pb-0">
+        <div className="flex items-center justify-between mb-3">
           <div>
-            <CardTitle className="text-base font-semibold">Cycles</CardTitle>
+            <CardTitle className="text-sm font-semibold">Cycles</CardTitle>
             <CardDescription className="text-xs">All contribution cycles for this chama</CardDescription>
           </div>
           {isAdmin && (
-            <Link href={`/chamas/${chamaId}/cycles/new`}>
-              <Button 
-                size="sm"
-                className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all"
-              >
-                New Cycle
-              </Button>
-            </Link>
+            <>
+              {activeCycles.length > 0 ? (
+                <Link href={`/chamas/${chamaId}/cycles/${activeCycles[0].id}`}>
+                  <Button 
+                    size="sm"
+                    className="h-8 px-3 text-xs bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30 transition-all"
+                  >
+                    View Cycle
+                  </Button>
+                </Link>
+              ) : (
+                <Link href={`/chamas/${chamaId}/cycles/new`}>
+                  <Button 
+                    size="sm"
+                    className="h-8 px-3 text-xs bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30 transition-all"
+                  >
+                    New Cycle
+                  </Button>
+                </Link>
+              )}
+            </>
           )}
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4 md:space-y-6">
+        <div className="space-y-3">
           {/* Active Cycles */}
           {activeCycles.length > 0 && (
             <div className="space-y-3">

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Plus, Users, Copy, Check, Play } from 'lucide-react'
+import { Plus, Users, Copy, Check, Play, Eye, EyeOff } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { InviteModal } from '@/components/chama/invite-modal'
@@ -31,6 +31,7 @@ export function AdminActions({
   const [showStartCycleModal, setShowStartCycleModal] = useState(false)
   const [copied, setCopied] = useState(false)
   const [isStarting, setIsStarting] = useState(false)
+  const [showInviteLink, setShowInviteLink] = useState(false)
 
   const inviteLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/join/${inviteCode}`
 
@@ -55,92 +56,101 @@ export function AdminActions({
 
   return (
     <>
-      <Card className="border-border/50 shadow-lg hover:shadow-xl transition-all">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">Admin Actions</CardTitle>
-          <CardDescription className="text-xs">Manage your chama</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-2.5">
-            {!hasActiveCycle && (
-              <>
-                <Link href={`/chamas/${chamaId}/cycles/new`}>
-                  <Button 
-                    size="sm"
-                    className="bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30 transition-all"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create New Cycle
-                  </Button>
-                </Link>
-                {pendingCycle && (
-                  <Button 
-                    size="sm"
-                    onClick={() => setShowStartCycleModal(true)}
-                    className="bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30 transition-all"
-                  >
-                    <Play className="mr-2 h-4 w-4" />
-                    Start Cycle
-                  </Button>
-                )}
-              </>
-            )}
+      <Card className="border-border/50 shadow-md hover:shadow-lg transition-all">
+        <CardContent className="pt-0 pb-0">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+            {/* Buttons Section */}
+            <div className="flex flex-wrap gap-1.5">
+              {!hasActiveCycle && (
+                <>
+                  <Link href={`/chamas/${chamaId}/cycles/new`}>
+                    <Button 
+                      size="sm"
+                      className="h-8 px-3 text-xs bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30 transition-all"
+                    >
+                      <Plus className="mr-1.5 h-3.5 w-3.5" />
+                      Create Cycle
+                    </Button>
+                  </Link>
+                  {pendingCycle && (
+                    <Button 
+                      size="sm"
+                      onClick={() => setShowStartCycleModal(true)}
+                      className="h-8 px-3 text-xs bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30 transition-all"
+                    >
+                      <Play className="mr-1.5 h-3.5 w-3.5" />
+                      Start Cycle
+                    </Button>
+                  )}
+                </>
+              )}
 
-            <Button 
-              variant="primary" 
-              size="sm"
-              onClick={() => setShowInviteModal(true)}
-              className="bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30 transition-all"
-            >
-              <Users className="mr-2 h-4 w-4" />
-              Invite Members
-            </Button>
-
-            <Link href={`/chamas/${chamaId}/members`}>
               <Button 
-                variant="primary"
+                variant="primary" 
                 size="sm"
-                className="bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30 transition-all"
+                onClick={() => setShowInviteModal(true)}
+                className="h-8 px-3 text-xs bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30 transition-all"
               >
-                <Users className="mr-2 h-4 w-4" />
-                Manage Members
+                <Users className="mr-1.5 h-3.5 w-3.5" />
+                Invite
               </Button>
-            </Link>
-          </div>
 
-          <div className="rounded-lg border border-border/50 bg-gradient-to-br from-muted/40 to-muted/20 p-4">
-            <div className="flex items-center justify-between mb-2.5">
-              <div>
-                <p className="font-semibold text-sm">Invite Link</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Share this link to invite members
-                </p>
-              </div>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleCopyLink}
-                className="bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30 transition-all"
-              >
-                {copied ? (
+              <Link href={`/chamas/${chamaId}/members`}>
+                <Button 
+                  variant="primary"
+                  size="sm"
+                  className="h-8 px-3 text-xs bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30 transition-all"
+                >
+                  <Users className="mr-1.5 h-3.5 w-3.5" />
+                  Members
+                </Button>
+              </Link>
+            </div>
+
+            {/* Invite Link Section */}
+            <div className="flex-1 flex items-center gap-2 rounded-lg border border-border/50 bg-gradient-to-br from-muted/40 to-muted/20 p-2.5">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="font-semibold text-xs">Invite Link</p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowInviteLink(!showInviteLink)}
+                    className="h-6 w-6 p-0 hover:bg-muted"
+                  >
+                    {showInviteLink ? (
+                      <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
+                {showInviteLink && (
                   <>
-                    <Check className="mr-2 h-4 w-4" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="mr-2 h-4 w-4" />
-                    Copy
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="flex-1 rounded-md bg-background/80 border border-border/30 p-1.5">
+                        <code className="text-[10px] break-all font-mono leading-tight">{inviteLink}</code>
+                      </div>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={handleCopyLink}
+                        className="h-7 px-2 bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30 transition-all flex-shrink-0"
+                      >
+                        {copied ? (
+                          <Check className="h-3 w-3" />
+                        ) : (
+                          <Copy className="h-3 w-3" />
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">
+                      Code: <span className="font-mono font-bold text-foreground">{inviteCode}</span>
+                    </p>
                   </>
                 )}
-              </Button>
+              </div>
             </div>
-            <div className="rounded-lg bg-background/80 border border-border/30 p-2.5 mt-2">
-              <code className="text-xs break-all font-mono">{inviteLink}</code>
-            </div>
-            <p className="mt-2.5 text-xs text-muted-foreground">
-              Invite Code: <span className="font-mono font-bold text-foreground">{inviteCode}</span>
-            </p>
           </div>
         </CardContent>
       </Card>

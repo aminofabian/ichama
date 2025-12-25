@@ -52,22 +52,22 @@ export function QuickStats({
   ]
 
   return (
-    <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-2 grid-cols-2 lg:grid-cols-4">
       {stats.map((stat) => {
         const Icon = stat.icon
         return (
-          <Card key={stat.label} className="border-border/50 shadow-lg hover:shadow-xl transition-all overflow-hidden">
-            <CardContent className="p-4 md:p-5">
-              <div className="flex items-center gap-3">
-                <div className={`rounded-lg p-2.5 md:p-3 ${stat.bgColor} flex-shrink-0`}>
-                  <Icon className={`h-4 w-4 md:h-5 md:w-5 ${stat.color}`} />
+          <Card key={stat.label} className="border-border/50 shadow-md hover:shadow-lg transition-all overflow-hidden">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <div className={`rounded-md p-2 ${stat.bgColor} flex-shrink-0`}>
+                  <Icon className={`h-4 w-4 ${stat.color}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wider mb-1">{stat.label}</p>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="text-sm md:text-base font-bold truncate">{stat.value}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">{stat.label}</p>
+                  <div className="flex items-center gap-1 flex-wrap">
+                    <p className="text-sm font-bold truncate">{stat.value}</p>
                     {stat.badge && (
-                      <Badge variant={stat.badge === 'active' ? 'success' : 'default'} className="text-[9px] px-1.5 py-0">
+                      <Badge variant={stat.badge === 'active' ? 'success' : 'default'} className="text-[9px] px-1 py-0">
                         {stat.badge}
                       </Badge>
                     )}

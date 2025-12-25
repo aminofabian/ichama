@@ -63,10 +63,10 @@ export function MemberView({
   }
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="space-y-4">
       {activeCycle && (
         <>
-          <div className="grid gap-4 md:gap-6 md:grid-cols-2">
+          <div className="grid gap-3 md:grid-cols-2">
             <CycleSummary
               cycle={activeCycle}
               cycleMember={cycleMember}
@@ -90,7 +90,7 @@ export function MemberView({
           />
 
           {/* Quick Actions */}
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Button 
               variant="outline"
               onClick={() => router.push(`/chamas/${chama.id}/cycles/${activeCycle.id}`)}
