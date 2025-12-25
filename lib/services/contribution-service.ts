@@ -1,6 +1,7 @@
 import { getContributionById, updateContribution } from '@/lib/db/queries/contributions'
 import { getCycleById } from '@/lib/db/queries/cycles'
 import { getCycleMemberByCycleMemberId } from '@/lib/db/queries/cycle-members'
+import { getChamaById } from '@/lib/db/queries/chamas'
 import { getSavingsAccount, updateSavingsBalance, createSavingsTransaction, getSavingsTransactionByReference } from '@/lib/db/queries/savings'
 import { createWalletTransaction } from '@/lib/db/queries/wallet'
 import { createNotification } from '@/lib/db/queries/notifications'
@@ -113,6 +114,12 @@ async function processContributionConfirmation(
     contribution.cycle_member_id
   )
   
+  // Get chama to determine chama_type
+  const chama = await getChamaById(cycle.chama_id)
+  if (!chama) {
+    throw new Error('Chama not found')
+  }
+  
   // Determine savings amount: custom_savings_amount if set, otherwise cycle default
   const memberSavingsAmount = cycleMember?.custom_savings_amount ?? cycle.savings_amount
   
@@ -125,9 +132,16 @@ async function processContributionConfirmation(
       return
     }
 
-    // Calculate savings portion: amount paid beyond contribution, capped at savings target
-    const savingsFromPayment = Math.max(0, totalAmount - cycle.contribution_amount)
-    const savingsAmount = Math.min(memberSavingsAmount, savingsFromPayment)
+    // Calculate savings portion based on chama type
+    let savingsAmount = 0
+    if (chama.chama_type === 'savings') {
+      // For savings chamas: all amount paid is savings (up to the savings target)
+      savingsAmount = Math.min(totalAmount, memberSavingsAmount)
+    } else if (chama.chama_type === 'hybrid') {
+      // For hybrid chamas: savings = amount paid beyond contribution, capped at savings target
+      const savingsFromPayment = Math.max(0, totalAmount - cycle.contribution_amount)
+      savingsAmount = Math.min(memberSavingsAmount, savingsFromPayment)
+    }
     
     if (savingsAmount > 0) {
       // Get or create savings account

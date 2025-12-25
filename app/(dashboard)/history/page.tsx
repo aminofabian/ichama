@@ -96,8 +96,8 @@ export default function HistoryPage() {
     return (
       <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center">
         <div className="pointer-events-none fixed inset-0 overflow-hidden">
-          <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5 blur-3xl animate-pulse" />
-          <div className="absolute -right-1/4 -bottom-1/4 h-96 w-96 rounded-full bg-[#F5E6D3]/10 blur-3xl animate-pulse delay-1000" />
+          <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5 animate-pulse" />
+          <div className="absolute -right-1/4 -bottom-1/4 h-96 w-96 rounded-full bg-[#F5E6D3]/10 animate-pulse delay-1000" />
         </div>
         <div className="relative z-10">
         <LoadingSpinner size="lg" />
@@ -110,8 +110,8 @@ export default function HistoryPage() {
     return (
       <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
         <div className="pointer-events-none fixed inset-0 overflow-hidden">
-          <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5 blur-3xl animate-pulse" />
-          <div className="absolute -right-1/4 -bottom-1/4 h-96 w-96 rounded-full bg-[#F5E6D3]/10 blur-3xl animate-pulse delay-1000" />
+          <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5 animate-pulse" />
+          <div className="absolute -right-1/4 -bottom-1/4 h-96 w-96 rounded-full bg-[#F5E6D3]/10 animate-pulse delay-1000" />
         </div>
         <div className="relative z-10 flex items-center justify-center min-h-[400px] px-4">
       <EmptyState
@@ -127,8 +127,8 @@ export default function HistoryPage() {
     return (
       <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
         <div className="pointer-events-none fixed inset-0 overflow-hidden">
-          <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5 blur-3xl animate-pulse" />
-          <div className="absolute -right-1/4 -bottom-1/4 h-96 w-96 rounded-full bg-[#F5E6D3]/10 blur-3xl animate-pulse delay-1000" />
+          <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5 animate-pulse" />
+          <div className="absolute -right-1/4 -bottom-1/4 h-96 w-96 rounded-full bg-[#F5E6D3]/10 animate-pulse delay-1000" />
         </div>
         <div className="relative z-10 flex items-center justify-center min-h-[400px] px-4">
       <EmptyState
@@ -144,26 +144,26 @@ export default function HistoryPage() {
     <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Animated Background Elements */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
-        <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5 blur-3xl animate-pulse" />
-        <div className="absolute -right-1/4 -bottom-1/4 h-96 w-96 rounded-full bg-[#F5E6D3]/10 blur-3xl animate-pulse delay-1000" />
+        <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5 animate-pulse" />
+        <div className="absolute -right-1/4 -bottom-1/4 h-96 w-96 rounded-full bg-[#F5E6D3]/10 animate-pulse delay-1000" />
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 mx-auto max-w-7xl px-3 pt-4 md:px-6 md:pt-8 pb-20 md:pb-12">
+      <div className="relative z-10 mx-auto max-w-7xl px-3 md:px-4 pb-20 md:pb-8">
         {/* Header */}
-        <div className="mb-4 md:mb-8">
-          <div className="relative inline-block mb-2 md:mb-3">
-            <h1 className="relative bg-gradient-to-r from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-2xl md:text-4xl font-bold tracking-tight text-transparent">
+        <div className="mb-3">
+          <div className="relative inline-block mb-1">
+            <h1 className="relative bg-gradient-to-r from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-xl md:text-2xl font-bold tracking-tight text-transparent">
               History
             </h1>
           </div>
-          <p className="text-xs md:text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
           View your complete chama history and transaction records
         </p>
       </div>
 
         {/* Filters */}
-        <div className="mb-4 md:mb-8">
+        <div className="mb-3">
       <HistoryFilters
         chamas={data.chamas.map((c) => ({ id: c.id, name: c.name }))}
         onFilterChange={setFilters}
@@ -171,11 +171,12 @@ export default function HistoryPage() {
         </div>
 
         {/* Tabs */}
-        <div className="mb-4 md:mb-8">
-          <div className="relative rounded-xl border border-border/50 bg-card/50 p-1.5 inline-flex gap-1">
+        <div className="mb-3">
+          <div className="relative rounded-lg border border-border/50 bg-card/50 p-1 inline-flex gap-1">
           <Button
             variant={activeTab === 'chamas' ? 'primary' : 'ghost'}
-              className={`relative rounded-lg transition-all ${
+              size="sm"
+              className={`relative rounded transition-all h-7 px-3 text-xs ${
               activeTab === 'chamas'
                   ? 'bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25'
                   : 'hover:bg-muted/50'
@@ -186,7 +187,8 @@ export default function HistoryPage() {
           </Button>
           <Button
             variant={activeTab === 'contributions' ? 'primary' : 'ghost'}
-              className={`relative rounded-lg transition-all ${
+              size="sm"
+              className={`relative rounded transition-all h-7 px-3 text-xs ${
               activeTab === 'contributions'
                   ? 'bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25'
                   : 'hover:bg-muted/50'
@@ -197,7 +199,8 @@ export default function HistoryPage() {
           </Button>
           <Button
             variant={activeTab === 'payouts' ? 'primary' : 'ghost'}
-              className={`relative rounded-lg transition-all ${
+              size="sm"
+              className={`relative rounded transition-all h-7 px-3 text-xs ${
               activeTab === 'payouts'
                   ? 'bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25'
                   : 'hover:bg-muted/50'
@@ -210,7 +213,7 @@ export default function HistoryPage() {
         </div>
 
         {/* Content */}
-        <div className="space-y-6">
+        <div className="space-y-4">
         {activeTab === 'chamas' && <ChamaHistory chamas={data.chamas} />}
         {activeTab === 'contributions' && (
           <ContributionHistory contributions={data.contributions} />
@@ -220,7 +223,7 @@ export default function HistoryPage() {
 
         {/* Error Message */}
       {error && data && (
-          <div className="mt-6 rounded-xl border-2 border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive backdrop-blur-sm">
+          <div className="mt-4 rounded-lg border-2 border-destructive/50 bg-destructive/10 p-3 text-xs text-destructive">
           {error}
         </div>
       )}

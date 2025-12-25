@@ -75,12 +75,10 @@ const getStatusBadge = (status: string) => {
 export function ContributionHistory({ contributions }: ContributionHistoryProps) {
   if (contributions.length === 0) {
     return (
-      <div className="group relative">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 via-purple-500/20 to-blue-500/20 rounded-xl md:rounded-2xl blur opacity-30 group-hover:opacity-50 transition-opacity duration-500" />
-        <Card className="relative rounded-xl md:rounded-2xl border border-border/60 bg-card/80 backdrop-blur-xl shadow-xl">
-        <CardHeader>
-            <CardTitle className="text-base md:text-lg font-bold">Contribution History</CardTitle>
-            <CardDescription className="text-xs md:text-sm">All your past contributions</CardDescription>
+      <Card className="border-border/50 shadow-md">
+        <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-bold">Contribution History</CardTitle>
+            <CardDescription className="text-xs">All your past contributions</CardDescription>
         </CardHeader>
         <CardContent>
           <EmptyState
@@ -89,51 +87,49 @@ export function ContributionHistory({ contributions }: ContributionHistoryProps)
           />
         </CardContent>
       </Card>
-      </div>
     )
   }
 
   return (
-    <div className="group relative">
-      <Card className="relative rounded-xl md:rounded-2xl border border-border/60 bg-card shadow-xl">
-      <CardHeader>
-          <CardTitle className="text-base md:text-lg font-bold">Contribution History</CardTitle>
-          <CardDescription className="text-xs md:text-sm">All your past contributions</CardDescription>
+    <Card className="border-border/50 shadow-md">
+      <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-bold">Contribution History</CardTitle>
+          <CardDescription className="text-xs">All your past contributions</CardDescription>
       </CardHeader>
       <CardContent>
-          <div className="space-y-3">
+          <div className="space-y-2">
           {contributions.map((contribution) => (
             <div
               key={contribution.id}
-                className="rounded-lg border-2 border-border/50 bg-gradient-to-br from-card/80 to-card/50 p-3 md:p-4 hover:border-[#FFD700]/50 hover:shadow-md transition-all"
+                className="rounded-lg border border-border/50 bg-gradient-to-br from-card/80 to-card/50 p-2.5 hover:border-[#FFD700]/50 hover:shadow-md transition-all"
             >
-                <div className="flex items-start justify-between gap-3 mb-2 md:mb-3">
+                <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <h3 className="font-semibold text-sm md:text-base">{contribution.cycle_name}</h3>
+                      <h3 className="font-semibold text-sm">{contribution.cycle_name}</h3>
                     {getStatusBadge(contribution.status)}
                   </div>
-                    <p className="text-xs md:text-sm text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                     {contribution.chama_name} • Period {contribution.period_number}
                   </p>
                 </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="font-bold text-base md:text-lg">
+                    <p className="font-bold text-sm">
                     {formatCurrency(contribution.amount_paid)}
                   </p>
-                    <p className="text-[10px] md:text-xs text-muted-foreground">
+                    <p className="text-[10px] text-muted-foreground">
                     of {formatCurrency(contribution.amount_due)}
                   </p>
                 </div>
               </div>
-                <div className="flex items-center gap-3 md:gap-4 text-xs md:text-sm text-muted-foreground pt-2 md:pt-3 border-t border-border/50 flex-wrap">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t border-border/50 flex-wrap">
                 <div className="flex items-center gap-1">
-                    <Calendar className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                    <Calendar className="h-3.5 w-3.5" />
                   <span>Due: {formatDate(contribution.due_date)}</span>
                 </div>
                 {contribution.paid_at && (
                   <div className="flex items-center gap-1">
-                      <CheckCircle2 className="h-3.5 w-3.5 md:h-4 md:w-4 text-green-500" />
+                      <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
                     <span>Paid: {formatDate(contribution.paid_at)}</span>
                   </div>
                 )}
@@ -143,7 +139,6 @@ export function ContributionHistory({ contributions }: ContributionHistoryProps)
         </div>
       </CardContent>
     </Card>
-    </div>
   )
 }
 

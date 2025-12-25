@@ -41,13 +41,13 @@ const typeLabels = {
 export function TransactionList({ transactions, balance }: TransactionListProps) {
   if (transactions.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Transactions</CardTitle>
-          <CardDescription>Your wallet transaction history</CardDescription>
+      <Card className="border-border/50 shadow-md">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Transactions</CardTitle>
+          <CardDescription className="text-xs">Your wallet transaction history</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-center text-muted-foreground py-8">
+          <p className="text-center text-xs text-muted-foreground py-6">
             No transactions found
           </p>
         </CardContent>
@@ -56,23 +56,23 @@ export function TransactionList({ transactions, balance }: TransactionListProps)
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="border-border/50 shadow-md">
+      <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Transactions</CardTitle>
-            <CardDescription>Your wallet transaction history</CardDescription>
+            <CardTitle className="text-sm">Transactions</CardTitle>
+            <CardDescription className="text-xs">Your wallet transaction history</CardDescription>
           </div>
           {balance !== undefined && (
             <div className="text-right">
-              <p className="text-sm text-muted-foreground">Wallet Balance</p>
-              <p className="text-2xl font-bold">{formatCurrency(balance)}</p>
+              <p className="text-xs text-muted-foreground">Wallet Balance</p>
+              <p className="text-xl font-bold">{formatCurrency(balance)}</p>
             </div>
           )}
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="space-y-2">
           {transactions.map((tx) => {
             const Icon = typeIcons[tx.type] || Wallet
             const isIncoming = tx.direction === 'in'
@@ -80,52 +80,52 @@ export function TransactionList({ transactions, balance }: TransactionListProps)
             return (
               <div
                 key={tx.id}
-                className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/50 transition-colors"
+                className="flex items-center justify-between p-2.5 rounded-lg border hover:bg-muted/50 transition-colors"
               >
-                <div className="flex items-center gap-4 flex-1">
+                <div className="flex items-center gap-3 flex-1">
                   <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                    className={`flex h-8 w-8 items-center justify-center rounded-full ${
                       isIncoming
                         ? 'bg-green-100 dark:bg-green-900/30'
                         : 'bg-red-100 dark:bg-red-900/30'
                     }`}
                   >
                     <Icon
-                      className={`h-5 w-5 ${
+                      className={`h-4 w-4 ${
                         isIncoming ? 'text-green-600' : 'text-red-600'
                       }`}
                     />
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-semibold">{typeLabels[tx.type]}</p>
-                      <Badge variant={isIncoming ? 'success' : 'default'} className="text-xs">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <p className="font-semibold text-xs">{typeLabels[tx.type]}</p>
+                      <Badge variant={isIncoming ? 'success' : 'default'} className="text-[10px] px-1.5 py-0">
                         {isIncoming ? 'In' : 'Out'}
                       </Badge>
                     </div>
                     {tx.description && (
-                      <p className="text-sm text-muted-foreground">{tx.description}</p>
+                      <p className="text-xs text-muted-foreground">{tx.description}</p>
                     )}
                     {tx.chama_id && (
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
                         Chama ID: {tx.chama_id.slice(0, 8)}...
                       </p>
                     )}
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
                       {formatRelativeTime(tx.created_at)}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p
-                    className={`text-lg font-bold ${
+                    className={`text-sm font-bold ${
                       isIncoming ? 'text-green-600' : 'text-red-600'
                     }`}
                   >
                     {isIncoming ? '+' : '-'}
                     {formatCurrency(tx.amount)}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[10px] text-muted-foreground">
                     {formatDate(tx.created_at)}
                   </p>
                 </div>

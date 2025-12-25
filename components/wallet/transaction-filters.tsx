@@ -52,27 +52,27 @@ export function TransactionFilters({ onFilterChange }: TransactionFiltersProps) 
   const hasActiveFilters = Object.keys(filters).length > 0
 
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <div className="flex items-center justify-between mb-4">
+    <Card className="border-border/50 shadow-md">
+      <CardContent className="pt-3 pb-3">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <h3 className="font-semibold">Filters</h3>
+            <Filter className="h-3.5 w-3.5 text-[#FFC700]" />
+            <h3 className="font-semibold text-sm">Filters</h3>
           </div>
           {hasActiveFilters && (
-            <Button variant="ghost" size="sm" onClick={clearFilters}>
-              <X className="h-4 w-4 mr-1" />
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 px-2 text-xs">
+              <X className="h-3.5 w-3.5 mr-1" />
               Clear
             </Button>
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
           <div>
-            <Label htmlFor="type">Type</Label>
+            <Label htmlFor="type" className="text-xs">Type</Label>
             <select
               id="type"
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1"
+              className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-xs mt-1 h-8"
               value={filters.type || ''}
               onChange={(e) => handleFilterChange('type', e.target.value || undefined)}
             >
@@ -86,36 +86,36 @@ export function TransactionFilters({ onFilterChange }: TransactionFiltersProps) 
           </div>
 
           <div>
-            <Label htmlFor="start_date">Start Date</Label>
+            <Label htmlFor="start_date" className="text-xs">Start Date</Label>
             <Input
               id="start_date"
               type="date"
               value={filters.start_date || ''}
               onChange={(e) => handleFilterChange('start_date', e.target.value || undefined)}
-              className="mt-1"
+              className="mt-1 h-8 text-xs"
             />
           </div>
 
           <div>
-            <Label htmlFor="end_date">End Date</Label>
+            <Label htmlFor="end_date" className="text-xs">End Date</Label>
             <Input
               id="end_date"
               type="date"
               value={filters.end_date || ''}
               onChange={(e) => handleFilterChange('end_date', e.target.value || undefined)}
-              className="mt-1"
+              className="mt-1 h-8 text-xs"
             />
           </div>
 
           <div>
-            <Label htmlFor="chama_id">Chama ID</Label>
+            <Label htmlFor="chama_id" className="text-xs">Chama ID</Label>
             <Input
               id="chama_id"
               type="text"
               placeholder="Filter by chama"
               value={filters.chama_id || ''}
               onChange={(e) => handleFilterChange('chama_id', e.target.value || undefined)}
-              className="mt-1"
+              className="mt-1 h-8 text-xs"
             />
           </div>
         </div>

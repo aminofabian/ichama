@@ -129,51 +129,53 @@ export default function WalletPage() {
     <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 pb-20 md:pb-8">
       {/* Animated Background Elements */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5 blur-3xl animate-pulse" />
-        <div className="absolute -right-1/4 -bottom-1/4 h-96 w-96 rounded-full bg-[#F5E6D3]/10 blur-3xl animate-pulse delay-1000" />
+        <div className="absolute -left-1/4 -top-1/4 h-96 w-96 rounded-full bg-[#FFD700]/5 animate-pulse" />
+        <div className="absolute -right-1/4 -bottom-1/4 h-96 w-96 rounded-full bg-[#F5E6D3]/10 animate-pulse delay-1000" />
       </div>
 
-      <div className="relative z-10 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Wallet & Savings</h1>
-            <p className="text-muted-foreground mt-1">
-              View your savings balance and transaction history
-            </p>
+      <div className="relative z-10 mx-auto max-w-7xl px-3 md:px-4">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold">Wallet & Savings</h1>
+              <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                View your savings balance and transaction history
+              </p>
+            </div>
+            {transactionsData && transactionsData.transactions.length > 0 && (
+              <Button 
+                size="sm"
+                onClick={handleExportCSV}
+                className="h-8 px-3 text-xs bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30"
+              >
+                <Download className="mr-1.5 h-3.5 w-3.5" />
+                Export CSV
+              </Button>
+            )}
           </div>
-          {transactionsData && transactionsData.transactions.length > 0 && (
-            <Button 
-              variant="primary" 
-              onClick={handleExportCSV}
-              className="bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Export CSV
-            </Button>
+
+          {walletData && (
+            <SavingsCard
+              account={walletData.account}
+              recentTransactions={walletData.savingsTransactions}
+            />
+          )}
+
+          <TransactionFilters onFilterChange={setFilters} />
+
+          {transactionsData && (
+            <TransactionList
+              transactions={transactionsData.transactions}
+              balance={transactionsData.balance}
+            />
+          )}
+
+          {error && (walletData || transactionsData) && (
+            <div className="rounded-lg border border-red-200 bg-red-50 dark:bg-red-950 p-3 text-xs text-red-700 dark:text-red-300">
+              {error}
+            </div>
           )}
         </div>
-
-      {walletData && (
-        <SavingsCard
-          account={walletData.account}
-          recentTransactions={walletData.savingsTransactions}
-        />
-      )}
-
-      <TransactionFilters onFilterChange={setFilters} />
-
-      {transactionsData && (
-        <TransactionList
-          transactions={transactionsData.transactions}
-          balance={transactionsData.balance}
-        />
-      )}
-
-      {error && (walletData || transactionsData) && (
-        <div className="rounded-lg border border-red-200 bg-red-50 dark:bg-red-950 p-4 text-sm text-red-700 dark:text-red-300">
-          {error}
-        </div>
-      )}
       </div>
     </div>
   )
