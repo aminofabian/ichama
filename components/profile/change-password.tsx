@@ -173,7 +173,12 @@ export function ChangePassword() {
             )}
           </div>
 
-          <Button type="submit" variant="primary" disabled={isLoading} className="w-full">
+          <Button 
+            type="submit" 
+            variant="primary" 
+            disabled={isLoading} 
+            className="w-full bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30"
+          >
             {isLoading ? 'Changing Password...' : 'Change Password'}
           </Button>
         </form>

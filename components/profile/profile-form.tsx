@@ -79,7 +79,12 @@ export function ProfileForm({ user, onUpdate }: ProfileFormProps) {
             <CardDescription>Manage your personal information</CardDescription>
           </div>
           {!isEditing && (
-            <Button variant="primary" size="sm" onClick={() => setIsEditing(true)}>
+            <Button 
+              variant="primary" 
+              size="sm" 
+              onClick={() => setIsEditing(true)}
+              className="bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30"
+            >
               Edit Profile
             </Button>
           )}
@@ -138,7 +143,12 @@ export function ProfileForm({ user, onUpdate }: ProfileFormProps) {
 
           {isEditing && (
             <div className="flex gap-2 pt-4 border-t">
-              <Button type="submit" variant="primary" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                variant="primary" 
+                disabled={isLoading}
+                className="bg-gradient-to-r from-[#FFD700] to-[#FFC700] text-white shadow-md shadow-[#FFD700]/25 hover:shadow-lg hover:shadow-[#FFD700]/30"
+              >
                 <Save className="mr-2 h-4 w-4" />
                 {isLoading ? 'Saving...' : 'Save Changes'}
               </Button>
