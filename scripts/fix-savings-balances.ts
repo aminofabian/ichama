@@ -43,7 +43,7 @@ async function fixSavingsBalances() {
         actualSavings = Math.min(c.amount_paid, savingsTarget)
       } else if (chamaType === 'hybrid') {
         // For hybrid chamas: savings = amount paid beyond contribution, capped at savings target
-        const savingsFromPayment = Math.max(0, c.amount_paid - c.contribution_amount)
+    const savingsFromPayment = Math.max(0, c.amount_paid - c.contribution_amount)
         actualSavings = Math.min(savingsTarget, savingsFromPayment)
       }
     }

@@ -24,41 +24,41 @@ export async function GET(request: NextRequest) {
       db.execute({
         sql: `SELECT COALESCE(SUM(amount), 0) as total
               FROM payouts
-              WHERE user_id = ? AND status IN ('paid', 'confirmed')`,
-        args: [user.id],
+            WHERE user_id = ? AND status IN ('paid', 'confirmed')`,
+      args: [user.id],
       }),
       db.execute({
-        sql: `SELECT 
-                ch.id as chama_id,
-                ch.name as chama_name,
-                ch.chama_type,
-                COALESCE(SUM(c.amount_paid), 0) as total_paid,
-                COALESCE(SUM(cy.contribution_amount), 0) as total_contribution_target,
-                COALESCE(SUM(COALESCE(cm.custom_savings_amount, cy.savings_amount)), 0) as total_savings_target
-              FROM contributions c
-              INNER JOIN cycles cy ON c.cycle_id = cy.id
-              INNER JOIN chamas ch ON cy.chama_id = ch.id
-              LEFT JOIN cycle_members cm ON c.cycle_member_id = cm.id
-              WHERE c.user_id = ? AND c.status IN ('paid', 'confirmed')
-              GROUP BY ch.id, ch.name, ch.chama_type`,
-        args: [user.id],
+      sql: `SELECT 
+              ch.id as chama_id,
+              ch.name as chama_name,
+              ch.chama_type,
+              COALESCE(SUM(c.amount_paid), 0) as total_paid,
+              COALESCE(SUM(cy.contribution_amount), 0) as total_contribution_target,
+              COALESCE(SUM(COALESCE(cm.custom_savings_amount, cy.savings_amount)), 0) as total_savings_target
+            FROM contributions c
+            INNER JOIN cycles cy ON c.cycle_id = cy.id
+            INNER JOIN chamas ch ON cy.chama_id = ch.id
+            LEFT JOIN cycle_members cm ON c.cycle_member_id = cm.id
+            WHERE c.user_id = ? AND c.status IN ('paid', 'confirmed')
+            GROUP BY ch.id, ch.name, ch.chama_type`,
+      args: [user.id],
       }),
       // Calculate actual savings per chama from confirmed contributions (using correct logic)
       db.execute({
-        sql: `SELECT 
-                ch.id as chama_id,
-                ch.chama_type,
-                c.amount_paid,
-                cy.contribution_amount,
-                COALESCE(cm.custom_savings_amount, cy.savings_amount) as member_savings_amount
-              FROM contributions c
-              INNER JOIN cycles cy ON c.cycle_id = cy.id
-              INNER JOIN chamas ch ON cy.chama_id = ch.id
-              LEFT JOIN cycle_members cm ON c.cycle_member_id = cm.id
-              WHERE c.user_id = ? 
-                AND c.status = 'confirmed'
-              ORDER BY ch.id`,
-        args: [user.id],
+      sql: `SELECT 
+              ch.id as chama_id,
+              ch.chama_type,
+              c.amount_paid,
+              cy.contribution_amount,
+              COALESCE(cm.custom_savings_amount, cy.savings_amount) as member_savings_amount
+            FROM contributions c
+            INNER JOIN cycles cy ON c.cycle_id = cy.id
+            INNER JOIN chamas ch ON cy.chama_id = ch.id
+            LEFT JOIN cycle_members cm ON c.cycle_member_id = cm.id
+            WHERE c.user_id = ? 
+              AND c.status = 'confirmed'
+            ORDER BY ch.id`,
+      args: [user.id],
       }),
       getSavingsAccount(user.id),
       db.execute({

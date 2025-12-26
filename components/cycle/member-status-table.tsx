@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Modal, ModalContent, ModalHeader, ModalTitle, ModalClose, ModalFooter } from '@/components/ui/modal'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
-import { CheckCircle2, Clock, XCircle, AlertCircle, Gift, Edit2, Check, X, EyeOff, Wallet, Sparkles, Zap } from 'lucide-react'
+import { CheckCircle2, Clock, XCircle, AlertCircle, Gift, Edit2, Check, X, EyeOff, Wallet, Sparkles, Zap, Download } from 'lucide-react'
 import { useToast } from '@/components/ui/toast'
 import type { Cycle } from '@/lib/types/cycle'
 import type { CycleMember } from '@/lib/types/cycle'
@@ -294,6 +294,88 @@ export function MemberStatusTable({
 
   const periods = Array.from({ length: cycle.total_periods }, (_, i) => i + 1)
 
+  const handleDownloadCSV = () => {
+    const hasSavings = (chamaType === 'savings' || chamaType === 'hybrid') || cycle.savings_amount > 0 || members.some(m => m.custom_savings_amount !== null)
+    const hasPayout = chamaType === 'merry_go_round' || chamaType === 'hybrid'
+
+    // Build CSV headers
+    const headers = ['Member', 'Turn']
+    if (hasSavings) {
+      headers.push('Savings')
+    }
+    periods.forEach(period => {
+      headers.push(`P${period}${period === cycle.current_period ? ' (Current)' : ''}`)
+    })
+    if (hasPayout) {
+      headers.push('Payout')
+    }
+
+    // Build CSV rows
+    const rows = members.map(member => {
+      const savingsInfo = getSavingsAmount(member)
+      const row: string[] = [
+        member.user?.full_name || 'Unknown Member',
+        member.turn_order?.toString() || '',
+      ]
+
+      if (hasSavings) {
+        row.push(savingsInfo.isHidden && !isAdmin ? 'Hidden' : savingsInfo.display)
+      }
+
+      periods.forEach(period => {
+        const contribution = member.contributions.find(c => c.period_number === period)
+        if (contribution) {
+          const status = getContributionStatus(member, period)
+          const statusText = status?.label || 'Pending'
+          const amountText = contribution.amount_paid > 0 ? formatCurrency(contribution.amount_paid) : ''
+          row.push(amountText ? `${statusText} - ${amountText}` : statusText)
+        } else {
+          row.push('—')
+        }
+      })
+
+      if (hasPayout) {
+        if (member.payout) {
+          row.push(`${member.payout.status}${member.payout.amount ? ` - ${formatCurrency(member.payout.amount)}` : ''}`)
+        } else {
+          row.push('—')
+        }
+      }
+
+      return row
+    })
+
+    // Escape CSV values and join
+    const escapeCSV = (value: string) => {
+      if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+        return `"${value.replace(/"/g, '""')}"`
+      }
+      return value
+    }
+
+    const csvContent = [
+      headers.map(escapeCSV).join(','),
+      ...rows.map(row => row.map(escapeCSV).join(','))
+    ].join('\n')
+
+    // Create download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `${cycle.name}_member_status_${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    addToast({
+      variant: 'success',
+      title: 'CSV Downloaded',
+      description: 'Member status data has been exported to CSV.',
+    })
+  }
+
   return (
     <div className="space-y-4">
       {/* Pending Confirmations Banner - Creative Design */}
@@ -351,8 +433,22 @@ export function MemberStatusTable({
 
       <Card className="border-border/50 shadow-sm w-full overflow-hidden">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base sm:text-lg">Member Status</CardTitle>
-          <CardDescription className="text-xs sm:text-sm">Contribution status for all cycle members</CardDescription>
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-base sm:text-lg">Member Status</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Contribution status for all cycle members</CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadCSV}
+              className="flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:inline">Download CSV</span>
+              <span className="sm:hidden">CSV</span>
+            </Button>
+          </div>
         </CardHeader>
       <CardContent className="p-0 sm:p-6 overflow-hidden">
         <div className="overflow-x-auto w-full">

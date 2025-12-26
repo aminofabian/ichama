@@ -139,7 +139,7 @@ async function processContributionConfirmation(
       savingsAmount = Math.min(totalAmount, memberSavingsAmount)
     } else if (chama.chama_type === 'hybrid') {
       // For hybrid chamas: savings = amount paid beyond contribution, capped at savings target
-      const savingsFromPayment = Math.max(0, totalAmount - cycle.contribution_amount)
+    const savingsFromPayment = Math.max(0, totalAmount - cycle.contribution_amount)
       savingsAmount = Math.min(memberSavingsAmount, savingsFromPayment)
     }
     
