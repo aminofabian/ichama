@@ -22,8 +22,8 @@ export async function GET(request: NextRequest) {
     ] = await Promise.all([
       getUserChamas(user.id),
       db.execute({
-        sql: `SELECT COALESCE(SUM(amount_paid), 0) as total
-              FROM contributions
+        sql: `SELECT COALESCE(SUM(amount), 0) as total
+              FROM payouts
               WHERE user_id = ? AND status IN ('paid', 'confirmed')`,
         args: [user.id],
       }),
@@ -112,7 +112,8 @@ export async function GET(request: NextRequest) {
       }),
     ])
 
-    const totalContributions = (totalContributionsResult.rows[0]?.total as number) || 0
+    const totalReceivedValue = totalContributionsResult.rows[0]?.total
+    const totalReceived = totalReceivedValue != null ? Number(totalReceivedValue) : 0
     const totalSavingsBalance = savingsAccount?.balance || 0
 
     // Calculate savings per chama using the correct logic (matching processContributionConfirmation)
@@ -222,7 +223,7 @@ export async function GET(request: NextRequest) {
         chamaStats,
         stats: {
           activeChamas: chamas.length,
-          totalContributions,
+          totalReceived,
           savingsBalance: totalSavingsBalance,
           upcomingPayout: upcomingPayout
             ? {

@@ -65,7 +65,7 @@ interface DashboardData {
   chamaStats?: ChamaStat[]
   stats: {
     activeChamas: number
-    totalContributions: number
+    totalReceived: number
     savingsBalance: number
     upcomingPayout: {
       amount: number
@@ -221,7 +221,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Total Contributed Card */}
+          {/* Total Received Card */}
           <div className="group relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-br from-green-50 to-emerald-100/50 p-1.5 md:p-2.5 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg dark:from-green-950/30 dark:to-emerald-900/20">
             <div className="absolute -right-1 -top-1 md:-right-2 md:-top-2 h-6 w-6 md:h-10 md:w-10 rounded-full bg-green-400/20 blur-xl" />
             <div className="relative">
@@ -230,9 +230,9 @@ export default function DashboardPage() {
                   <DollarSign className="h-2.5 w-2.5 md:h-4 md:w-4 text-white" />
                 </div>
               </div>
-              <p className="mb-0.5 md:mb-1 text-[9px] md:text-[10px] font-medium text-muted-foreground">Total Contributed</p>
+              <p className="mb-0.5 md:mb-1 text-[9px] md:text-[10px] font-medium text-muted-foreground">Total Received</p>
               <p className="text-sm md:text-lg font-bold text-foreground">
-                {formatCurrency(data.stats.totalContributions)}
+                {formatCurrency(data.stats.totalReceived || 0)}
               </p>
             </div>
           </div>
