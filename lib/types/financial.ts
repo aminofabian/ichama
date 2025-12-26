@@ -52,3 +52,46 @@ export interface WalletTransaction {
   created_at: string
 }
 
+export type LoanStatus = 'pending' | 'approved' | 'active' | 'paid' | 'defaulted' | 'cancelled'
+export type LoanGuarantorStatus = 'pending' | 'approved' | 'rejected' | 'cancelled'
+
+export interface Loan {
+  id: string
+  user_id: string
+  amount: number
+  status: LoanStatus
+  interest_rate: number
+  repayment_period_days: number | null
+  due_date: string | null
+  amount_paid: number
+  approved_at: string | null
+  approved_by: string | null
+  disbursed_at: string | null
+  paid_at: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface LoanGuarantor {
+  id: string
+  loan_id: string
+  guarantor_user_id: string
+  status: LoanGuarantorStatus
+  approved_at: string | null
+  rejected_at: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface LoanPayment {
+  id: string
+  loan_id: string
+  amount: number
+  payment_method: string | null
+  reference_id: string | null
+  notes: string | null
+  created_at: string
+}
+

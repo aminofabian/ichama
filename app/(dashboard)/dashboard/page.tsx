@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Bell, Plus, Eye, EyeOff, PiggyBank, Calendar, ArrowRight, TrendingUp, Users, DollarSign } from 'lucide-react'
+import { Bell, Plus, Eye, EyeOff, PiggyBank, Calendar, ArrowRight, TrendingUp, Users, DollarSign, HandCoins } from 'lucide-react'
 import { ChamaList } from '@/components/dashboard/chama-list'
 import { ContributionPaymentButtons } from '@/components/dashboard/contribution-payment-buttons'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
+import { LoanFormDrawer } from '@/components/loan/loan-form-drawer'
 import { formatCurrency } from '@/lib/utils/format'
 import type { ChamaWithMember } from '@/lib/db/queries/chamas'
 import type { User } from '@/lib/types/user'
@@ -98,6 +99,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showSavings, setShowSavings] = useState(true)
+  const [loanDrawerOpen, setLoanDrawerOpen] = useState(false)
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -291,6 +293,35 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Loan Request Section */}
+      <div className="mb-6 px-4 md:px-0">
+        <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-4 md:p-6">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-md">
+                <HandCoins className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-sm md:text-base font-semibold text-foreground">
+                  Need a Loan?
+                </h3>
+                <p className="text-xs md:text-sm text-muted-foreground">
+                  Request a loan based on your savings balance
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setLoanDrawerOpen(true)}
+              className="group relative flex items-center gap-2 overflow-hidden rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
+              <HandCoins className="relative h-4 w-4 transition-transform group-hover:scale-110" />
+              <span className="relative">Request Loan</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Contributions Section */}
       <div className="mb-6 px-4 md:px-0">
         <div className="mb-3 flex items-center gap-2">
@@ -370,6 +401,12 @@ export default function DashboardPage() {
         />
       </div>
       </div>
+
+      <LoanFormDrawer
+        open={loanDrawerOpen}
+        onOpenChange={setLoanDrawerOpen}
+        savingsBalance={data.stats.savingsBalance}
+      />
     </div>
   )
 }
