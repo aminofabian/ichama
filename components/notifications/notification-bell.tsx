@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -19,6 +19,14 @@ export function NotificationBell({ className }: NotificationBellProps) {
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const [dropdownPosition, setDropdownPosition] = useState<{
+    top?: number
+    bottom?: number
+    right?: number
+    left?: number
+    maxHeight?: string
+  }>({})
 
   const fetchNotifications = async () => {
     try {
@@ -42,6 +50,71 @@ export function NotificationBell({ className }: NotificationBellProps) {
     const interval = setInterval(fetchNotifications, 30000)
     return () => clearInterval(interval)
   }, [])
+
+  const calculatePosition = useCallback(() => {
+    if (!buttonRef.current) return
+
+    const buttonRect = buttonRef.current.getBoundingClientRect()
+    const dropdownWidth = 320
+    const viewportWidth = window.innerWidth
+    const viewportHeight = window.innerHeight
+    const spacing = 8
+
+    const spaceOnRight = viewportWidth - buttonRect.right
+    const spaceOnLeft = buttonRect.left
+    const spaceBelow = viewportHeight - buttonRect.bottom
+    const spaceAbove = buttonRect.top
+
+    const position: typeof dropdownPosition = {}
+
+    // Horizontal positioning
+    if (spaceOnRight >= dropdownWidth + spacing) {
+      position.left = buttonRect.left
+    } else if (spaceOnLeft >= dropdownWidth + spacing) {
+      position.right = viewportWidth - buttonRect.right
+    } else {
+      // Align to viewport edge with padding
+      if (spaceOnRight > spaceOnLeft) {
+        position.left = spacing
+      } else {
+        position.right = spacing
+      }
+    }
+
+    // Vertical positioning
+    const maxDropdownHeight = 500
+    if (spaceBelow >= maxDropdownHeight + spacing) {
+      position.top = buttonRect.bottom + spacing
+      position.maxHeight = `${maxDropdownHeight}px`
+    } else if (spaceAbove >= maxDropdownHeight + spacing) {
+      position.bottom = viewportHeight - buttonRect.top + spacing
+      position.maxHeight = `${maxDropdownHeight}px`
+    } else {
+      // Use whichever side has more space
+      if (spaceBelow > spaceAbove) {
+        position.top = buttonRect.bottom + spacing
+        position.maxHeight = `${Math.min(maxDropdownHeight, spaceBelow - spacing)}px`
+      } else {
+        position.bottom = viewportHeight - buttonRect.top + spacing
+        position.maxHeight = `${Math.min(maxDropdownHeight, spaceAbove - spacing)}px`
+      }
+    }
+
+    setDropdownPosition(position)
+  }, [])
+
+  useEffect(() => {
+    if (isOpen) {
+      calculatePosition()
+      const handleResize = () => calculatePosition()
+      window.addEventListener('resize', handleResize)
+      window.addEventListener('scroll', handleResize, true)
+      return () => {
+        window.removeEventListener('resize', handleResize)
+        window.removeEventListener('scroll', handleResize, true)
+      }
+    }
+  }, [isOpen, calculatePosition])
 
   const handleMarkAsRead = async (id: string) => {
     try {
@@ -74,6 +147,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
   return (
     <div className={`relative ${className}`}>
       <Button
+        ref={buttonRef}
         variant="ghost"
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
@@ -96,7 +170,18 @@ export function NotificationBell({ className }: NotificationBellProps) {
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          <Card className="absolute right-0 top-full mt-2 z-50 max-h-[500px] shadow-lg" style={{ width: '320px', maxWidth: 'calc(100vw - 2rem)' }}>
+          <Card
+            className="fixed z-50 shadow-lg"
+            style={{
+              width: '320px',
+              maxWidth: 'calc(100vw - 2rem)',
+              ...(dropdownPosition.top !== undefined && { top: `${dropdownPosition.top}px` }),
+              ...(dropdownPosition.bottom !== undefined && { bottom: `${dropdownPosition.bottom}px` }),
+              ...(dropdownPosition.left !== undefined && { left: `${dropdownPosition.left}px` }),
+              ...(dropdownPosition.right !== undefined && { right: `${dropdownPosition.right}px` }),
+              ...(dropdownPosition.maxHeight && { maxHeight: dropdownPosition.maxHeight }),
+            }}
+          >
             <CardContent className="p-0" style={{ width: '100%', overflow: 'hidden' }}>
               <div className="p-4 border-b">
                 <div className="flex items-center justify-between gap-2">
