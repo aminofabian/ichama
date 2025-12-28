@@ -670,14 +670,16 @@ export function MemberStatusTable({
                       )
                       const isConfirming = contribution && confirmingIds.has(contribution.id)
                       const needsConfirmation = isAdmin && contribution && contribution.status === 'paid' && contribution.amount_paid >= contribution.amount_due
+                      const isConfirmed = contribution?.status === 'confirmed'
+                      const isClickable = isAdmin && !needsConfirmation && !isConfirmed
 
                       // Format due date for tooltip
                       const dueDate = contribution?.due_date 
                         ? new Date(contribution.due_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
                         : null
                       const tooltipText = dueDate 
-                        ? `Due: ${dueDate}${isAdmin && !needsConfirmation ? ' • Click to record payment' : ''}`
-                        : (isAdmin && !needsConfirmation ? 'Click to record payment' : status?.label)
+                        ? `Due: ${dueDate}${isClickable ? ' • Click to record payment' : ''}`
+                        : (isClickable ? 'Click to record payment' : status?.label)
 
                       // Calculate days until due for color coding (only for unpaid contributions)
                       let urgencyClass = ''
@@ -698,8 +700,8 @@ export function MemberStatusTable({
                       return (
                           <td 
                             key={period} 
-                            className={`text-center p-1 sm:p-2 relative ${urgencyClass} ${isAdmin && !needsConfirmation ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
-                            onClick={isAdmin && !needsConfirmation ? () => handleOpenPaymentModal(member, period) : undefined}
+                            className={`text-center p-1 sm:p-2 relative ${urgencyClass} ${isClickable ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
+                            onClick={isClickable ? () => handleOpenPaymentModal(member, period) : undefined}
                             title={tooltipText}
                           >
                           {status ? (
