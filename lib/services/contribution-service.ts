@@ -94,6 +94,7 @@ async function processContributionConfirmation(
   }
 
   const totalAmount = contribution.amount_paid
+  const serviceFee = cycle.service_fee || 0
 
   // 1. Create wallet transaction for the full contribution
   await createWalletTransaction({
@@ -133,13 +134,18 @@ async function processContributionConfirmation(
     }
 
     // Calculate savings portion based on chama type
+    // Service fee is always deducted from the amount before calculating savings
+    const amountAfterFee = Math.max(0, totalAmount - serviceFee)
+    
     let savingsAmount = 0
     if (chama.chama_type === 'savings') {
-      // For savings chamas: all amount paid is savings (up to the savings target)
-      savingsAmount = Math.min(totalAmount, memberSavingsAmount)
+      // For savings chamas: amount paid minus service fee is savings
+      savingsAmount = amountAfterFee
     } else if (chama.chama_type === 'hybrid') {
-      // For hybrid chamas: savings = amount paid beyond contribution, capped at savings target
-    const savingsFromPayment = Math.max(0, totalAmount - cycle.contribution_amount)
+      // For hybrid chamas: savings = amount paid beyond (contribution + service fee), capped at savings target
+      // Note: contribution_amount already includes payout portion, so we subtract it
+      const payoutPortion = cycle.payout_amount || 0
+      const savingsFromPayment = Math.max(0, amountAfterFee - payoutPortion)
       savingsAmount = Math.min(memberSavingsAmount, savingsFromPayment)
     }
     

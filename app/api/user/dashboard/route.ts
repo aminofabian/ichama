@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth/middleware'
 import { getUserChamas } from '@/lib/db/queries/chamas'
-import { getSavingsAccount } from '@/lib/db/queries/savings'
 import db from '@/lib/db/client'
 import type { ApiResponse } from '@/lib/types/api'
 
@@ -14,8 +13,7 @@ export async function GET(request: NextRequest) {
       chamas,
       totalContributionsResult,
       perChamaStatsResult,
-      savingsPerChamaResult,
-      savingsAccount,
+      confirmedContributionsResult,
       upcomingPayoutResult,
       pendingContributionsResult,
       unconfirmedContributionsResult,
@@ -43,24 +41,24 @@ export async function GET(request: NextRequest) {
             GROUP BY ch.id, ch.name, ch.chama_type`,
       args: [user.id],
       }),
-      // Calculate actual savings per chama from confirmed contributions (using correct logic)
+      // Get confirmed contributions with details needed for savings calculation
       db.execute({
       sql: `SELECT 
               ch.id as chama_id,
               ch.chama_type,
               c.amount_paid,
               cy.contribution_amount,
+              cy.payout_amount,
+              cy.service_fee,
               COALESCE(cm.custom_savings_amount, cy.savings_amount) as member_savings_amount
             FROM contributions c
             INNER JOIN cycles cy ON c.cycle_id = cy.id
             INNER JOIN chamas ch ON cy.chama_id = ch.id
             LEFT JOIN cycle_members cm ON c.cycle_member_id = cm.id
             WHERE c.user_id = ? 
-              AND c.status = 'confirmed'
-            ORDER BY ch.id`,
+              AND c.status = 'confirmed'`,
       args: [user.id],
       }),
-      getSavingsAccount(user.id),
       db.execute({
         sql: `SELECT p.*, c.name as cycle_name, ch.name as chama_name
               FROM payouts p
@@ -114,31 +112,52 @@ export async function GET(request: NextRequest) {
 
     const totalReceivedValue = totalContributionsResult.rows[0]?.total
     const totalReceived = totalReceivedValue != null ? Number(totalReceivedValue) : 0
-    const totalSavingsBalance = savingsAccount?.balance || 0
 
-    // Calculate savings per chama using the correct logic (matching processContributionConfirmation)
+    // Calculate savings and merry-go-round contributions from CONFIRMED contributions
+    // This matches processContributionConfirmation in contribution-service.ts
     const savingsPerChamaMap = new Map<string, number>()
-    savingsPerChamaResult.rows.forEach((row: any) => {
+    let totalSavingsBalance = 0
+    let totalMerryGoRoundContributions = 0
+    
+    confirmedContributionsResult.rows.forEach((row: any) => {
       const chamaId = row.chama_id
       const chamaType = row.chama_type
-      const amountPaid = row.amount_paid || 0
-      const contributionAmount = row.contribution_amount || 0
-      const memberSavingsAmount = row.member_savings_amount || 0
+      const amountPaid = Number(row.amount_paid) || 0
+      const payoutAmount = Number(row.payout_amount) || 0
+      const serviceFee = Number(row.service_fee) || 0
+      const memberSavingsAmount = Number(row.member_savings_amount) || 0
       
-      if (memberSavingsAmount > 0 && (chamaType === 'savings' || chamaType === 'hybrid')) {
+      // Service fee is always deducted from the amount before calculating
+      const amountAfterFee = Math.max(0, amountPaid - serviceFee)
+      
+      // Calculate merry-go-round (payout) contributions
+      if (chamaType === 'merry_go_round') {
+        // For merry-go-round: full amount after fee goes to payout pool
+        totalMerryGoRoundContributions += amountAfterFee
+      } else if (chamaType === 'hybrid') {
+        // For hybrid: payout portion goes to payout pool
+        const payoutContribution = Math.min(payoutAmount, amountAfterFee)
+        totalMerryGoRoundContributions += payoutContribution
+      }
+      
+      // Calculate savings
+      if (chamaType === 'savings' || chamaType === 'hybrid') {
         let savingsAmount = 0
         
         if (chamaType === 'savings') {
-          // For savings chamas: all amount paid is savings (up to the savings target)
-          savingsAmount = Math.min(amountPaid, memberSavingsAmount)
+          // For savings chamas: amount paid minus service fee is savings
+          savingsAmount = amountAfterFee
         } else if (chamaType === 'hybrid') {
-          // For hybrid chamas: savings = amount paid beyond contribution, capped at savings target
-          const savingsFromPayment = Math.max(0, amountPaid - contributionAmount)
+          // For hybrid chamas: savings = amount paid beyond (payout + service fee), capped at savings target
+          const savingsFromPayment = Math.max(0, amountAfterFee - payoutAmount)
           savingsAmount = Math.min(memberSavingsAmount, savingsFromPayment)
         }
         
-        const currentSavings = savingsPerChamaMap.get(chamaId) || 0
-        savingsPerChamaMap.set(chamaId, currentSavings + savingsAmount)
+        if (savingsAmount > 0) {
+          const currentSavings = savingsPerChamaMap.get(chamaId) || 0
+          savingsPerChamaMap.set(chamaId, currentSavings + savingsAmount)
+          totalSavingsBalance += savingsAmount
+        }
       }
     })
 
@@ -225,6 +244,10 @@ export async function GET(request: NextRequest) {
           activeChamas: chamas.length,
           totalReceived,
           savingsBalance: totalSavingsBalance,
+          merryGoRoundContributions: totalMerryGoRoundContributions,
+          // Track which chama types user has for conditional UI display
+          hasSavingsChama: chamas.some((c: any) => c.chama_type === 'savings' || c.chama_type === 'hybrid'),
+          hasMerryGoRoundChama: chamas.some((c: any) => c.chama_type === 'merry_go_round' || c.chama_type === 'hybrid'),
           upcomingPayout: upcomingPayout
             ? {
                 amount: upcomingPayout.amount,

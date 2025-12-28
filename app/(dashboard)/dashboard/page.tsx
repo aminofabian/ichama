@@ -68,6 +68,9 @@ interface DashboardData {
     activeChamas: number
     totalReceived: number
     savingsBalance: number
+    merryGoRoundContributions: number
+    hasSavingsChama: boolean
+    hasMerryGoRoundChama: boolean
     upcomingPayout: {
       amount: number
       scheduledDate: string
@@ -208,7 +211,7 @@ export default function DashboardPage() {
           </h2>
           <div className="h-px flex-1 bg-gradient-to-r from-muted to-transparent" />
         </div>
-        <div className="grid grid-cols-2 gap-2 md:gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 md:gap-4 lg:grid-cols-5">
           {/* Active Chamas Card */}
           <div className="group relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/50 p-1.5 md:p-2.5 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg dark:from-blue-950/30 dark:to-blue-900/20">
             <div className="absolute -right-1 -top-1 md:-right-2 md:-top-2 h-6 w-6 md:h-10 md:w-10 rounded-full bg-blue-400/20 blur-xl" />
@@ -239,57 +242,73 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Savings Balance Card */}
-          <div className="group relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-br from-purple-50 to-purple-100/50 p-1.5 md:p-2.5 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg dark:from-purple-950/30 dark:to-purple-900/20">
-            <div className="absolute -right-1 -top-1 md:-right-2 md:-top-2 h-6 w-6 md:h-10 md:w-10 rounded-full bg-purple-400/20 blur-xl" />
-            <div className="relative">
-              <div className="mb-1 md:mb-2 flex items-center justify-between">
-                <div className="flex h-4 w-4 md:h-6 md:w-6 items-center justify-center rounded-md md:rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 shadow-md">
-                  <PiggyBank className="h-2.5 w-2.5 md:h-4 md:w-4 text-white" />
-                </div>
-                <button
-                  onClick={() => setShowSavings(!showSavings)}
-                  className="flex h-3 w-3 md:h-5 md:w-5 items-center justify-center rounded-sm md:rounded-md bg-background/50 backdrop-blur-sm transition-all hover:bg-background hover:scale-110"
-                >
-                  {showSavings ? (
-                    <Eye className="h-2 w-2 md:h-3 md:w-3 text-muted-foreground" />
-                  ) : (
-                    <EyeOff className="h-2 w-2 md:h-3 md:w-3 text-muted-foreground" />
-                  )}
-                </button>
-              </div>
-              <p className="mb-0.5 md:mb-1 text-[9px] md:text-[10px] font-medium text-muted-foreground">Savings Balance</p>
-              <div className="flex items-center gap-1.5">
-                <p className="text-sm md:text-lg font-bold text-foreground">
-                  {showSavings ? formatCurrency(data.stats.savingsBalance) : '••••••'}
-                </p>
-                {showSavings && (
-                  <div className="flex items-center gap-0.5 rounded-full bg-green-100 px-0.5 md:px-1 py-0 text-[7px] md:text-[9px] font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                    <TrendingUp className="h-1.5 w-1.5 md:h-2 md:w-2" />
-                    <span>+12%</span>
+          {/* Savings Balance Card - Only show for savings or hybrid chamas */}
+          {data.stats.hasSavingsChama && (
+            <div className="group relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-br from-purple-50 to-purple-100/50 p-1.5 md:p-2.5 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg dark:from-purple-950/30 dark:to-purple-900/20">
+              <div className="absolute -right-1 -top-1 md:-right-2 md:-top-2 h-6 w-6 md:h-10 md:w-10 rounded-full bg-purple-400/20 blur-xl" />
+              <div className="relative">
+                <div className="mb-1 md:mb-2 flex items-center justify-between">
+                  <div className="flex h-4 w-4 md:h-6 md:w-6 items-center justify-center rounded-md md:rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 shadow-md">
+                    <PiggyBank className="h-2.5 w-2.5 md:h-4 md:w-4 text-white" />
                   </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Upcoming Payout Card */}
-          <div className="group relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-br from-orange-50 to-amber-100/50 p-1.5 md:p-2.5 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg dark:from-orange-950/30 dark:to-amber-900/20">
-            <div className="absolute -right-1 -top-1 md:-right-2 md:-top-2 h-6 w-6 md:h-10 md:w-10 rounded-full bg-orange-400/20 blur-xl" />
-            <div className="relative">
-              <div className="mb-1 md:mb-2 flex items-center justify-between">
-                <div className="flex h-4 w-4 md:h-6 md:w-6 items-center justify-center rounded-md md:rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 shadow-md">
-                  <Calendar className="h-2.5 w-2.5 md:h-4 md:w-4 text-white" />
+                  <button
+                    onClick={() => setShowSavings(!showSavings)}
+                    className="flex h-3 w-3 md:h-5 md:w-5 items-center justify-center rounded-sm md:rounded-md bg-background/50 backdrop-blur-sm transition-all hover:bg-background hover:scale-110"
+                  >
+                    {showSavings ? (
+                      <Eye className="h-2 w-2 md:h-3 md:w-3 text-muted-foreground" />
+                    ) : (
+                      <EyeOff className="h-2 w-2 md:h-3 md:w-3 text-muted-foreground" />
+                    )}
+                  </button>
+                </div>
+                <p className="mb-0.5 md:mb-1 text-[9px] md:text-[10px] font-medium text-muted-foreground">Savings Balance</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-sm md:text-lg font-bold text-foreground">
+                    {showSavings ? formatCurrency(data.stats.savingsBalance) : '••••••'}
+                  </p>
                 </div>
               </div>
-              <p className="mb-0.5 md:mb-1 text-[9px] md:text-[10px] font-medium text-muted-foreground">Upcoming Payout</p>
-              <p className="text-sm md:text-lg font-bold text-foreground">
-                {data.stats.upcomingPayout
-                  ? formatCurrency(data.stats.upcomingPayout.amount)
-                  : formatCurrency(0)}
-              </p>
             </div>
-          </div>
+          )}
+
+          {/* Merry-Go-Round Contributions Card - Only show for merry_go_round or hybrid chamas */}
+          {data.stats.hasMerryGoRoundChama && (
+            <div className="group relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-br from-cyan-50 to-teal-100/50 p-1.5 md:p-2.5 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg dark:from-cyan-950/30 dark:to-teal-900/20">
+              <div className="absolute -right-1 -top-1 md:-right-2 md:-top-2 h-6 w-6 md:h-10 md:w-10 rounded-full bg-cyan-400/20 blur-xl" />
+              <div className="relative">
+                <div className="mb-1 md:mb-2 flex items-center justify-between">
+                  <div className="flex h-4 w-4 md:h-6 md:w-6 items-center justify-center rounded-md md:rounded-lg bg-gradient-to-br from-cyan-500 to-teal-600 shadow-md">
+                    <ArrowRight className="h-2.5 w-2.5 md:h-4 md:w-4 text-white" />
+                  </div>
+                </div>
+                <p className="mb-0.5 md:mb-1 text-[9px] md:text-[10px] font-medium text-muted-foreground">Merry-Go-Round</p>
+                <p className="text-sm md:text-lg font-bold text-foreground">
+                  {formatCurrency(data.stats.merryGoRoundContributions || 0)}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Upcoming Payout Card - Only show for merry_go_round or hybrid chamas */}
+          {data.stats.hasMerryGoRoundChama && (
+            <div className="group relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-br from-orange-50 to-amber-100/50 p-1.5 md:p-2.5 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg dark:from-orange-950/30 dark:to-amber-900/20">
+              <div className="absolute -right-1 -top-1 md:-right-2 md:-top-2 h-6 w-6 md:h-10 md:w-10 rounded-full bg-orange-400/20 blur-xl" />
+              <div className="relative">
+                <div className="mb-1 md:mb-2 flex items-center justify-between">
+                  <div className="flex h-4 w-4 md:h-6 md:w-6 items-center justify-center rounded-md md:rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 shadow-md">
+                    <Calendar className="h-2.5 w-2.5 md:h-4 md:w-4 text-white" />
+                  </div>
+                </div>
+                <p className="mb-0.5 md:mb-1 text-[9px] md:text-[10px] font-medium text-muted-foreground">Upcoming Payout</p>
+                <p className="text-sm md:text-lg font-bold text-foreground">
+                  {data.stats.upcomingPayout
+                    ? formatCurrency(data.stats.upcomingPayout.amount)
+                    : formatCurrency(0)}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
