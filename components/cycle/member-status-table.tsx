@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import * as XLSX from 'xlsx'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar } from '@/components/ui/avatar'
@@ -294,86 +295,145 @@ export function MemberStatusTable({
 
   const periods = Array.from({ length: cycle.total_periods }, (_, i) => i + 1)
 
-  const handleDownloadCSV = () => {
-    const hasSavings = (chamaType === 'savings' || chamaType === 'hybrid') || cycle.savings_amount > 0 || members.some(m => m.custom_savings_amount !== null)
+  const handleDownloadExcel = () => {
     const hasPayout = chamaType === 'merry_go_round' || chamaType === 'hybrid'
 
-    // Build CSV headers
-    const headers = ['Member', 'Turn']
-    if (hasSavings) {
-      headers.push('Savings')
-    }
+    // Build headers
+    const headers = ['Member', 'Phone', 'Turn']
     periods.forEach(period => {
-      headers.push(`P${period}${period === cycle.current_period ? ' (Current)' : ''}`)
+      headers.push(`P${period}`)
     })
     if (hasPayout) {
       headers.push('Payout')
     }
+    headers.push('Total Paid')
+    headers.push('Total Due')
 
-    // Build CSV rows
-    const rows = members.map(member => {
-      const savingsInfo = getSavingsAmount(member)
-      const row: string[] = [
+    // Build data rows
+    const dataRows = members.map(member => {
+      const serviceFee = cycle.service_fee || 0
+      
+      // Calculate totals
+      const totalPaid = member.contributions.reduce(
+        (sum, c) => sum + Math.max(0, (c.amount_paid || 0) - serviceFee),
+        0
+      )
+      const totalDue = member.contributions.reduce(
+        (sum, c) => sum + Math.max(0, (c.amount_due || 0) - serviceFee),
+        0
+      )
+
+      const row: (string | number)[] = [
         member.user?.full_name || 'Unknown Member',
-        member.turn_order?.toString() || '',
+        member.user?.phone_number || '',
+        member.turn_order || '',
       ]
-
-      if (hasSavings) {
-        row.push(savingsInfo.isHidden && !isAdmin ? 'Hidden' : savingsInfo.display)
-      }
 
       periods.forEach(period => {
         const contribution = member.contributions.find(c => c.period_number === period)
         if (contribution) {
-          const status = getContributionStatus(member, period)
-          const statusText = status?.label || 'Pending'
-          const amountAfterFee = Math.max(0, (contribution.amount_paid || 0) - (cycle.service_fee || 0))
-          const amountText = amountAfterFee > 0 ? formatCurrency(amountAfterFee) : ''
-          row.push(amountText ? `${statusText} - ${amountText}` : statusText)
+          const amountAfterFee = Math.max(0, (contribution.amount_paid || 0) - serviceFee)
+          row.push(amountAfterFee)
         } else {
-          row.push('—')
+          row.push('')
         }
       })
 
       if (hasPayout) {
         if (member.payout) {
-          row.push(`${member.payout.status}${member.payout.amount ? ` - ${formatCurrency(member.payout.amount)}` : ''}`)
+          row.push(member.payout.amount || 0)
         } else {
-          row.push('—')
+          row.push('')
         }
       }
+
+      row.push(totalPaid)
+      row.push(totalDue)
 
       return row
     })
 
-    // Escape CSV values and join
-    const escapeCSV = (value: string) => {
-      if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-        return `"${value.replace(/"/g, '""')}"`
-      }
-      return value
+    // Calculate totals for each period
+    const serviceFee = cycle.service_fee || 0
+    const totalsRow: (string | number)[] = ['TOTAL', '', '']
+    
+    let grandTotalPaid = 0
+    let grandTotalDue = 0
+    
+    periods.forEach(period => {
+      const periodTotal = members.reduce((sum, member) => {
+        const contribution = member.contributions.find(c => c.period_number === period)
+        if (contribution) {
+          return sum + Math.max(0, (contribution.amount_paid || 0) - serviceFee)
+        }
+        return sum
+      }, 0)
+      totalsRow.push(periodTotal)
+      grandTotalPaid += periodTotal
+    })
+
+    if (hasPayout) {
+      const totalPayouts = members.reduce((sum, member) => {
+        return sum + (member.payout?.amount || 0)
+      }, 0)
+      totalsRow.push(totalPayouts)
     }
 
-    const csvContent = [
-      headers.map(escapeCSV).join(','),
-      ...rows.map(row => row.map(escapeCSV).join(','))
-    ].join('\n')
+    grandTotalDue = members.reduce((sum, member) => {
+      return sum + member.contributions.reduce((s, c) => s + Math.max(0, (c.amount_due || 0) - serviceFee), 0)
+    }, 0)
 
-    // Create download
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    const url = URL.createObjectURL(blob)
-    link.setAttribute('href', url)
-    link.setAttribute('download', `${cycle.name}_member_status_${new Date().toISOString().split('T')[0]}.csv`)
-    link.style.visibility = 'hidden'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    totalsRow.push(grandTotalPaid)
+    totalsRow.push(grandTotalDue)
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new()
+    
+    // Create main data sheet with totals row
+    const wsData = [headers, ...dataRows, [], totalsRow]
+    const ws = XLSX.utils.aoa_to_sheet(wsData)
+
+    // Set column widths
+    const colWidths = headers.map((header, i) => {
+      if (header === 'Member') return { wch: 25 }
+      if (header === 'Phone') return { wch: 15 }
+      if (header.includes('Amount') || header.includes('Paid') || header.includes('Due')) return { wch: 12 }
+      if (header.includes('Date')) return { wch: 12 }
+      if (header.includes('Status')) return { wch: 12 }
+      return { wch: 10 }
+    })
+    ws['!cols'] = colWidths
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Member Status')
+
+    // Create summary sheet
+    const summaryData = [
+      ['Cycle Summary'],
+      [''],
+      ['Cycle Name', cycle.name],
+      ['Total Periods', cycle.total_periods],
+      ['Current Period', cycle.current_period],
+      ['Contribution Amount', cycle.contribution_amount],
+      ['Service Fee', cycle.service_fee || 0],
+      ['Status', cycle.status],
+      [''],
+      ['Statistics'],
+      ['Total Members', members.length],
+      ['Total Collected', members.reduce((sum, m) => sum + m.contributions.reduce((s, c) => s + Math.max(0, (c.amount_paid || 0) - (cycle.service_fee || 0)), 0), 0)],
+      ['Service Fees Collected', isAdmin ? members.reduce((sum, m) => sum + m.contributions.filter(c => c.status === 'paid' || c.status === 'confirmed').length, 0) * (cycle.service_fee || 0) : 'Admin only'],
+    ]
+    const wsSummary = XLSX.utils.aoa_to_sheet(summaryData)
+    wsSummary['!cols'] = [{ wch: 20 }, { wch: 20 }]
+    XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary')
+
+    // Generate and download file
+    const fileName = `${cycle.name.replace(/[^a-zA-Z0-9]/g, '_')}_member_status_${new Date().toISOString().split('T')[0]}.xlsx`
+    XLSX.writeFile(wb, fileName)
 
     addToast({
       variant: 'success',
-      title: 'CSV Downloaded',
-      description: 'Member status data has been exported to CSV.',
+      title: 'Excel Downloaded',
+      description: 'Member status data has been exported to Excel.',
     })
   }
 
@@ -442,12 +502,12 @@ export function MemberStatusTable({
             <Button
               variant="outline"
               size="sm"
-              onClick={handleDownloadCSV}
+              onClick={handleDownloadExcel}
               className="flex items-center gap-2"
             >
               <Download className="h-4 w-4" />
-              <span className="hidden sm:inline">Download CSV</span>
-              <span className="sm:hidden">CSV</span>
+              <span className="hidden sm:inline">Download Excel</span>
+              <span className="sm:hidden">Excel</span>
             </Button>
           </div>
         </CardHeader>
