@@ -18,29 +18,56 @@ interface ContributionReminderData {
   periodNumber: number
 }
 
-function createReminderMessage(
-  type: ReminderType,
+function replaceTemplateVariables(
+  template: string,
   data: ContributionReminderData
 ): string {
   const { userName, chamaName, cycleName, amountDue, dueDate, daysUntilDue, periodNumber } = data
   const amount = formatCurrency(amountDue)
   const formattedDate = formatDate(dueDate)
 
+  return template
+    .replace(/\{\{userName\}\}/g, userName)
+    .replace(/\{\{chamaName\}\}/g, chamaName)
+    .replace(/\{\{cycleName\}\}/g, cycleName)
+    .replace(/\{\{amount\}\}/g, amount)
+    .replace(/\{\{dueDate\}\}/g, formattedDate)
+    .replace(/\{\{daysUntilDue\}\}/g, daysUntilDue.toString())
+    .replace(/\{\{periodNumber\}\}/g, periodNumber.toString())
+}
+
+function getDefaultTemplate(type: ReminderType): string {
   switch (type) {
     case 'period_started':
-      return `🎉 Hello ${userName}!\n\nA new period has started for "${cycleName}" in ${chamaName}.\n\n💰 Contribution Amount: ${amount}\n📅 Due Date: ${formattedDate}\n⏰ You have ${daysUntilDue} days to make your contribution.\n\nDon't forget to contribute on time! 💪`
+      return `🎉 Hello {{userName}}!\n\nA new period has started for "{{cycleName}}" in {{chamaName}}.\n\n💰 Contribution Amount: {{amount}}\n📅 Due Date: {{dueDate}}\n⏰ You have {{daysUntilDue}} days to make your contribution.\n\nDon't forget to contribute on time! 💪`
 
     case 'three_days_before':
-      return `⏰ Reminder: ${userName}\n\nYour contribution for "${cycleName}" in ${chamaName} is due in 3 days.\n\n💰 Amount: ${amount}\n📅 Due Date: ${formattedDate}\n\nPlease make your contribution soon to avoid any delays. 🙏`
+      return `⏰ Reminder: {{userName}}\n\nYour contribution for "{{cycleName}}" in {{chamaName}} is due in 3 days.\n\n💰 Amount: {{amount}}\n📅 Due Date: {{dueDate}}\n\nPlease make your contribution soon to avoid any delays. 🙏`
 
     case 'one_day_before':
-      return `🚨 Final Reminder: ${userName}\n\nYour contribution for "${cycleName}" in ${chamaName} is due TOMORROW!\n\n💰 Amount: ${amount}\n📅 Due Date: ${formattedDate}\n\nPlease make your contribution today to stay on track. ⚡`
+      return `🚨 Final Reminder: {{userName}}\n\nYour contribution for "{{cycleName}}" in {{chamaName}} is due TOMORROW!\n\n💰 Amount: {{amount}}\n📅 Due Date: {{dueDate}}\n\nPlease make your contribution today to stay on track. ⚡`
 
     case 'due_date':
-      return `📢 Today's the Day, ${userName}!\n\nYour contribution for "${cycleName}" in ${chamaName} is due TODAY.\n\n💰 Amount: ${amount}\n📅 Due Date: ${formattedDate}\n\nPlease make your contribution now to complete your payment. ✅`
+      return `📢 Today's the Day, {{userName}}!\n\nYour contribution for "{{cycleName}}" in {{chamaName}} is due TODAY.\n\n💰 Amount: {{amount}}\n📅 Due Date: {{dueDate}}\n\nPlease make your contribution now to complete your payment. ✅`
 
     default:
-      return `Reminder: Your contribution of ${amount} for "${cycleName}" in ${chamaName} is due on ${formattedDate}.`
+      return `Reminder: Your contribution of {{amount}} for "{{cycleName}}" in {{chamaName}} is due on {{dueDate}}.`
+  }
+}
+
+async function createReminderMessage(
+  type: ReminderType,
+  data: ContributionReminderData
+): Promise<string> {
+  try {
+    const { getReminderTemplate } = await import('@/lib/db/queries/reminder-templates')
+    const template = await getReminderTemplate(type)
+    
+    const templateText = template?.template_text || getDefaultTemplate(type)
+    return replaceTemplateVariables(templateText, data)
+  } catch (error) {
+    console.error('Error loading reminder template, using default:', error)
+    return replaceTemplateVariables(getDefaultTemplate(type), data)
   }
 }
 
@@ -49,7 +76,21 @@ export async function sendContributionReminder(
   type: ReminderType,
   data: ContributionReminderData
 ): Promise<boolean> {
-  const message = createReminderMessage(type, data)
+  const { areRemindersEnabled, isReminderTypeEnabled } = await import('@/lib/db/queries/reminder-templates')
+  
+  const remindersEnabled = await areRemindersEnabled()
+  if (!remindersEnabled) {
+    console.log('Reminders are disabled globally')
+    return false
+  }
+
+  const typeEnabled = await isReminderTypeEnabled(type)
+  if (!typeEnabled) {
+    console.log(`Reminder type ${type} is disabled`)
+    return false
+  }
+
+  const message = await createReminderMessage(type, data)
 
   if (process.env.NODE_ENV !== 'production') {
     console.log('\n========================================')

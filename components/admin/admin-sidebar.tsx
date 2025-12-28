@@ -10,6 +10,7 @@ import {
   Settings,
   FileText,
   Shield,
+  Bell,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -17,6 +18,7 @@ const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/chamas', label: 'Chamas', icon: Building2 },
+  { href: '/admin/reminders', label: 'Reminders', icon: Bell },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
   { href: '/admin/audit', label: 'Audit Logs', icon: FileText },
 ]

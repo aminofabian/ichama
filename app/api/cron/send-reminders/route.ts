@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getContributionsNeedingReminders } from '@/lib/db/queries/reminders'
 import { hasReminderBeenSent, recordReminderSent } from '@/lib/db/queries/reminders'
 import { sendContributionReminder, type ReminderType } from '@/lib/services/reminder-service'
+import { isReminderTypeEnabled } from '@/lib/db/queries/reminder-templates'
 import type { ApiResponse } from '@/lib/types/api'
 
 const CRON_SECRET = process.env.CRON_SECRET
@@ -34,6 +35,23 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const { areRemindersEnabled } = await import('@/lib/db/queries/reminder-templates')
+    const remindersEnabled = await areRemindersEnabled()
+    
+    if (!remindersEnabled) {
+      return NextResponse.json<ApiResponse>({
+        success: true,
+        data: {
+          processed: 0,
+          sent: 0,
+          skipped: 0,
+          errors: 0,
+          details: [],
+        },
+        message: 'Reminders are disabled globally',
+      })
+    }
+
     const contributions = await getContributionsNeedingReminders()
     const results = {
       processed: 0,
@@ -56,6 +74,18 @@ export async function GET(request: NextRequest) {
       }
 
       results.processed++
+
+      const typeEnabled = await isReminderTypeEnabled(reminderType)
+      if (!typeEnabled) {
+        results.skipped++
+        results.details.push({
+          contribution_id: contribution.contribution_id,
+          reminder_type: reminderType,
+          status: 'skipped',
+          reason: 'Reminder type disabled',
+        })
+        continue
+      }
 
       const alreadySent = await hasReminderBeenSent(
         contribution.contribution_id,
