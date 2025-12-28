@@ -16,6 +16,7 @@ export type NotificationType =
   | 'announcement'
   | 'dispute_update'
   | 'rating_changed'
+  | 'loan_requested'
   | 'system'
 
 export interface Notification {

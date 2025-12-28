@@ -4,6 +4,7 @@ import type { Loan, LoanGuarantor, LoanPayment } from '../../types/financial'
 
 export async function createLoan(data: {
   user_id: string
+  chama_id: string
   amount: number
   interest_rate?: number
   repayment_period_days?: number
@@ -15,12 +16,13 @@ export async function createLoan(data: {
 
   await db.execute({
     sql: `INSERT INTO loans (
-      id, user_id, amount, status, interest_rate, repayment_period_days,
+      id, user_id, chama_id, amount, status, interest_rate, repayment_period_days,
       due_date, amount_paid, notes, created_at, updated_at
-    ) VALUES (?, ?, ?, 'pending', ?, ?, ?, 0, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, 0, ?, ?, ?)`,
     args: [
       id,
       data.user_id,
+      data.chama_id,
       data.amount,
       data.interest_rate || 0,
       data.repayment_period_days || null,

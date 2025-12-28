@@ -132,6 +132,11 @@ function getNotificationContent(
         title: 'New Announcement',
         message: `There is a new announcement in your chama.`,
       }
+    case 'loan_requested':
+      return {
+        title: 'New Loan Request',
+        message: `A member has requested a loan in your chama.`,
+      }
     default:
       return {
         title: 'Notification',

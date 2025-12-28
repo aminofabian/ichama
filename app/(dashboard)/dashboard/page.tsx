@@ -406,6 +406,7 @@ export default function DashboardPage() {
         open={loanDrawerOpen}
         onOpenChange={setLoanDrawerOpen}
         savingsBalance={data.stats.savingsBalance}
+        chamas={data.chamas.map((c) => ({ id: c.id, name: c.name }))}
       />
     </div>
   )

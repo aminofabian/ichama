@@ -58,6 +58,7 @@ export type LoanGuarantorStatus = 'pending' | 'approved' | 'rejected' | 'cancell
 export interface Loan {
   id: string
   user_id: string
+  chama_id: string
   amount: number
   status: LoanStatus
   interest_rate: number

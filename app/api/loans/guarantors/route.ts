@@ -4,6 +4,7 @@ import { getUserChamas } from '@/lib/db/queries/chamas'
 import { getChamaMembers } from '@/lib/db/queries/chama-members'
 import { getUserById } from '@/lib/db/queries/users'
 import { getSavingsAccount } from '@/lib/db/queries/savings'
+import { getActiveGuaranteesByUser } from '@/lib/db/queries/loans'
 import type { ApiResponse } from '@/lib/types/api'
 
 const LOAN_LIMIT_THRESHOLD = 2000
@@ -40,6 +41,11 @@ export async function GET(request: NextRequest) {
 
         const memberUser = await getUserById(member.user_id)
         if (!memberUser) continue
+
+        const activeGuarantees = await getActiveGuaranteesByUser(member.user_id)
+        if (activeGuarantees.length > 0) {
+          continue
+        }
 
         const savingsAccount = await getSavingsAccount(member.user_id)
         const savingsBalance = savingsAccount?.balance || 0

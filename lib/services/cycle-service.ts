@@ -130,6 +130,44 @@ export async function startCycle(cycleId: string): Promise<void> {
     current_period: 1,
     contribution_amount: cycle.contribution_amount,
   })
+
+  // Send WhatsApp reminders for period 1
+  const { getChamaById } = await import('@/lib/db/queries/chamas')
+  const { getUserById } = await import('@/lib/db/queries/users')
+  const { sendContributionReminder } = await import('@/lib/services/reminder-service')
+  const { recordReminderSent } = await import('@/lib/db/queries/reminders')
+  const { getPeriodContributions } = await import('@/lib/db/queries/contributions')
+  
+  const chama = await getChamaById(cycle.chama_id)
+  if (chama) {
+    const period1Contributions = await getPeriodContributions(cycleId, 1)
+    const dueDate = new Date(startDate)
+    const daysUntilDue = Math.ceil((dueDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+    
+    for (const contribution of period1Contributions) {
+      const user = await getUserById(contribution.user_id)
+      if (user) {
+        try {
+          await sendContributionReminder(
+            user.phone_number,
+            'period_started',
+            {
+              userName: user.full_name,
+              chamaName: chama.name,
+              cycleName: cycle.name,
+              amountDue: contribution.amount_due,
+              dueDate: contribution.due_date,
+              daysUntilDue: Math.max(0, daysUntilDue),
+              periodNumber: 1,
+            }
+          )
+          await recordReminderSent(contribution.id, 'period_started')
+        } catch (error) {
+          console.error(`Failed to send WhatsApp reminder to ${user.phone_number}:`, error)
+        }
+      }
+    }
+  }
 }
 
 export async function advancePeriod(cycleId: string): Promise<void> {
@@ -269,5 +307,42 @@ export async function advancePeriod(cycleId: string): Promise<void> {
     contribution_amount: cycle.contribution_amount,
     payout_recipient: periodRecipient?.user_id,
   })
+
+  // Send WhatsApp reminders for new period
+  const { getChamaById } = await import('@/lib/db/queries/chamas')
+  const { getUserById } = await import('@/lib/db/queries/users')
+  const { sendContributionReminder } = await import('@/lib/services/reminder-service')
+  const { recordReminderSent } = await import('@/lib/db/queries/reminders')
+  const { getPeriodContributions } = await import('@/lib/db/queries/contributions')
+  
+  const chama = await getChamaById(cycle.chama_id)
+  if (chama) {
+    const periodContributions = await getPeriodContributions(cycleId, nextPeriod)
+    const daysUntilDue = Math.ceil((dueDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+    
+    for (const contribution of periodContributions) {
+      const user = await getUserById(contribution.user_id)
+      if (user) {
+        try {
+          await sendContributionReminder(
+            user.phone_number,
+            'period_started',
+            {
+              userName: user.full_name,
+              chamaName: chama.name,
+              cycleName: cycle.name,
+              amountDue: contribution.amount_due,
+              dueDate: contribution.due_date,
+              daysUntilDue: Math.max(0, daysUntilDue),
+              periodNumber: nextPeriod,
+            }
+          )
+          await recordReminderSent(contribution.id, 'period_started')
+        } catch (error) {
+          console.error(`Failed to send WhatsApp reminder to ${user.phone_number}:`, error)
+        }
+      }
+    }
+  }
 }
 

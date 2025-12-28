@@ -27,10 +27,16 @@ interface Guarantor {
   loanLimit: number
 }
 
+interface Chama {
+  id: string
+  name: string
+}
+
 interface LoanFormDrawerProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   savingsBalance: number
+  chamas?: Chama[]
 }
 
 const LOAN_LIMIT_THRESHOLD = 2000
@@ -47,8 +53,10 @@ export function LoanFormDrawer({
   open,
   onOpenChange,
   savingsBalance,
+  chamas = [],
 }: LoanFormDrawerProps) {
   const [loanAmount, setLoanAmount] = useState('')
+  const [selectedChamaId, setSelectedChamaId] = useState('')
   const [guarantors, setGuarantors] = useState<Guarantor[]>([])
   const [selectedGuarantors, setSelectedGuarantors] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(false)
@@ -112,6 +120,11 @@ export function LoanFormDrawer({
   }
 
   const handleSubmit = async () => {
+    if (!selectedChamaId) {
+      setError('Please select a chama')
+      return
+    }
+
     if (!loanAmount || requestedAmount <= 0) {
       setError('Please enter a valid loan amount')
       return
@@ -145,6 +158,7 @@ export function LoanFormDrawer({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           amount: requestedAmount,
+          chamaId: selectedChamaId,
           guarantorIds: Array.from(selectedGuarantors),
         }),
       })
@@ -167,6 +181,7 @@ export function LoanFormDrawer({
 
   const handleClose = () => {
     setLoanAmount('')
+    setSelectedChamaId('')
     setSelectedGuarantors(new Set())
     setError(null)
     onOpenChange(false)
@@ -252,6 +267,26 @@ export function LoanFormDrawer({
               </CardContent>
             </Card>
 
+            {chamas.length > 0 && (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-foreground">
+                  Select Chama
+                </label>
+                <select
+                  value={selectedChamaId}
+                  onChange={(e) => setSelectedChamaId(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="">Choose a chama...</option>
+                  {chamas.map((chama) => (
+                    <option key={chama.id} value={chama.id}>
+                      {chama.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Input
                 label="Loan Amount"
@@ -262,6 +297,7 @@ export function LoanFormDrawer({
                 leftIcon={<HandCoins className="h-4 w-4" />}
                 min="0"
                 step="100"
+                disabled={!selectedChamaId}
               />
               {requestedAmount > 0 && (
                 <div className="text-xs text-muted-foreground">
