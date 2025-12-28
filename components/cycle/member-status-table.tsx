@@ -327,7 +327,8 @@ export function MemberStatusTable({
         if (contribution) {
           const status = getContributionStatus(member, period)
           const statusText = status?.label || 'Pending'
-          const amountText = contribution.amount_paid > 0 ? formatCurrency(contribution.amount_paid) : ''
+          const amountAfterFee = Math.max(0, (contribution.amount_paid || 0) - (cycle.service_fee || 0))
+          const amountText = amountAfterFee > 0 ? formatCurrency(amountAfterFee) : ''
           row.push(amountText ? `${statusText} - ${amountText}` : statusText)
         } else {
           row.push('—')
@@ -481,12 +482,15 @@ export function MemberStatusTable({
             </thead>
             <tbody>
               {members.map((member) => {
-                const totalPaid = member.contributions.reduce(
-                  (sum, c) => sum + (c.amount_paid || 0),
+                const serviceFee = cycle.service_fee || 0
+                // Subtract service fee from each contribution's amount_paid
+                const totalPaidAfterFees = member.contributions.reduce(
+                  (sum, c) => sum + Math.max(0, (c.amount_paid || 0) - serviceFee),
                   0
                 )
-                const totalDue = member.contributions.reduce(
-                  (sum, c) => sum + c.amount_due,
+                // Also subtract service fee from amount_due for consistency
+                const totalDueAfterFees = member.contributions.reduce(
+                  (sum, c) => sum + Math.max(0, c.amount_due - serviceFee),
                   0
                 )
 
@@ -505,9 +509,9 @@ export function MemberStatusTable({
                             {member.user?.full_name || 'Unknown Member'}
                           </p>
                             <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
-                            {totalPaid > 0
-                              ? `${formatCurrency(totalPaid)} / ${formatCurrency(totalDue)}`
-                              : formatCurrency(totalDue)}
+                            {totalPaidAfterFees > 0
+                              ? `${formatCurrency(totalPaidAfterFees)} / ${formatCurrency(totalDueAfterFees)}`
+                              : formatCurrency(totalDueAfterFees)}
                           </p>
                         </div>
                       </div>
@@ -620,7 +624,7 @@ export function MemberStatusTable({
                               </div>
                               {contribution && contribution.amount_paid > 0 && (
                                   <span className={`text-[9px] sm:text-xs ${status.isConfirmed ? 'font-semibold text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
-                                  {formatCurrency(contribution.amount_paid)}
+                                  {formatCurrency(Math.max(0, contribution.amount_paid - (cycle.service_fee || 0)))}
                                 </span>
                               )}
                               {needsConfirmation && (

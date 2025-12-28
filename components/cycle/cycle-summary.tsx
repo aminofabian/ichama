@@ -15,9 +15,17 @@ interface CycleSummaryProps {
     paidCount: number
     overdueCount: number
   }
+  contributionCount?: number // Number of contributions to calculate total service fees
 }
 
-export function CycleSummary({ cycle, stats }: CycleSummaryProps) {
+export function CycleSummary({ cycle, stats, contributionCount = 0 }: CycleSummaryProps) {
+  // Calculate amounts after subtracting service fees
+  const serviceFee = cycle.service_fee || 0
+  const totalServiceFees = serviceFee * contributionCount
+  const totalPaidAfterFees = Math.max(0, stats.totalPaid - totalServiceFees)
+  const totalDueAfterFees = Math.max(0, stats.totalDue - totalServiceFees)
+  const contributionAfterFee = Math.max(0, cycle.contribution_amount - serviceFee)
+
   // Calculate days until next period
   const getDaysUntilNextPeriod = () => {
     if (cycle.status !== 'active' || cycle.current_period >= cycle.total_periods) {
@@ -60,9 +68,9 @@ export function CycleSummary({ cycle, stats }: CycleSummaryProps) {
           </div>
         </div>
         <p className="mb-1 text-[10px] md:text-xs font-medium text-muted-foreground truncate">Total Collected</p>
-        <p className="mb-1 text-lg md:text-xl font-bold text-foreground truncate">{formatCurrency(stats.totalPaid)}</p>
+        <p className="mb-1 text-lg md:text-xl font-bold text-foreground truncate">{formatCurrency(totalPaidAfterFees)}</p>
         <p className="text-[10px] md:text-xs text-muted-foreground truncate">
-                of {formatCurrency(stats.totalDue)} due
+                of {formatCurrency(totalDueAfterFees)} due
               </p>
             </div>
 
@@ -86,7 +94,7 @@ export function CycleSummary({ cycle, stats }: CycleSummaryProps) {
           </div>
         </div>
         <p className="mb-1 text-[10px] md:text-xs font-medium text-muted-foreground truncate">Contribution Amount</p>
-        <p className="mb-1 text-lg md:text-xl font-bold text-foreground truncate">{formatCurrency(cycle.contribution_amount)}</p>
+        <p className="mb-1 text-lg md:text-xl font-bold text-foreground truncate">{formatCurrency(contributionAfterFee)}</p>
         <p className="text-[10px] md:text-xs text-muted-foreground truncate">Per member per period</p>
       </div>
 

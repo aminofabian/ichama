@@ -222,7 +222,7 @@ export default function CycleDashboardPage() {
               </h2>
               <div className="h-px flex-1 bg-gradient-to-r from-muted to-transparent" />
             </div>
-            <CycleSummary cycle={cycle} stats={stats} />
+            <CycleSummary cycle={cycle} stats={stats} contributionCount={contributions.length} />
           </div>
 
           {/* Main Content Layout */}
