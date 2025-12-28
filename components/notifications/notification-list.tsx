@@ -12,6 +12,7 @@ import {
   Calendar,
   AlertCircle,
   Info,
+  DollarSign,
 } from 'lucide-react'
 import { EmptyState } from '@/components/shared/empty-state'
 import type { Notification } from '@/lib/types/notification'
@@ -40,6 +41,7 @@ const typeIcons = {
   announcement: Info,
   dispute_update: AlertCircle,
   rating_changed: TrendingUp,
+  loan_requested: DollarSign,
   system: Info,
 }
 

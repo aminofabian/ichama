@@ -167,7 +167,7 @@ export async function updateLoanStatus(
 ): Promise<Loan> {
   const now = new Date().toISOString()
   let sql = `UPDATE loans SET status = ?, updated_at = ?`
-  const args: unknown[] = [status, now]
+  const args: (string | number | null)[] = [status, now]
 
   if (status === 'approved' && approvedBy) {
     sql += `, approved_at = ?, approved_by = ?`
@@ -183,7 +183,7 @@ export async function updateLoanStatus(
   sql += ` WHERE id = ?`
   args.push(id)
 
-  await db.execute({ sql, args })
+  await (db.execute as any)({ sql, args })
 
   const loan = await getLoanById(id)
   if (!loan) {
