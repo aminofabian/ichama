@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
       upcomingPayoutResult,
       pendingContributionsResult,
       unconfirmedContributionsResult,
+      adminTotalSavingsResult,
     ] = await Promise.all([
       getUserChamas(user.id),
       db.execute({
@@ -108,10 +109,50 @@ export async function GET(request: NextRequest) {
               ORDER BY c.paid_at DESC`,
         args: [user.id],
       }),
+      // Get total savings collected across all chamas where user is admin (member_role = 'admin')
+      db.execute({
+        sql: `SELECT 
+                ch.id as chama_id,
+                ch.chama_type,
+                c.amount_paid,
+                cy.payout_amount,
+                cy.service_fee,
+                COALESCE(cyclm.custom_savings_amount, cy.savings_amount) as member_savings_amount
+              FROM contributions c
+              INNER JOIN cycles cy ON c.cycle_id = cy.id
+              INNER JOIN chamas ch ON cy.chama_id = ch.id
+              INNER JOIN chama_members chm ON ch.id = chm.chama_id AND chm.user_id = ? AND chm.role = 'admin'
+              LEFT JOIN cycle_members cyclm ON c.cycle_member_id = cyclm.id
+              WHERE c.status = 'confirmed'
+                AND (ch.chama_type = 'savings' OR ch.chama_type = 'hybrid')`,
+        args: [user.id],
+      }),
     ])
 
     const totalReceivedValue = totalContributionsResult.rows[0]?.total
     const totalReceived = totalReceivedValue != null ? Number(totalReceivedValue) : 0
+
+    // Calculate total savings collected across all chamas where user is admin
+    let adminTotalSavingsCollected = 0
+    // User is admin if they have admin role in any chama
+    const isAdmin = chamas.some((c: any) => c.member_role === 'admin')
+    
+    adminTotalSavingsResult.rows.forEach((row: any) => {
+      const chamaType = row.chama_type
+      const amountPaid = Number(row.amount_paid) || 0
+      const payoutAmount = Number(row.payout_amount) || 0
+      const serviceFee = Number(row.service_fee) || 0
+      const memberSavingsAmount = Number(row.member_savings_amount) || 0
+      
+      const amountAfterFee = Math.max(0, amountPaid - serviceFee)
+      
+      if (chamaType === 'savings') {
+        adminTotalSavingsCollected += amountAfterFee
+      } else if (chamaType === 'hybrid') {
+        const savingsFromPayment = Math.max(0, amountAfterFee - payoutAmount)
+        adminTotalSavingsCollected += Math.min(memberSavingsAmount, savingsFromPayment)
+      }
+    })
 
     // Calculate savings and merry-go-round contributions from CONFIRMED contributions
     // This matches processContributionConfirmation in contribution-service.ts
@@ -248,6 +289,9 @@ export async function GET(request: NextRequest) {
           // Track which chama types user has for conditional UI display
           hasSavingsChama: chamas.some((c: any) => c.chama_type === 'savings' || c.chama_type === 'hybrid'),
           hasMerryGoRoundChama: chamas.some((c: any) => c.chama_type === 'merry_go_round' || c.chama_type === 'hybrid'),
+          // Admin-only: total savings collected across all chamas user administers
+          isAdmin,
+          adminTotalSavingsCollected: isAdmin ? adminTotalSavingsCollected : null,
           upcomingPayout: upcomingPayout
             ? {
                 amount: upcomingPayout.amount,

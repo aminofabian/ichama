@@ -222,7 +222,7 @@ export default function CycleDashboardPage() {
               </h2>
               <div className="h-px flex-1 bg-gradient-to-r from-muted to-transparent" />
             </div>
-            <CycleSummary cycle={cycle} stats={stats} contributionCount={contributions.length} />
+            <CycleSummary cycle={cycle} stats={stats} contributionCount={contributions.filter(c => (c.status === 'paid' || c.status === 'confirmed') && c.amount_paid > 0).length} isAdmin={isAdmin} />
           </div>
 
           {/* Main Content Layout */}

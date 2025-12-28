@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Bell, Plus, Eye, EyeOff, PiggyBank, Calendar, ArrowRight, TrendingUp, Users, DollarSign, HandCoins } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import { ChamaList } from '@/components/dashboard/chama-list'
 import { ContributionPaymentButtons } from '@/components/dashboard/contribution-payment-buttons'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
@@ -71,6 +72,8 @@ interface DashboardData {
     merryGoRoundContributions: number
     hasSavingsChama: boolean
     hasMerryGoRoundChama: boolean
+    isAdmin: boolean
+    adminTotalSavingsCollected: number | null
     upcomingPayout: {
       amount: number
       scheduledDate: string
@@ -305,6 +308,27 @@ export default function DashboardPage() {
                   {data.stats.upcomingPayout
                     ? formatCurrency(data.stats.upcomingPayout.amount)
                     : formatCurrency(0)}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Total Savings Collected Card - Admin only */}
+          {data.stats.isAdmin && data.stats.adminTotalSavingsCollected !== null && (
+            <div className="group relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-br from-emerald-50 to-green-100/50 p-1.5 md:p-2.5 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg dark:from-emerald-950/30 dark:to-green-900/20">
+              <div className="absolute -right-1 -top-1 md:-right-2 md:-top-2 h-6 w-6 md:h-10 md:w-10 rounded-full bg-emerald-400/20 blur-xl" />
+              <div className="relative">
+                <div className="mb-1 md:mb-2 flex items-center justify-between">
+                  <div className="flex h-4 w-4 md:h-6 md:w-6 items-center justify-center rounded-md md:rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 shadow-md">
+                    <PiggyBank className="h-2.5 w-2.5 md:h-4 md:w-4 text-white" />
+                  </div>
+                  <span className="text-[7px] md:text-[8px] px-1 py-0 rounded border border-emerald-300 text-emerald-700 dark:border-emerald-700 dark:text-emerald-400 font-medium">
+                    Admin
+                  </span>
+                </div>
+                <p className="mb-0.5 md:mb-1 text-[9px] md:text-[10px] font-medium text-muted-foreground">Total Savings Collected</p>
+                <p className="text-sm md:text-lg font-bold text-foreground">
+                  {formatCurrency(data.stats.adminTotalSavingsCollected)}
                 </p>
               </div>
             </div>

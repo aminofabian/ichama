@@ -16,9 +16,10 @@ interface CycleSummaryProps {
     overdueCount: number
   }
   contributionCount?: number // Number of contributions to calculate total service fees
+  isAdmin?: boolean
 }
 
-export function CycleSummary({ cycle, stats, contributionCount = 0 }: CycleSummaryProps) {
+export function CycleSummary({ cycle, stats, contributionCount = 0, isAdmin = false }: CycleSummaryProps) {
   // Calculate amounts after subtracting service fees
   const serviceFee = cycle.service_fee || 0
   const totalServiceFees = serviceFee * contributionCount
@@ -69,9 +70,14 @@ export function CycleSummary({ cycle, stats, contributionCount = 0 }: CycleSumma
         </div>
         <p className="mb-1 text-[10px] md:text-xs font-medium text-muted-foreground truncate">Total Collected</p>
         <p className="mb-1 text-lg md:text-xl font-bold text-foreground truncate">{formatCurrency(totalPaidAfterFees)}</p>
-        <p className="text-[10px] md:text-xs text-muted-foreground truncate">
-                of {formatCurrency(totalDueAfterFees)} due
-              </p>
+        <div className="text-[10px] md:text-xs text-muted-foreground space-y-0.5">
+          <p className="truncate">of {formatCurrency(totalDueAfterFees)} due</p>
+          {isAdmin && totalServiceFees > 0 && (
+            <p className="truncate text-emerald-600 dark:text-emerald-400">
+              + {formatCurrency(totalServiceFees)} service fee
+            </p>
+          )}
+        </div>
             </div>
 
       <div className="group relative overflow-hidden rounded-xl md:rounded-2xl border border-border/50 bg-gradient-to-br from-blue-50/50 to-blue-50/30 p-3 md:p-4 shadow-sm transition-all duration-200 hover:border-blue-200 hover:shadow-md dark:from-blue-950/20 dark:to-blue-950/10">

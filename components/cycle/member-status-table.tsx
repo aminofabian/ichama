@@ -697,6 +697,38 @@ export function MemberStatusTable({
                 )
               })}
             </tbody>
+            {/* Service Fee Summary Row - Admin only */}
+            {isAdmin && cycle.service_fee > 0 && (
+              <tfoot>
+                <tr className="border-t-2 bg-muted/30">
+                  <td className="p-2 sm:p-3 sticky left-0 bg-muted/30 z-10 font-semibold text-xs sm:text-sm">
+                    Service Fee Collected
+                  </td>
+                  <td className="text-center p-2 sm:p-3"></td>
+                  {((chamaType === 'savings' || chamaType === 'hybrid') || cycle.savings_amount > 0 || members.some(m => m.custom_savings_amount !== null)) && (
+                    <td className="text-center p-2 sm:p-3"></td>
+                  )}
+                  {periods.map((period) => {
+                    // Count confirmed/paid contributions for this period
+                    const paidContributionsCount = members.filter(member => {
+                      const contribution = member.contributions.find(c => c.period_number === period)
+                      return contribution && (contribution.status === 'confirmed' || contribution.status === 'paid') && contribution.amount_paid > 0
+                    }).length
+                    const serviceFeeCollected = paidContributionsCount * (cycle.service_fee || 0)
+                    
+                    return (
+                      <td key={period} className="text-center p-1.5 sm:p-2 text-[10px] sm:text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                        {serviceFeeCollected > 0 ? formatCurrency(serviceFeeCollected) : '—'}
+                      </td>
+                    )
+                  })}
+                  {(chamaType === 'merry_go_round' || chamaType === 'hybrid') && (
+                    <td className="text-center p-2 sm:p-3"></td>
+                  )}
+                  {isAdmin && <td className="text-center p-2 sm:p-3"></td>}
+                </tr>
+              </tfoot>
+            )}
           </table>
           </div>
         </div>
