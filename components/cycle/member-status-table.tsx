@@ -307,7 +307,7 @@ export function MemberStatusTable({
       headers.push('Payout')
     }
     headers.push('Total Paid')
-    headers.push('Total Due')
+    headers.push('Balance Owed')
 
     // Build data rows
     const dataRows = members.map(member => {
@@ -318,8 +318,13 @@ export function MemberStatusTable({
         (sum, c) => sum + Math.max(0, (c.amount_paid || 0) - serviceFee),
         0
       )
-      const totalDue = member.contributions.reduce(
-        (sum, c) => sum + Math.max(0, (c.amount_due || 0) - serviceFee),
+      // Balance owed = what's due minus what's been paid
+      const balanceOwed = member.contributions.reduce(
+        (sum, c) => {
+          const dueAfterFee = Math.max(0, (c.amount_due || 0) - serviceFee)
+          const paidAfterFee = Math.max(0, (c.amount_paid || 0) - serviceFee)
+          return sum + Math.max(0, dueAfterFee - paidAfterFee)
+        },
         0
       )
 
@@ -348,7 +353,7 @@ export function MemberStatusTable({
       }
 
       row.push(totalPaid)
-      row.push(totalDue)
+      row.push(balanceOwed)
 
       return row
     })
@@ -358,7 +363,6 @@ export function MemberStatusTable({
     const totalsRow: (string | number)[] = ['TOTAL', '', '']
     
     let grandTotalPaid = 0
-    let grandTotalDue = 0
     
     periods.forEach(period => {
       const periodTotal = members.reduce((sum, member) => {
@@ -379,12 +383,17 @@ export function MemberStatusTable({
       totalsRow.push(totalPayouts)
     }
 
-    grandTotalDue = members.reduce((sum, member) => {
-      return sum + member.contributions.reduce((s, c) => s + Math.max(0, (c.amount_due || 0) - serviceFee), 0)
+    // Grand total balance owed = sum of all (due - paid) for all members
+    const grandTotalOwed = members.reduce((sum, member) => {
+      return sum + member.contributions.reduce((s, c) => {
+        const dueAfterFee = Math.max(0, (c.amount_due || 0) - serviceFee)
+        const paidAfterFee = Math.max(0, (c.amount_paid || 0) - serviceFee)
+        return s + Math.max(0, dueAfterFee - paidAfterFee)
+      }, 0)
     }, 0)
 
     totalsRow.push(grandTotalPaid)
-    totalsRow.push(grandTotalDue)
+    totalsRow.push(grandTotalOwed)
 
     // Create workbook and worksheet
     const wb = XLSX.utils.book_new()
