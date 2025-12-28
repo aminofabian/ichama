@@ -602,12 +602,36 @@ export function MemberStatusTable({
                       const isConfirming = contribution && confirmingIds.has(contribution.id)
                       const needsConfirmation = isAdmin && contribution && contribution.status === 'paid' && contribution.amount_paid >= contribution.amount_due
 
+                      // Format due date for tooltip
+                      const dueDate = contribution?.due_date 
+                        ? new Date(contribution.due_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                        : null
+                      const tooltipText = dueDate 
+                        ? `Due: ${dueDate}${isAdmin && !needsConfirmation ? ' • Click to record payment' : ''}`
+                        : (isAdmin && !needsConfirmation ? 'Click to record payment' : status?.label)
+
+                      // Calculate days until due for color coding (only for unpaid contributions)
+                      let urgencyClass = ''
+                      if (contribution?.due_date && contribution.status !== 'confirmed' && contribution.status !== 'paid') {
+                        const now = new Date()
+                        now.setHours(0, 0, 0, 0)
+                        const due = new Date(contribution.due_date)
+                        due.setHours(0, 0, 0, 0)
+                        const daysUntilDue = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+                        
+                        if (daysUntilDue < 1) {
+                          urgencyClass = 'bg-orange-100 dark:bg-orange-900/30'
+                        } else if (daysUntilDue < 3) {
+                          urgencyClass = 'bg-yellow-100 dark:bg-yellow-900/30'
+                        }
+                      }
+
                       return (
                           <td 
                             key={period} 
-                            className={`text-center p-1 sm:p-2 relative ${isAdmin && !needsConfirmation ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
+                            className={`text-center p-1 sm:p-2 relative ${urgencyClass} ${isAdmin && !needsConfirmation ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
                             onClick={isAdmin && !needsConfirmation ? () => handleOpenPaymentModal(member, period) : undefined}
-                            title={isAdmin && !needsConfirmation ? 'Click to record payment' : status?.label}
+                            title={tooltipText}
                           >
                           {status ? (
                               <div className="flex flex-col items-center gap-0.5 sm:gap-1 relative">
