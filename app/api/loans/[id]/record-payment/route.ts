@@ -39,16 +39,31 @@ export async function POST(
       )
     }
 
-    if (loan.status !== 'active' && loan.status !== 'approved') {
+    // Calculate total loan amount with interest
+    const interestRate = loan.interest_rate || 0
+    const principalAmount = loan.amount
+    const interestAmount = (principalAmount * interestRate) / 100
+    const totalLoanAmount = principalAmount + interestAmount
+    const currentPaid = loan.amount_paid || 0
+    
+    // Check if loan is actually fully paid (including interest)
+    const isFullyPaid = currentPaid >= totalLoanAmount
+    
+    // Allow payments if:
+    // 1. Loan is active or approved, OR
+    // 2. Loan is marked as paid but actually not fully paid (status correction needed)
+    if (loan.status !== 'active' && loan.status !== 'approved' && isFullyPaid) {
       return NextResponse.json<ApiResponse>(
         { success: false, error: 'Can only record payments for active or approved loans' },
         { status: 400 }
       )
     }
-
-    const currentPaid = loan.amount_paid || 0
-    const interestRate = loan.interest_rate || 0
-    const principalAmount = loan.amount
+    
+    // If loan is marked as paid but not actually fully paid, correct the status
+    if (loan.status === 'paid' && !isFullyPaid) {
+      const { updateLoanStatus } = await import('@/lib/db/queries/loans')
+      await updateLoanStatus(loan.id, 'active')
+    }
     
     // Calculate complete breakdown including penalty interest if overdue
     const breakdown = calculateLoanBreakdown(
@@ -109,4 +124,3 @@ export async function POST(
     )
   }
 }
-
