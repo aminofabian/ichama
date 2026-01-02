@@ -146,40 +146,52 @@ export function UserLoanList({ userLoans, onUpdate }: UserLoanListProps) {
     }
   }
 
+  // Prepare loan data with breakdowns
+  const loansWithBreakdown = userLoans.map((loan) => {
+    const dueDateStatus = calculateDueDateStatus(loan.dueDate)
+    const showDueDate = loan.status === 'active' || loan.status === 'approved'
+    const isOverdue = dueDateStatus.isOverdue && (loan.status === 'active' || loan.status === 'approved')
+    const breakdown = calculateLoanBreakdown(
+      loan.loanAmount,
+      loan.interestRate,
+      loan.amountPaid,
+      loan.dueDate
+    )
+    const pendingGuarantors = loan.guarantors.filter((g) => g.status === 'pending')
+    const approvedGuarantors = loan.guarantors.filter((g) => g.status === 'approved')
+    const remainingAmount = breakdown.totalOutstanding
+    const canRecordPayment = (loan.status === 'active' || loan.status === 'approved') && remainingAmount > 0
+
+    return {
+      ...loan,
+      dueDateStatus,
+      showDueDate,
+      isOverdue,
+      breakdown,
+      pendingGuarantors,
+      approvedGuarantors,
+      remainingAmount,
+      canRecordPayment,
+    }
+  })
+
   return (
-    <div className="space-y-2">
-      {userLoans.map((loan) => {
-        // Calculate due date status
-        const dueDateStatus = calculateDueDateStatus(loan.dueDate)
-        const showDueDate = loan.status === 'active' || loan.status === 'approved'
-        const isOverdue = dueDateStatus.isOverdue && showDueDate
-
-        // Calculate complete loan breakdown
-        const breakdown = calculateLoanBreakdown(
-          loan.loanAmount,
-          loan.interestRate,
-          loan.amountPaid,
-          loan.dueDate
-        )
-
-        const pendingGuarantors = loan.guarantors.filter((g) => g.status === 'pending')
-        const approvedGuarantors = loan.guarantors.filter((g) => g.status === 'approved')
-        const remainingAmount = breakdown.totalOutstanding
-        const canRecordPayment = (loan.status === 'active' || loan.status === 'approved') && remainingAmount > 0
-
-        return (
+    <div className="space-y-4">
+      {/* Mobile View - Cards */}
+      <div className="block md:hidden space-y-2">
+        {loansWithBreakdown.map((loan) => (
           <div
             key={loan.loanId}
             className={`rounded-lg border p-3 space-y-3 ${
-              isOverdue
+              loan.isOverdue
                 ? 'border-red-300 bg-red-50/50 dark:border-red-900 dark:bg-red-950/20'
-                : dueDateStatus.urgency === 'soon'
+                : loan.dueDateStatus.urgency === 'soon'
                 ? 'border-amber-300 bg-amber-50/50 dark:border-amber-900 dark:bg-amber-950/20'
                 : 'border-border bg-card'
             }`}
           >
             {/* Overdue Banner */}
-            {isOverdue && (
+            {loan.isOverdue && (
               <div className="flex items-center gap-2 rounded-lg bg-red-100 dark:bg-red-900/30 px-3 py-2 border border-red-200 dark:border-red-800">
                 <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 flex-shrink-0" />
                 <div className="flex-1">
@@ -187,18 +199,18 @@ export function UserLoanList({ userLoans, onUpdate }: UserLoanListProps) {
                     ⚠️ Loan Overdue
                   </p>
                   <p className="text-xs text-red-700 dark:text-red-400">
-                    {dueDateStatus.message} • Please make a payment to avoid penalties
+                    {loan.dueDateStatus.message} • Please make a payment to avoid penalties
                   </p>
                 </div>
               </div>
             )}
 
             {/* Due Soon Warning */}
-            {!isOverdue && dueDateStatus.urgency === 'soon' && showDueDate && (
+            {!loan.isOverdue && loan.dueDateStatus.urgency === 'soon' && loan.showDueDate && (
               <div className="flex items-center gap-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 px-3 py-2 border border-amber-200 dark:border-amber-800">
                 <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
                 <p className="text-xs font-medium text-amber-800 dark:text-amber-300">
-                  {dueDateStatus.message}
+                  {loan.dueDateStatus.message}
                 </p>
               </div>
             )}
@@ -217,7 +229,7 @@ export function UserLoanList({ userLoans, onUpdate }: UserLoanListProps) {
                     <div className="flex items-center gap-2 flex-wrap">
                       <div className="flex items-center gap-1.5">
                         <p className="text-sm font-semibold text-foreground">
-                          {formatCurrency(breakdown.principal)}
+                          {formatCurrency(loan.breakdown.principal)}
                         </p>
                         <Badge className={`text-xs flex items-center gap-1 ${
                           loan.interestRate > 0 
@@ -230,7 +242,7 @@ export function UserLoanList({ userLoans, onUpdate }: UserLoanListProps) {
                       </div>
                       {loan.interestRate > 0 && (
                         <span className="text-xs text-muted-foreground">
-                          + {formatCurrency(breakdown.originalInterest)} interest
+                          + {formatCurrency(loan.breakdown.originalInterest)} interest
                           {loan.status === 'pending' && (
                             <span className="text-xs text-amber-600 dark:text-amber-400 ml-1">
                               (estimated)
@@ -238,88 +250,39 @@ export function UserLoanList({ userLoans, onUpdate }: UserLoanListProps) {
                           )}
                         </span>
                       )}
-                      {breakdown.penaltyInterest > 0 && (
+                      {loan.breakdown.penaltyInterest > 0 && (
                         <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 text-xs flex items-center gap-1">
                           <AlertCircle className="h-3 w-3" />
-                          +{formatCurrency(breakdown.penaltyInterest)} penalty ({breakdown.penaltyRate.toFixed(1)}%)
+                          +{formatCurrency(loan.breakdown.penaltyInterest)} penalty ({loan.breakdown.penaltyRate.toFixed(1)}%)
                         </Badge>
                       )}
                     </div>
 
                     {/* Total Amount Display */}
                     <div className="flex items-center gap-2 flex-wrap">
-                      {breakdown.penaltyInterest > 0 ? (
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">Total Due:</span>
-                          <span className="text-sm font-bold text-red-600 dark:text-red-400">
-                            {formatCurrency(breakdown.totalOutstanding)}
+                      <span className="text-xs text-muted-foreground">Total:</span>
+                      <span className={`text-sm font-semibold ${
+                        loan.breakdown.penaltyInterest > 0 
+                          ? 'text-red-600 dark:text-red-400' 
+                          : 'text-foreground'
+                      }`}>
+                        {formatCurrency(loan.breakdown.penaltyInterest > 0 ? loan.breakdown.totalWithPenalty : loan.breakdown.originalTotal)}
+                      </span>
+                      {loan.amountPaid > 0 && (
+                        <>
+                          <span className="text-xs text-muted-foreground">• Paid:</span>
+                          <span className="text-xs text-green-600 dark:text-green-400">
+                            {formatCurrency(loan.amountPaid)}
                           </span>
-                          <span className="text-xs text-muted-foreground line-through">
-                            {formatCurrency(breakdown.outstandingAmount)}
+                          <span className="text-xs text-muted-foreground">• Remaining:</span>
+                          <span className="text-xs font-medium text-foreground">
+                            {formatCurrency(loan.breakdown.totalOutstanding)}
                           </span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">Total:</span>
-                          <span className="text-sm font-semibold text-foreground">
-                            {formatCurrency(breakdown.originalTotal)}
-                          </span>
-                          {loan.amountPaid > 0 && (
-                            <>
-                              <span className="text-xs text-muted-foreground">• Paid:</span>
-                              <span className="text-xs text-green-600 dark:text-green-400">
-                                {formatCurrency(loan.amountPaid)}
-                              </span>
-                              <span className="text-xs text-muted-foreground">• Remaining:</span>
-                              <span className="text-xs font-medium text-foreground">
-                                {formatCurrency(breakdown.outstandingAmount)}
-                              </span>
-                            </>
-                          )}
-                        </div>
-                      )}
-                      {showDueDate && loan.dueDate && (
-                        <span
-                          className={`text-xs flex items-center gap-1 ${
-                            isOverdue
-                              ? 'text-red-600 dark:text-red-400 font-semibold'
-                              : dueDateStatus.urgency === 'soon'
-                              ? 'text-amber-600 dark:text-amber-400 font-medium'
-                              : 'text-muted-foreground'
-                          }`}
-                        >
-                          <Calendar className="h-3 w-3" />
-                          {!isOverdue ? (
-                            <>
-                              {dueDateStatus.daysUntil === 0
-                                ? 'Due today'
-                                : `${dueDateStatus.daysUntil} day${dueDateStatus.daysUntil === 1 ? '' : 's'} remaining`}
-                            </>
-                          ) : (
-                            dueDateStatus.message
-                          )}
-                        </span>
+                        </>
                       )}
                     </div>
                   </div>
                 </div>
-              </div>
-              <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
-                {loan.status === 'pending' && pendingGuarantors.length > 0 && (
-                  <span className="text-yellow-600 dark:text-yellow-400">
-                    {pendingGuarantors.length} pending
-                  </span>
-                )}
-                {loan.status === 'pending' && approvedGuarantors.length > 0 && (
-                  <span className="text-green-600 dark:text-green-400">
-                    {approvedGuarantors.length} approved
-                  </span>
-                )}
-                {loan.status === 'active' && remainingAmount > 0 && (
-                  <span className="text-muted-foreground">
-                    {formatCurrency(remainingAmount)} left
-                  </span>
-                )}
               </div>
             </div>
 
@@ -358,7 +321,7 @@ export function UserLoanList({ userLoans, onUpdate }: UserLoanListProps) {
               </div>
             )}
 
-            {canRecordPayment && (
+            {loan.canRecordPayment && (
               <div className="pt-2 border-t">
                 <Button
                   size="sm"
@@ -375,8 +338,196 @@ export function UserLoanList({ userLoans, onUpdate }: UserLoanListProps) {
               </div>
             )}
           </div>
-        )
-      })}
+        ))}
+      </div>
+
+      {/* Desktop View - Table */}
+      <div className="hidden md:block overflow-x-auto">
+        <div className="border border-border rounded-lg bg-card shadow-sm">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-muted/50 border-b-2 border-border">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-foreground/70 uppercase tracking-wide border-r border-border/50">
+                  Chama
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-semibold text-foreground/70 uppercase tracking-wide border-r border-border/50">
+                  Principal
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-semibold text-foreground/70 uppercase tracking-wide border-r border-border/50">
+                  Interest
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-semibold text-foreground/70 uppercase tracking-wide border-r border-border/50">
+                  Total
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-semibold text-foreground/70 uppercase tracking-wide border-r border-border/50">
+                  Paid
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-semibold text-foreground/70 uppercase tracking-wide border-r border-border/50">
+                  Remaining
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-foreground/70 uppercase tracking-wide border-r border-border/50">
+                  Due Date
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-foreground/70 uppercase tracking-wide border-r border-border/50">
+                  Actions
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-foreground/70 uppercase tracking-wide">
+                  Status
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {loansWithBreakdown.map((loan, index) => (
+                <tr
+                  key={loan.loanId}
+                  className={`border-b border-border/50 transition-colors ${
+                    loan.isOverdue
+                      ? 'bg-red-50/30 dark:bg-red-950/10'
+                      : loan.dueDateStatus.urgency === 'soon' && loan.showDueDate
+                      ? 'bg-amber-50/30 dark:bg-amber-950/10'
+                      : index % 2 === 0
+                      ? 'bg-card'
+                      : 'bg-muted/20'
+                  } hover:bg-muted/40`}
+                >
+                  <td className="px-4 py-3 border-r border-border/50">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium text-sm text-foreground">{loan.chamaName}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-right border-r border-border/50">
+                    <div className="flex flex-col items-end gap-1">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <span className="text-xs font-medium text-foreground">
+                          {formatCurrency(loan.breakdown.principal)}
+                        </span>
+                        {loan.interestRate > 0 && (
+                          <Badge className={`text-[10px] flex items-center gap-0.5 px-1.5 py-0.5 ${
+                            loan.interestRate > 0 
+                              ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' 
+                              : 'bg-muted text-muted-foreground'
+                          }`}>
+                            <Percent className="h-2.5 w-2.5" />
+                            {loan.interestRate}%
+                          </Badge>
+                        )}
+                      </div>
+                      {loan.breakdown.penaltyInterest > 0 && (
+                        <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 text-[10px] flex items-center gap-0.5 px-1.5 py-0.5">
+                          <AlertCircle className="h-2.5 w-2.5" />
+                          +{formatCurrency(loan.breakdown.penaltyInterest)}
+                        </Badge>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-right border-r border-border/50">
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-xs font-medium text-foreground">
+                        {formatCurrency(loan.breakdown.originalInterest)}
+                      </span>
+                      {loan.breakdown.penaltyInterest > 0 && (
+                        <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 text-[10px] px-1.5 py-0.5">
+                          +{formatCurrency(loan.breakdown.penaltyInterest)}
+                        </Badge>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-right border-r border-border/50">
+                    <span className={`text-xs font-semibold ${
+                      loan.breakdown.penaltyInterest > 0 
+                        ? 'text-red-600 dark:text-red-400' 
+                        : 'text-foreground'
+                    }`}>
+                      {formatCurrency(loan.breakdown.penaltyInterest > 0 ? loan.breakdown.totalWithPenalty : loan.breakdown.originalTotal)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right border-r border-border/50">
+                    <span className="text-xs font-medium text-green-600 dark:text-green-400">
+                      {formatCurrency(loan.amountPaid)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right border-r border-border/50">
+                    <span className={`text-xs font-medium ${
+                      loan.breakdown.totalOutstanding > 0
+                        ? 'text-foreground'
+                        : 'text-muted-foreground'
+                    }`}>
+                      {formatCurrency(loan.breakdown.totalOutstanding)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 border-r border-border/50">
+                    {loan.dueDate ? (
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className={`h-3.5 w-3.5 ${
+                          loan.isOverdue
+                            ? 'text-red-600 dark:text-red-400'
+                            : loan.dueDateStatus.urgency === 'soon'
+                            ? 'text-amber-600 dark:text-amber-400'
+                            : 'text-muted-foreground'
+                        }`} />
+                        <span className={`text-xs ${
+                          loan.isOverdue
+                            ? 'text-red-600 dark:text-red-400 font-semibold'
+                            : loan.dueDateStatus.urgency === 'soon'
+                            ? 'text-amber-600 dark:text-amber-400 font-medium'
+                            : 'text-muted-foreground'
+                        }`}>
+                          {!loan.isOverdue ? (
+                            loan.dueDateStatus.daysUntil === 0
+                              ? 'Due today'
+                              : `${loan.dueDateStatus.daysUntil} day${loan.dueDateStatus.daysUntil === 1 ? '' : 's'}`
+                          ) : (
+                            loan.dueDateStatus.message
+                          )}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-center border-r border-border/50">
+                    <div className="flex items-center justify-center gap-2">
+                      {loan.canRecordPayment ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedLoanId(loan.loanId)
+                            setPaymentModalOpen(true)
+                          }}
+                          className="h-7 text-xs font-medium px-2"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Pay
+                        </Button>
+                      ) : loan.pendingPayments && loan.pendingPayments.length > 0 ? (
+                        <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 text-xs px-2 py-0.5">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {loan.pendingPayments.length}
+                        </Badge>
+                      ) : loan.status === 'paid' ? (
+                        <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 text-xs px-2 py-0.5">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Done
+                        </Badge>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      {getStatusIcon(loan.status)}
+                      {getStatusBadge(loan.status)}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       {/* Payment Modal */}
       <Modal open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
