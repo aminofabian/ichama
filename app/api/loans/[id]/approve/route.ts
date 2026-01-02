@@ -15,7 +15,7 @@ export async function POST(
     const user = await requireAuth(request)
     const { id: loanId } = await params
     const body = await request.json()
-    const { action } = body
+    const { action, interestRate } = body
 
     if (action !== 'approve' && action !== 'reject') {
       return NextResponse.json<ApiResponse>(
@@ -64,24 +64,36 @@ export async function POST(
         const newDueDate = new Date()
         newDueDate.setDate(newDueDate.getDate() + 30)
         dueDate = newDueDate.toISOString()
-        
-        // Update loan with due date
-        await db.execute({
-          sql: `UPDATE loans SET due_date = ?, updated_at = ? WHERE id = ?`,
-          args: [dueDate, new Date().toISOString(), loanId],
-        })
       }
+
+      // Update loan with interest rate and due date
+      const interestRateValue = interestRate !== undefined 
+        ? Math.max(0, Math.min(100, parseFloat(interestRate) || 0))
+        : loan.interest_rate || 0
+
+      await db.execute({
+        sql: `UPDATE loans SET interest_rate = ?, due_date = ?, updated_at = ? WHERE id = ?`,
+        args: [interestRateValue, dueDate, new Date().toISOString(), loanId],
+      })
 
       // When admin approves, set loan to active (disbursed)
       await updateLoanStatus(loanId, 'active', user.id)
 
+      const interestMessage = interestRateValue > 0 
+        ? ` with ${interestRateValue}% interest rate`
+        : ''
+      const totalWithInterest = interestRateValue > 0
+        ? loan.amount + (loan.amount * interestRateValue / 100)
+        : loan.amount
+
       await notifyUser(loan.user_id, 'loan_requested', {
         title: 'Loan Approved',
-        message: `Your loan request of ${formatCurrency(loan.amount)} has been approved by the admin`,
+        message: `Your loan request of ${formatCurrency(loan.amount)}${interestMessage} has been approved. Total to repay: ${formatCurrency(totalWithInterest)}`,
         chama_id: loan.chama_id,
         data: {
           loan_id: loanId,
           amount: loan.amount,
+          interest_rate: interestRateValue,
         },
       })
     } else {

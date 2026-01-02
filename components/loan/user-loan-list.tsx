@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Building2, Clock, CheckCircle2, XCircle, DollarSign, Calendar, Plus, AlertTriangle, AlertCircle, Wallet, Hourglass } from 'lucide-react'
+import { Building2, Clock, CheckCircle2, XCircle, DollarSign, Calendar, Plus, AlertTriangle, AlertCircle, Wallet, Hourglass, Percent } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -11,11 +11,14 @@ import { useToast } from '@/components/ui/toast'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
 import { formatCurrency } from '@/lib/utils/format'
 import { formatRelativeTime, formatDate } from '@/lib/utils/format'
-import { calculateDueDateStatus } from '@/lib/utils/loan-utils'
+import { calculateDueDateStatus, calculateLoanBreakdown } from '@/lib/utils/loan-utils'
 
 interface UserLoan {
   loanId: string
   loanAmount: number
+  totalLoanAmount: number
+  interestRate: number
+  interestAmount: number
   status: 'pending' | 'approved' | 'active' | 'paid' | 'defaulted' | 'cancelled'
   chamaId: string
   chamaName: string
@@ -25,6 +28,7 @@ interface UserLoan {
     status: string
   }>
   amountPaid: number
+  remainingAmount: number
   dueDate: string | null
   approvedAt: string | null
   disbursedAt: string | null
@@ -145,15 +149,23 @@ export function UserLoanList({ userLoans, onUpdate }: UserLoanListProps) {
   return (
     <div className="space-y-2">
       {userLoans.map((loan) => {
-        const pendingGuarantors = loan.guarantors.filter((g) => g.status === 'pending')
-        const approvedGuarantors = loan.guarantors.filter((g) => g.status === 'approved')
-        const remainingAmount = loan.loanAmount - loan.amountPaid
-        const canRecordPayment = (loan.status === 'active' || loan.status === 'approved') && remainingAmount > 0
-        
         // Calculate due date status
         const dueDateStatus = calculateDueDateStatus(loan.dueDate)
         const showDueDate = loan.status === 'active' || loan.status === 'approved'
         const isOverdue = dueDateStatus.isOverdue && showDueDate
+
+        // Calculate complete loan breakdown
+        const breakdown = calculateLoanBreakdown(
+          loan.loanAmount,
+          loan.interestRate,
+          loan.amountPaid,
+          loan.dueDate
+        )
+
+        const pendingGuarantors = loan.guarantors.filter((g) => g.status === 'pending')
+        const approvedGuarantors = loan.guarantors.filter((g) => g.status === 'approved')
+        const remainingAmount = breakdown.totalOutstanding
+        const canRecordPayment = (loan.status === 'active' || loan.status === 'approved') && remainingAmount > 0
 
         return (
           <div
@@ -200,32 +212,95 @@ export function UserLoanList({ userLoans, onUpdate }: UserLoanListProps) {
                     <p className="font-medium text-sm text-foreground truncate">{loan.chamaName}</p>
                     {getStatusBadge(loan.status)}
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-sm font-semibold text-foreground">
-                      {formatCurrency(loan.loanAmount)}
-                    </p>
-                    {loan.amountPaid > 0 && (
-                      <span className="text-xs text-muted-foreground">
-                        • Paid: {formatCurrency(loan.amountPaid)}
-                      </span>
-                    )}
-                    {showDueDate && loan.dueDate && (
-                      <span
-                        className={`text-xs flex items-center gap-1 ${
-                          isOverdue
-                            ? 'text-red-600 dark:text-red-400 font-semibold'
-                            : dueDateStatus.urgency === 'soon'
-                            ? 'text-amber-600 dark:text-amber-400 font-medium'
-                            : 'text-muted-foreground'
-                        }`}
-                      >
-                        <Calendar className="h-3 w-3" />
-                        {formatDate(loan.dueDate)}
-                        {isOverdue && (
-                          <span className="ml-1">({dueDateStatus.message})</span>
-                        )}
-                      </span>
-                    )}
+                  <div className="space-y-2">
+                    {/* Loan Amount Breakdown */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-semibold text-foreground">
+                          {formatCurrency(breakdown.principal)}
+                        </p>
+                        <Badge className={`text-xs flex items-center gap-1 ${
+                          loan.interestRate > 0 
+                            ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' 
+                            : 'bg-muted text-muted-foreground'
+                        }`}>
+                          <Percent className="h-3 w-3" />
+                          {loan.interestRate}%
+                        </Badge>
+                      </div>
+                      {loan.interestRate > 0 && (
+                        <span className="text-xs text-muted-foreground">
+                          + {formatCurrency(breakdown.originalInterest)} interest
+                          {loan.status === 'pending' && (
+                            <span className="text-xs text-amber-600 dark:text-amber-400 ml-1">
+                              (estimated)
+                            </span>
+                          )}
+                        </span>
+                      )}
+                      {breakdown.penaltyInterest > 0 && (
+                        <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 text-xs flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" />
+                          +{formatCurrency(breakdown.penaltyInterest)} penalty ({breakdown.penaltyRate.toFixed(1)}%)
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Total Amount Display */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {breakdown.penaltyInterest > 0 ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">Total Due:</span>
+                          <span className="text-sm font-bold text-red-600 dark:text-red-400">
+                            {formatCurrency(breakdown.totalOutstanding)}
+                          </span>
+                          <span className="text-xs text-muted-foreground line-through">
+                            {formatCurrency(breakdown.outstandingAmount)}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">Total:</span>
+                          <span className="text-sm font-semibold text-foreground">
+                            {formatCurrency(breakdown.originalTotal)}
+                          </span>
+                          {loan.amountPaid > 0 && (
+                            <>
+                              <span className="text-xs text-muted-foreground">• Paid:</span>
+                              <span className="text-xs text-green-600 dark:text-green-400">
+                                {formatCurrency(loan.amountPaid)}
+                              </span>
+                              <span className="text-xs text-muted-foreground">• Remaining:</span>
+                              <span className="text-xs font-medium text-foreground">
+                                {formatCurrency(breakdown.outstandingAmount)}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      )}
+                      {showDueDate && loan.dueDate && (
+                        <span
+                          className={`text-xs flex items-center gap-1 ${
+                            isOverdue
+                              ? 'text-red-600 dark:text-red-400 font-semibold'
+                              : dueDateStatus.urgency === 'soon'
+                              ? 'text-amber-600 dark:text-amber-400 font-medium'
+                              : 'text-muted-foreground'
+                          }`}
+                        >
+                          <Calendar className="h-3 w-3" />
+                          {!isOverdue ? (
+                            <>
+                              {dueDateStatus.daysUntil === 0
+                                ? 'Due today'
+                                : `${dueDateStatus.daysUntil} day${dueDateStatus.daysUntil === 1 ? '' : 's'} remaining`}
+                            </>
+                          ) : (
+                            dueDateStatus.message
+                          )}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -328,7 +403,13 @@ export function UserLoanList({ userLoans, onUpdate }: UserLoanListProps) {
           <div className="space-y-6 py-2">
             {selectedLoanId && (() => {
               const loan = userLoans.find(l => l.loanId === selectedLoanId)
-              const remaining = (loan?.loanAmount || 0) - (loan?.amountPaid || 0)
+              if (!loan) return null
+              const breakdown = calculateLoanBreakdown(
+                loan.loanAmount,
+                loan.interestRate,
+                loan.amountPaid,
+                loan.dueDate
+              )
               return (
                 <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-4">
                   <div className="flex items-start gap-3">
@@ -342,11 +423,27 @@ export function UserLoanList({ userLoans, onUpdate }: UserLoanListProps) {
                       <p className="text-sm font-semibold text-foreground">
                         {loan?.chamaName}
                       </p>
-                      <div className="flex items-baseline gap-2 pt-1">
-                        <span className="text-xs text-muted-foreground">Remaining:</span>
-                        <span className="text-lg font-bold text-primary">
-                          {formatCurrency(remaining)}
-                        </span>
+                      <div className="space-y-1 pt-1">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-xs text-muted-foreground">Remaining:</span>
+                          <span className={`text-lg font-bold ${
+                            breakdown.penaltyInterest > 0 
+                              ? 'text-red-600 dark:text-red-400' 
+                              : 'text-primary'
+                          }`}>
+                            {formatCurrency(breakdown.totalOutstanding)}
+                          </span>
+                        </div>
+                        {breakdown.penaltyInterest > 0 && (
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className="text-muted-foreground line-through">
+                              {formatCurrency(breakdown.outstandingAmount)}
+                            </span>
+                            <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 text-xs">
+                              +{formatCurrency(breakdown.penaltyInterest)} penalty
+                            </Badge>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -373,10 +470,16 @@ export function UserLoanList({ userLoans, onUpdate }: UserLoanListProps) {
                 />
                 {selectedLoanId && (() => {
                   const loan = userLoans.find(l => l.loanId === selectedLoanId)
-                  const remaining = (loan?.loanAmount || 0) - (loan?.amountPaid || 0)
+                  if (!loan) return null
+                  const breakdown = calculateLoanBreakdown(
+                    loan.loanAmount,
+                    loan.interestRate,
+                    loan.amountPaid,
+                    loan.dueDate
+                  )
                   return (
                     <p className="text-xs text-muted-foreground pl-6">
-                      Maximum: {formatCurrency(remaining)}
+                      Maximum: {formatCurrency(breakdown.totalOutstanding)}
                     </p>
                   )
                 })()}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth/middleware'
 import { getLoanById } from '@/lib/db/queries/loans'
+import { calculateLoanBreakdown } from '@/lib/utils/loan-utils'
 import db from '@/lib/db/client'
 import { nanoid } from 'nanoid'
 import type { ApiResponse } from '@/lib/types/api'
@@ -46,15 +47,23 @@ export async function POST(
     }
 
     const currentPaid = loan.amount_paid || 0
-    const totalAmount = loan.amount
-    const remainingAmount = totalAmount - currentPaid
+    const interestRate = loan.interest_rate || 0
+    const principalAmount = loan.amount
+    
+    // Calculate complete breakdown including penalty interest if overdue
+    const breakdown = calculateLoanBreakdown(
+      principalAmount,
+      interestRate,
+      currentPaid,
+      loan.due_date
+    )
 
-    // Check if payment exceeds remaining amount
-    if (amount > remainingAmount) {
+    // Check if payment exceeds remaining amount (including penalty)
+    if (amount > breakdown.totalOutstanding) {
       return NextResponse.json<ApiResponse>(
         { 
           success: false, 
-          error: `Payment exceeds remaining amount. Maximum payment: ${remainingAmount.toLocaleString()} KES` 
+          error: `Payment exceeds remaining amount. Maximum payment: ${breakdown.totalOutstanding.toLocaleString()} KES${breakdown.penaltyInterest > 0 ? ` (includes ${breakdown.penaltyInterest.toLocaleString()} KES penalty)` : ''}` 
         },
         { status: 400 }
       )
@@ -86,7 +95,7 @@ export async function POST(
         message: 'Payment recorded successfully. Waiting for admin approval.',
         paymentId,
         amount,
-        remainingAmount: remainingAmount - amount,
+        remainingAmount: breakdown.totalOutstanding - amount,
       },
     })
   } catch (error) {

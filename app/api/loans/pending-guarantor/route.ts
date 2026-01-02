@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
         return {
           loanId: loan.id,
           loanAmount: loan.amount,
+          defaultInterestRate: chama.default_interest_rate || 0,
           borrowerName: borrower.full_name,
           borrowerPhone: borrower.phone_number,
           chamaId: chama.id,

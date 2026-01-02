@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth/middleware'
 import { getUserSavingsForChama } from '@/lib/db/queries/savings'
-import { getActiveGuaranteesByUser, getActiveLoansByUser } from '@/lib/db/queries/loans'
+import { getActiveGuaranteesByUser, getActiveLoansByUser, getLoanById } from '@/lib/db/queries/loans'
 import { createLoan, addLoanGuarantor } from '@/lib/db/queries/loans'
 import { getUserById } from '@/lib/db/queries/users'
 import { getChamaById } from '@/lib/db/queries/chamas'

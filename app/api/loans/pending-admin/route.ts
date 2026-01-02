@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth/middleware'
-import { getUserChamas } from '@/lib/db/queries/chamas'
+import { getUserChamas, getChamaById } from '@/lib/db/queries/chamas'
 import { getChamaMember } from '@/lib/db/queries/chama-members'
 import db from '@/lib/db/client'
 import { getUserById } from '@/lib/db/queries/users'
@@ -38,6 +38,9 @@ export async function GET(request: NextRequest) {
       loans.map(async (loan: any) => {
         const borrower = await getUserById(loan.user_id)
         const guarantors = await getLoanGuarantors(loan.id)
+        const chama = await getChamaById(loan.chama_id)
+        const defaultInterestRate = chama?.default_interest_rate || 0
+        
         const guarantorDetails = await Promise.all(
           guarantors.map(async (g) => {
             const guarantorUser = await getUserById(g.guarantor_user_id)
@@ -53,6 +56,7 @@ export async function GET(request: NextRequest) {
         return {
           loanId: loan.id,
           loanAmount: loan.amount,
+          defaultInterestRate,
           borrowerName: borrower?.full_name || 'Unknown',
           borrowerPhone: borrower?.phone_number || '',
           chamaId: loan.chama_id,

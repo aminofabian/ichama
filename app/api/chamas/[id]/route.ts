@@ -112,11 +112,12 @@ export async function PATCH(
       )
     }
 
-    const { name, description, is_private } = body
+    const { name, description, is_private, default_interest_rate } = body
     const updatedChama = await updateChama(id, {
       name,
       description,
       is_private,
+      default_interest_rate: default_interest_rate !== undefined ? default_interest_rate : undefined,
     })
 
     return NextResponse.json<ApiResponse>({

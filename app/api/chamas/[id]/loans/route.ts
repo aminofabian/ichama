@@ -81,16 +81,32 @@ export async function GET(
             createdAt: p.created_at,
           }))
 
+        const interestRate = loan.interest_rate || 0
+        const principalAmount = loan.amount
+        const interestAmount = (principalAmount * interestRate) / 100
+        const totalLoanAmount = principalAmount + interestAmount
+        const amountPaid = loan.amount_paid || 0
+        const remainingAmount = totalLoanAmount - amountPaid
+
+        // Correct status if incorrectly marked as paid (only principal paid, not interest)
+        let correctedStatus = loan.status
+        if (loan.status === 'paid' && amountPaid < totalLoanAmount) {
+          correctedStatus = 'active' // Change back to active if not fully paid
+        }
+
         return {
           loanId: loan.id,
-          loanAmount: loan.amount,
-          status: loan.status,
+          loanAmount: principalAmount,
+          totalLoanAmount,
+          interestRate,
+          interestAmount,
+          status: correctedStatus,
           borrowerId: loan.user_id,
           borrowerName: borrower?.full_name || 'Unknown',
           borrowerPhone: borrower?.phone_number || '',
           guarantors: guarantorDetails,
-          amountPaid: loan.amount_paid || 0,
-          remainingAmount: loan.amount - (loan.amount_paid || 0),
+          amountPaid,
+          remainingAmount,
           pendingPayments: loanPendingPayments,
           dueDate: loan.due_date,
           approvedAt: loan.approved_at,

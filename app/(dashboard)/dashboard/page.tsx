@@ -66,6 +66,7 @@ interface PendingGuarantorLoan {
   loanId: string
   guaranteeId: string
   loanAmount: number
+  defaultInterestRate: number
   borrowerName: string
   borrowerPhone: string
   chamaId: string
@@ -76,6 +77,7 @@ interface PendingGuarantorLoan {
 interface PendingAdminLoan {
   loanId: string
   loanAmount: number
+  defaultInterestRate: number
   borrowerName: string
   borrowerPhone: string
   chamaId: string
@@ -92,6 +94,9 @@ interface PendingAdminLoan {
 interface UserLoan {
   loanId: string
   loanAmount: number
+  totalLoanAmount: number
+  interestRate: number
+  interestAmount: number
   status: 'pending' | 'approved' | 'active' | 'paid' | 'defaulted' | 'cancelled'
   chamaId: string
   chamaName: string
@@ -101,11 +106,17 @@ interface UserLoan {
     status: string
   }>
   amountPaid: number
+  remainingAmount: number
   dueDate: string | null
   approvedAt: string | null
   disbursedAt: string | null
   paidAt: string | null
   createdAt: string
+  pendingPayments?: Array<{
+    paymentId: string
+    amount: number
+    createdAt: string
+  }>
 }
 
 interface DashboardData {

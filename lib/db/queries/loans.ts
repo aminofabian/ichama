@@ -233,7 +233,14 @@ export async function addLoanPayment(data: {
     args: [newAmountPaid, now, data.loan_id],
   })
 
-  if (newAmountPaid >= loan.amount) {
+  // Calculate total loan amount with interest
+  const interestRate = loan.interest_rate || 0
+  const principalAmount = loan.amount
+  const interestAmount = (principalAmount * interestRate) / 100
+  const totalLoanAmount = principalAmount + interestAmount
+
+  // Only mark as paid if total (including interest) is fully paid
+  if (newAmountPaid >= totalLoanAmount) {
     await updateLoanStatus(data.loan_id, 'paid')
   }
 

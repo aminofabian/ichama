@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { HandCoins, Users, AlertCircle, CheckCircle2, X } from 'lucide-react'
+import { HandCoins, Users, AlertCircle, CheckCircle2, X, Percent } from 'lucide-react'
 import {
   Drawer,
   DrawerContent,
@@ -76,6 +76,7 @@ export function LoanFormDrawer({
   const [error, setError] = useState<string | null>(null)
   const [activeGuarantees, setActiveGuarantees] = useState<ActiveGuarantee[]>([])
   const [checkingGuarantees, setCheckingGuarantees] = useState(false)
+  const [chamaInterestRate, setChamaInterestRate] = useState(0)
 
   const baseLoanLimit = calculateLoanLimit(chamaSavingsBalance)
   const requestedAmount = parseFloat(loanAmount) || 0
@@ -88,6 +89,12 @@ export function LoanFormDrawer({
   }
 
   const dueDate = requestedAmount > 0 ? calculateDueDate() : null
+  
+  // Calculate total with interest
+  const interestAmount = requestedAmount > 0 && chamaInterestRate > 0
+    ? (requestedAmount * chamaInterestRate) / 100
+    : 0
+  const totalWithInterest = requestedAmount + interestAmount
 
   const selectedGuarantorList = Array.from(selectedGuarantors)
     .map((id) => guarantors.find((g) => g.id === id))
@@ -123,9 +130,11 @@ export function LoanFormDrawer({
     if (open && selectedChamaId) {
       fetchChamaSavings()
       fetchGuarantors()
+      fetchChamaInterestRate()
     } else if (open && !selectedChamaId) {
       setChamaSavingsBalance(0)
       setGuarantors([])
+      setChamaInterestRate(0)
     }
   }, [open, selectedChamaId])
 
@@ -157,6 +166,22 @@ export function LoanFormDrawer({
       }
     } catch (err) {
       console.error('Failed to fetch chama savings:', err)
+    }
+  }
+
+  const fetchChamaInterestRate = async () => {
+    if (!selectedChamaId) return
+
+    try {
+      const response = await fetch(`/api/chamas/${selectedChamaId}`)
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        setChamaInterestRate(result.data.chama.default_interest_rate || 0)
+      }
+    } catch (err) {
+      console.error('Failed to fetch chama interest rate:', err)
+      setChamaInterestRate(0)
     }
   }
 
@@ -411,8 +436,33 @@ export function LoanFormDrawer({
                 {requestedAmount > 0 && (
                   <div className="space-y-2">
                     <div className="text-xs text-muted-foreground">
-                      You are requesting {formatCurrency(requestedAmount)}
+                      {chamaInterestRate > 0 ? (
+                        <>
+                          You are requesting {formatCurrency(requestedAmount)} + {chamaInterestRate}% interest = <span className="font-semibold text-foreground">{formatCurrency(totalWithInterest)}</span>
+                        </>
+                      ) : (
+                        <>You are requesting {formatCurrency(requestedAmount)}</>
+                      )}
                     </div>
+                    
+                    {/* Interest Rate Display */}
+                    {selectedChamaId && chamaInterestRate > 0 && (
+                      <div className="flex items-center gap-2 rounded-lg border border-purple-200 bg-purple-50/50 dark:border-purple-900 dark:bg-purple-950/20 px-3 py-2">
+                        <Percent className="h-4 w-4 text-purple-600 dark:text-purple-400 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-xs font-medium text-purple-900 dark:text-purple-100">
+                            Interest Rate
+                          </p>
+                          <p className="text-sm font-semibold text-purple-800 dark:text-purple-200">
+                            {chamaInterestRate}%
+                          </p>
+                          <p className="text-xs text-purple-700 dark:text-purple-300 mt-0.5">
+                            Total to repay: {formatCurrency(totalWithInterest)}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    
                     {dueDate && (
                       <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-950/20 px-3 py-2">
                         <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />

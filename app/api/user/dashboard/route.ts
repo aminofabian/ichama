@@ -329,6 +329,7 @@ export async function GET(request: NextRequest) {
           loanId: loan.id,
           guaranteeId: guarantee.id,
           loanAmount: loan.amount,
+          defaultInterestRate: chama.default_interest_rate || 0,
           borrowerName: borrower.full_name,
           borrowerPhone: borrower.phone_number,
           chamaId: chama.id,
@@ -344,6 +345,10 @@ export async function GET(request: NextRequest) {
       (actualPendingAdminLoansResult.rows as any[]).map(async (loan: any) => {
         const borrower = await getUserById(loan.user_id)
         const guarantors = await getLoanGuarantors(loan.id)
+        const { getChamaById } = await import('@/lib/db/queries/chamas')
+        const chama = await getChamaById(loan.chama_id)
+        const defaultInterestRate = chama?.default_interest_rate || 0
+        
         const guarantorDetails = await Promise.all(
           guarantors.map(async (g) => {
             const guarantorUser = await getUserById(g.guarantor_user_id)
@@ -359,6 +364,7 @@ export async function GET(request: NextRequest) {
         return {
           loanId: loan.id,
           loanAmount: loan.amount,
+          defaultInterestRate,
           borrowerName: borrower?.full_name || 'Unknown',
           borrowerPhone: borrower?.phone_number || '',
           chamaId: loan.chama_id,
@@ -389,14 +395,41 @@ export async function GET(request: NextRequest) {
           })
         )
 
+        // For pending loans, use chama's default interest rate as estimate
+        // For approved/active loans, use the actual interest rate set during approval
+        const { getChamaById } = await import('@/lib/db/queries/chamas')
+        const chamaDetails = await getChamaById(loan.chama_id)
+        const defaultInterestRate = chamaDetails?.default_interest_rate || 0
+        const interestRate = loan.interest_rate !== null && loan.interest_rate !== undefined 
+          ? loan.interest_rate 
+          : (loan.status === 'pending' ? defaultInterestRate : 0)
+        
+        const principalAmount = loan.amount
+        const interestAmount = (principalAmount * interestRate) / 100
+        const totalLoanAmount = principalAmount + interestAmount
+        const amountPaid = loan.amount_paid || 0
+        const remainingAmount = totalLoanAmount - amountPaid
+
+        // Correct status if incorrectly marked as paid (only principal paid, not interest)
+        let correctedStatus = loan.status
+        if (loan.status === 'paid' && amountPaid < totalLoanAmount) {
+          correctedStatus = 'active' // Change back to active if not fully paid
+          // Optionally update the database (commented out to avoid side effects)
+          // await updateLoanStatus(loan.id, 'active')
+        }
+
         return {
           loanId: loan.id,
-          loanAmount: loan.amount,
-          status: loan.status,
+          loanAmount: principalAmount,
+          totalLoanAmount,
+          interestRate,
+          interestAmount,
+          status: correctedStatus,
           chamaId: loan.chama_id,
           chamaName: chama?.name || 'Unknown',
           guarantors: guarantorDetails,
-          amountPaid: loan.amount_paid || 0,
+          amountPaid,
+          remainingAmount,
           dueDate: loan.due_date,
           approvedAt: loan.approved_at,
           disbursedAt: loan.disbursed_at,

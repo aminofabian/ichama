@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Trash2, Settings, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Trash2, Settings, AlertTriangle, Percent, TrendingUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -35,6 +35,7 @@ export default function ChamaSettingsPage() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [isPrivate, setIsPrivate] = useState(true)
+  const [defaultInterestRate, setDefaultInterestRate] = useState('0')
 
   useEffect(() => {
     async function fetchChama() {
@@ -54,6 +55,7 @@ export default function ChamaSettingsPage() {
         setName(result.data.chama.name)
         setDescription(result.data.chama.description || '')
         setIsPrivate(!!result.data.chama.is_private)
+        setDefaultInterestRate((result.data.chama.default_interest_rate || 0).toString())
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load settings')
       } finally {
@@ -76,6 +78,7 @@ export default function ChamaSettingsPage() {
           name,
           description: description || null,
           is_private: isPrivate ? 1 : 0,
+          default_interest_rate: parseFloat(defaultInterestRate) || 0,
         }),
       })
 
@@ -227,6 +230,72 @@ export default function ChamaSettingsPage() {
                 onCheckedChange={setIsPrivate}
               />
             </div>
+
+                {/* Default Interest Rate */}
+                <div className="rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50/50 to-purple-100/30 dark:border-purple-900 dark:from-purple-950/30 dark:to-purple-900/20 p-4 md:p-5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-purple-600">
+                      <Percent className="h-4 w-4 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <Label htmlFor="interestRate" className="text-sm md:text-base font-semibold">
+                        Default Interest Rate
+                      </Label>
+                      <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
+                        This rate will be pre-filled when approving loans
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Input
+                        id="interestRate"
+                        type="number"
+                        placeholder="0"
+                        value={defaultInterestRate}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          if (value === '' || (parseFloat(value) >= 0 && parseFloat(value) <= 100)) {
+                            setDefaultInterestRate(value)
+                          }
+                        }}
+                        min="0"
+                        max="100"
+                        step="0.5"
+                        className="flex-1 h-12 text-lg font-semibold"
+                      />
+                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">%</div>
+                    </div>
+                    {/* Quick Select Buttons */}
+                    <div className="grid grid-cols-5 gap-2">
+                      {[0, 5, 10, 15, 20].map((rate) => (
+                        <Button
+                          key={rate}
+                          type="button"
+                          variant={defaultInterestRate === rate.toString() ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setDefaultInterestRate(rate.toString())}
+                          className="text-xs"
+                        >
+                          {rate}%
+                        </Button>
+                      ))}
+                    </div>
+                    {parseFloat(defaultInterestRate) > 0 && (
+                      <div className="rounded-lg border border-purple-200 bg-purple-50/50 dark:border-purple-900 dark:bg-purple-950/20 p-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <TrendingUp className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                          <p className="text-xs font-semibold text-purple-900 dark:text-purple-100">
+                            Example Calculation
+                          </p>
+                        </div>
+                        <p className="text-xs text-purple-800 dark:text-purple-200">
+                          For a loan of Ksh 10,000: Interest = Ksh {((10000 * parseFloat(defaultInterestRate || '0')) / 100).toLocaleString()}, Total = Ksh {(10000 + (10000 * parseFloat(defaultInterestRate || '0') / 100)).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
 
                 <div className="flex justify-end pt-2">
                   <Button 

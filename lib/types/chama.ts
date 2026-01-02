@@ -16,6 +16,7 @@ export interface Chama {
   is_private: number
   max_members: number
   cover_image_url: string | null
+  default_interest_rate: number
   created_at: string
   updated_at: string
 }

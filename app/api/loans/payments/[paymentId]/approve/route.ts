@@ -82,8 +82,14 @@ export async function POST(
         args: [newAmountPaid, now, loan.id],
       })
 
-      // If fully paid, update loan status
-      if (newAmountPaid >= loan.amount) {
+      // Calculate total loan amount with interest
+      const interestRate = loan.interest_rate || 0
+      const principalAmount = loan.amount
+      const interestAmount = (principalAmount * interestRate) / 100
+      const totalLoanAmount = principalAmount + interestAmount
+
+      // If fully paid (including interest), update loan status
+      if (newAmountPaid >= totalLoanAmount) {
         await updateLoanStatus(loan.id, 'paid')
       }
     } else {

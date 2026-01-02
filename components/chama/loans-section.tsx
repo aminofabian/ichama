@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { HandCoins, DollarSign, User, Calendar, Plus, CheckCircle2, Clock, XCircle, AlertTriangle, AlertCircle } from 'lucide-react'
+import { HandCoins, DollarSign, User, Calendar, Plus, CheckCircle2, Clock, XCircle, AlertTriangle, AlertCircle, Download, FileSpreadsheet, TrendingUp, TrendingDown, Users, Award, AlertCircle as AlertCircleIcon, Percent } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,8 +9,9 @@ import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/components/ui/toast'
 import { formatCurrency } from '@/lib/utils/format'
 import { formatDate } from '@/lib/utils/format'
-import { calculateDueDateStatus } from '@/lib/utils/loan-utils'
+import { calculateDueDateStatus, calculateLoanBreakdown } from '@/lib/utils/loan-utils'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
+import * as XLSX from 'xlsx'
 
 interface PendingPayment {
   id: string
@@ -25,6 +26,9 @@ interface PendingPayment {
 interface ChamaLoan {
   loanId: string
   loanAmount: number
+  totalLoanAmount: number
+  interestRate: number
+  interestAmount: number
   status: 'pending' | 'approved' | 'active' | 'paid' | 'defaulted' | 'cancelled'
   borrowerId: string
   borrowerName: string
@@ -244,6 +248,245 @@ export function LoansSection({ chamaId }: LoansSectionProps) {
     )
   }
 
+  const handleDownloadExcel = () => {
+    if (loans.length === 0) {
+      addToast({
+        variant: 'error',
+        title: 'No Data',
+        description: 'There are no loans to export',
+      })
+      return
+    }
+
+    try {
+      const wb = XLSX.utils.book_new()
+
+      // ===== SHEET 1: SUMMARY =====
+      const summaryData = [
+        ['LOAN PORTFOLIO SUMMARY'],
+        [],
+        ['Total Loans', loans.length],
+        ['Active Loans', loans.filter(l => l.status === 'active' || l.status === 'approved').length],
+        ['Paid Loans', loans.filter(l => l.status === 'paid').length],
+        ['Pending Loans', loans.filter(l => l.status === 'pending').length],
+        ['Defaulted Loans', loans.filter(l => l.status === 'defaulted').length],
+        [],
+        ['FINANCIAL SUMMARY'],
+        [],
+        ['Total Loan Amount', loans.reduce((sum, l) => sum + l.loanAmount, 0)],
+        ['Total Amount Paid', loans.reduce((sum, l) => sum + l.amountPaid, 0)],
+        ['Total Outstanding', loans.reduce((sum, l) => sum + l.remainingAmount, 0)],
+        ['Average Loan Amount', Math.round(loans.reduce((sum, l) => sum + l.loanAmount, 0) / loans.length)],
+        [],
+        ['OVERDUE LOANS'],
+        [],
+        ['Overdue Count', loans.filter(l => {
+          if (!l.dueDate || l.status === 'paid' || l.status === 'cancelled') return false
+          const status = calculateDueDateStatus(l.dueDate)
+          return status.isOverdue
+        }).length],
+        ['Overdue Amount', loans.filter(l => {
+          if (!l.dueDate || l.status === 'paid' || l.status === 'cancelled') return false
+          const status = calculateDueDateStatus(l.dueDate)
+          return status.isOverdue
+        }).reduce((sum, l) => sum + l.remainingAmount, 0)],
+      ]
+
+      const summaryWs = XLSX.utils.aoa_to_sheet(summaryData)
+      summaryWs['!cols'] = [{ wch: 25 }, { wch: 15 }]
+      XLSX.utils.book_append_sheet(wb, summaryWs, 'Summary')
+
+      // ===== SHEET 2: ALL LOANS DETAILED =====
+      const loansHeaders = [
+        'Loan ID',
+        'Borrower Name',
+        'Phone',
+        'Loan Amount (KES)',
+        'Amount Paid (KES)',
+        'Remaining (KES)',
+        'Status',
+        'Due Date',
+        'Days Remaining',
+        'Guarantors',
+        'Created Date',
+        'Approved Date',
+        'Paid Date',
+      ]
+
+      const loansRows = loans.map(loan => {
+        const dueDateStatus = calculateDueDateStatus(loan.dueDate)
+        const daysRemaining = loan.dueDate && !dueDateStatus.isOverdue 
+          ? dueDateStatus.daysUntil 
+          : loan.dueDate && dueDateStatus.isOverdue
+          ? `-${dueDateStatus.daysOverdue} (Overdue)`
+          : 'N/A'
+
+        return [
+          loan.loanId,
+          loan.borrowerName,
+          loan.borrowerPhone || '',
+          loan.loanAmount,
+          loan.amountPaid,
+          loan.remainingAmount,
+          loan.status.toUpperCase(),
+          loan.dueDate ? formatDate(loan.dueDate) : 'N/A',
+          daysRemaining,
+          loan.guarantors.map(g => g.userName).join(', ') || 'None',
+          formatDate(loan.createdAt),
+          loan.approvedAt ? formatDate(loan.approvedAt) : 'N/A',
+          loan.paidAt ? formatDate(loan.paidAt) : 'N/A',
+        ]
+      })
+
+      const loansWs = XLSX.utils.aoa_to_sheet([loansHeaders, ...loansRows])
+      loansWs['!cols'] = [
+        { wch: 30 }, { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
+        { wch: 15 }, { wch: 12 }, { wch: 15 }, { wch: 15 }, { wch: 30 },
+        { wch: 15 }, { wch: 15 }, { wch: 15 },
+      ]
+      XLSX.utils.book_append_sheet(wb, loansWs, 'All Loans')
+
+      // ===== SHEET 3: USER SUMMARY =====
+      const userMap = new Map<string, {
+        name: string
+        phone: string
+        loans: ChamaLoan[]
+        totalBorrowed: number
+        totalPaid: number
+        totalOutstanding: number
+        activeLoans: number
+        paidLoans: number
+      }>()
+
+      loans.forEach(loan => {
+        if (!userMap.has(loan.borrowerId)) {
+          userMap.set(loan.borrowerId, {
+            name: loan.borrowerName,
+            phone: loan.borrowerPhone || '',
+            loans: [],
+            totalBorrowed: 0,
+            totalPaid: 0,
+            totalOutstanding: 0,
+            activeLoans: 0,
+            paidLoans: 0,
+          })
+        }
+
+        const user = userMap.get(loan.borrowerId)!
+        user.loans.push(loan)
+        user.totalBorrowed += loan.loanAmount
+        user.totalPaid += loan.amountPaid
+        user.totalOutstanding += loan.remainingAmount
+        if (loan.status === 'active' || loan.status === 'approved') {
+          user.activeLoans++
+        }
+        if (loan.status === 'paid') {
+          user.paidLoans++
+        }
+      })
+
+      const userHeaders = [
+        'Borrower Name',
+        'Phone',
+        'Total Loans',
+        'Active Loans',
+        'Paid Loans',
+        'Total Borrowed (KES)',
+        'Total Paid (KES)',
+        'Total Outstanding (KES)',
+        'Repayment Rate (%)',
+      ]
+
+      const userRows = Array.from(userMap.values()).map(user => {
+        const repaymentRate = user.totalBorrowed > 0 
+          ? ((user.totalPaid / user.totalBorrowed) * 100).toFixed(2)
+          : '0.00'
+
+        return [
+          user.name,
+          user.phone,
+          user.loans.length,
+          user.activeLoans,
+          user.paidLoans,
+          user.totalBorrowed,
+          user.totalPaid,
+          user.totalOutstanding,
+          repaymentRate,
+        ]
+      })
+
+      userRows.sort((a, b) => (b[7] as number) - (a[7] as number))
+
+      const userWs = XLSX.utils.aoa_to_sheet([userHeaders, ...userRows])
+      userWs['!cols'] = [
+        { wch: 25 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 12 },
+        { wch: 18 }, { wch: 18 }, { wch: 20 }, { wch: 15 },
+      ]
+      XLSX.utils.book_append_sheet(wb, userWs, 'User Summary')
+
+      // ===== SHEET 4: PENDING PAYMENTS =====
+      const paymentHeaders = [
+        'Payment ID',
+        'Loan ID',
+        'Borrower Name',
+        'Amount (KES)',
+        'Payment Method',
+        'Reference ID',
+        'Status',
+        'Recorded By',
+        'Date Recorded',
+        'Notes',
+      ]
+
+      const paymentRows: any[] = []
+      loans.forEach(loan => {
+        if (loan.pendingPayments && loan.pendingPayments.length > 0) {
+          loan.pendingPayments.forEach(payment => {
+            paymentRows.push([
+              payment.id,
+              loan.loanId,
+              loan.borrowerName,
+              payment.amount,
+              payment.paymentMethod || 'N/A',
+              payment.referenceId || 'N/A',
+              'PENDING',
+              payment.recordedBy || 'N/A',
+              formatDate(payment.createdAt),
+              payment.notes || '',
+            ])
+          })
+        }
+      })
+
+      if (paymentRows.length > 0) {
+        const paymentWs = XLSX.utils.aoa_to_sheet([paymentHeaders, ...paymentRows])
+        paymentWs['!cols'] = [
+          { wch: 30 }, { wch: 30 }, { wch: 20 }, { wch: 15 }, { wch: 15 },
+          { wch: 20 }, { wch: 12 }, { wch: 20 }, { wch: 15 }, { wch: 30 },
+        ]
+        XLSX.utils.book_append_sheet(wb, paymentWs, 'Pending Payments')
+      }
+
+      const timestamp = new Date().toISOString().split('T')[0]
+      const filename = `Loan_History_${timestamp}.xlsx`
+
+      XLSX.writeFile(wb, filename)
+
+      addToast({
+        variant: 'success',
+        title: 'Export Successful',
+        description: `Loan history exported to ${filename}`,
+      })
+    } catch (error) {
+      console.error('Excel export error:', error)
+      addToast({
+        variant: 'error',
+        title: 'Export Failed',
+        description: error instanceof Error ? error.message : 'Failed to export loan history',
+      })
+    }
+  }
+
   return (
     <Card>
       <CardContent className="pt-6">
@@ -253,6 +496,17 @@ export function LoansSection({ chamaId }: LoansSectionProps) {
             <h3 className="text-lg font-semibold">Loans</h3>
             <Badge>{loans.length}</Badge>
           </div>
+          <Button
+            onClick={handleDownloadExcel}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+            disabled={loading || loans.length === 0}
+          >
+            <FileSpreadsheet className="h-4 w-4" />
+            <span className="hidden sm:inline">Export to Excel</span>
+            <span className="sm:hidden">Export</span>
+          </Button>
         </div>
 
         <div className="space-y-3">
@@ -306,46 +560,101 @@ export function LoansSection({ chamaId }: LoansSectionProps) {
                         <p className="font-semibold text-sm text-foreground">{loan.borrowerName}</p>
                         {getStatusBadge(loan.status)}
                       </div>
-                      <div className="flex items-center gap-2 flex-wrap text-sm">
-                        <p className="font-semibold text-foreground">
-                          {formatCurrency(loan.loanAmount)}
-                        </p>
-                        {loan.amountPaid > 0 && (
-                          <>
-                            <span className="text-muted-foreground">•</span>
-                            <span className="text-muted-foreground">
-                              Paid: {formatCurrency(loan.amountPaid)}
-                            </span>
-                            <span className="text-muted-foreground">•</span>
-                            <span className="text-foreground">
-                              Remaining: {formatCurrency(loan.remainingAmount)}
-                            </span>
-                          </>
-                        )}
-                        {showDueDate && loan.dueDate && (
-                          <>
-                            <span className="text-muted-foreground">•</span>
-                            <span
-                              className={`flex items-center gap-1 ${
-                                isOverdue
-                                  ? 'text-red-600 dark:text-red-400 font-semibold'
-                                  : dueDateStatus.urgency === 'soon'
-                                  ? 'text-amber-600 dark:text-amber-400 font-medium'
-                                  : 'text-muted-foreground'
-                              }`}
-                            >
-                              <Calendar className="h-3 w-3" />
-                              Due: {formatDate(loan.dueDate)}
-                              {isOverdue && (
-                                <span className="ml-1">({dueDateStatus.message})</span>
+                      {(() => {
+                        const breakdown = calculateLoanBreakdown(
+                          loan.loanAmount,
+                          loan.interestRate,
+                          loan.amountPaid,
+                          loan.dueDate
+                        )
+                        return (
+                          <div className="space-y-2">
+                            {/* Loan Amount Breakdown */}
+                            <div className="flex items-center gap-2 flex-wrap text-sm">
+                              <div className="flex items-center gap-1.5">
+                                <p className="font-semibold text-foreground">
+                                  {formatCurrency(breakdown.principal)}
+                                </p>
+                                <Badge className={`text-xs flex items-center gap-1 ${
+                                  loan.interestRate > 0 
+                                    ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' 
+                                    : 'bg-muted text-muted-foreground'
+                                }`}>
+                                  <Percent className="h-3 w-3" />
+                                  {loan.interestRate}%
+                                </Badge>
+                              </div>
+                              {loan.interestRate > 0 && (
+                                <span className="text-xs text-muted-foreground">
+                                  + {formatCurrency(breakdown.originalInterest)} interest
+                                </span>
                               )}
-                              {!isOverdue && dueDateStatus.urgency === 'soon' && (
-                                <span className="ml-1">({dueDateStatus.message})</span>
+                              {breakdown.penaltyInterest > 0 && (
+                                <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 text-xs flex items-center gap-1">
+                                  <AlertCircle className="h-3 w-3" />
+                                  +{formatCurrency(breakdown.penaltyInterest)} penalty ({breakdown.penaltyRate.toFixed(1)}%)
+                                </Badge>
                               )}
-                            </span>
-                          </>
-                      )}
-                    </div>
+                            </div>
+
+                            {/* Total Amount Display */}
+                            <div className="flex items-center gap-2 flex-wrap text-sm">
+                              {breakdown.penaltyInterest > 0 ? (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-muted-foreground">Total Due:</span>
+                                  <span className="text-sm font-bold text-red-600 dark:text-red-400">
+                                    {formatCurrency(breakdown.totalOutstanding)}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground line-through">
+                                    {formatCurrency(breakdown.outstandingAmount)}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-muted-foreground">Total:</span>
+                                  <span className="text-sm font-semibold text-foreground">
+                                    {formatCurrency(breakdown.originalTotal)}
+                                  </span>
+                                  {loan.amountPaid > 0 && (
+                                    <>
+                                      <span className="text-xs text-muted-foreground">• Paid:</span>
+                                      <span className="text-xs text-green-600 dark:text-green-400">
+                                        {formatCurrency(loan.amountPaid)}
+                                      </span>
+                                      <span className="text-xs text-muted-foreground">• Remaining:</span>
+                                      <span className="text-xs font-medium text-foreground">
+                                        {formatCurrency(breakdown.outstandingAmount)}
+                                      </span>
+                                    </>
+                                  )}
+                                </div>
+                              )}
+                              {showDueDate && loan.dueDate && (
+                                <span
+                                  className={`text-xs flex items-center gap-1 ${
+                                    isOverdue
+                                      ? 'text-red-600 dark:text-red-400 font-semibold'
+                                      : dueDateStatus.urgency === 'soon'
+                                      ? 'text-amber-600 dark:text-amber-400 font-medium'
+                                      : 'text-muted-foreground'
+                                  }`}
+                                >
+                                  <Calendar className="h-3 w-3" />
+                                  {!isOverdue ? (
+                                    <>
+                                      {dueDateStatus.daysUntil === 0
+                                        ? 'Due today'
+                                        : `${dueDateStatus.daysUntil} day${dueDateStatus.daysUntil === 1 ? '' : 's'} remaining`}
+                                    </>
+                                  ) : (
+                                    dueDateStatus.message
+                                  )}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })()}
                     {loan.guarantors.length > 0 && (
                       <div className="mt-2 text-xs text-muted-foreground">
                         {loan.guarantors.length} guarantor{loan.guarantors.length > 1 ? 's' : ''}
@@ -354,6 +663,82 @@ export function LoansSection({ chamaId }: LoansSectionProps) {
                   </div>
                 </div>
                 </div>
+
+                {/* Record Payment Button */}
+                {(loan.status === 'active' || loan.status === 'approved') && (
+                  <div className="pt-2 border-t">
+                    {selectedLoanId === loan.loanId ? (
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-foreground">
+                            Payment Amount (KES)
+                          </label>
+                          <Input
+                            type="number"
+                            placeholder="Enter amount"
+                            value={paymentAmount}
+                            onChange={(e) => setPaymentAmount(e.target.value)}
+                            min="0"
+                            step="100"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-foreground">
+                            Notes (Optional)
+                          </label>
+                          <Input
+                            type="text"
+                            placeholder="Payment notes"
+                            value={paymentNotes}
+                            onChange={(e) => setPaymentNotes(e.target.value)}
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => handlePaymentSubmit(loan.loanId)}
+                            disabled={processingPayment || !paymentAmount}
+                            className="flex-1"
+                          >
+                            {processingPayment ? (
+                              <>
+                                <LoadingSpinner size="sm" />
+                                <span className="ml-2">Recording...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Plus className="h-3.5 w-3.5 mr-1" />
+                                Record Payment
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedLoanId(null)
+                              setPaymentAmount('')
+                              setPaymentNotes('')
+                            }}
+                            disabled={processingPayment}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setSelectedLoanId(loan.loanId)}
+                        className="w-full"
+                      >
+                        <Plus className="h-3.5 w-3.5 mr-1" />
+                        Record Payment
+                      </Button>
+                    )}
+                  </div>
+                )}
 
                 {/* Pending Payments Section */}
               {loan.pendingPayments && loan.pendingPayments.length > 0 && (
@@ -421,81 +806,6 @@ export function LoansSection({ chamaId }: LoansSectionProps) {
                       </div>
                     </div>
                   ))}
-                </div>
-              )}
-
-              {(loan.status === 'active' || loan.status === 'approved') && (
-                <div className="pt-3 border-t">
-                  {selectedLoanId === loan.loanId ? (
-                    <div className="space-y-3">
-                      <div className="space-y-2">
-                        <label className="text-xs font-medium text-foreground">
-                          Payment Amount (KES)
-                        </label>
-                        <Input
-                          type="number"
-                          placeholder="Enter amount"
-                          value={paymentAmount}
-                          onChange={(e) => setPaymentAmount(e.target.value)}
-                          min="0"
-                          step="100"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-medium text-foreground">
-                          Notes (Optional)
-                        </label>
-                        <Input
-                          type="text"
-                          placeholder="Payment notes"
-                          value={paymentNotes}
-                          onChange={(e) => setPaymentNotes(e.target.value)}
-                        />
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() => handlePaymentSubmit(loan.loanId)}
-                          disabled={processingPayment || !paymentAmount}
-                          className="flex-1"
-                        >
-                          {processingPayment ? (
-                            <>
-                              <LoadingSpinner size="sm" />
-                              <span className="ml-2">Recording...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Plus className="h-3.5 w-3.5 mr-1" />
-                              Record Payment
-                            </>
-                          )}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedLoanId(null)
-                            setPaymentAmount('')
-                            setPaymentNotes('')
-                          }}
-                          disabled={processingPayment}
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setSelectedLoanId(loan.loanId)}
-                      className="w-full"
-                    >
-                      <Plus className="h-3.5 w-3.5 mr-1" />
-                      Record Payment
-                    </Button>
-                  )}
                 </div>
               )}
             </div>
