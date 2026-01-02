@@ -116,15 +116,28 @@ export async function POST(request: NextRequest) {
     const guarantorUserIds: string[] = []
 
     for (const guarantorId of guarantorIds) {
-      const parts = guarantorId.split('-')
-      if (parts.length !== 2) {
+      if (!guarantorId || typeof guarantorId !== 'string') {
+        return NextResponse.json<ApiResponse>(
+          { success: false, error: 'Invalid guarantor ID' },
+          { status: 400 }
+        )
+      }
+
+      const expectedPrefix = `${chamaId}-`
+      if (!guarantorId.startsWith(expectedPrefix)) {
+        return NextResponse.json<ApiResponse>(
+          { success: false, error: 'Guarantor ID does not match selected chama' },
+          { status: 400 }
+        )
+      }
+
+      const guarantorUserId = guarantorId.substring(expectedPrefix.length)
+      if (!guarantorUserId) {
         return NextResponse.json<ApiResponse>(
           { success: false, error: 'Invalid guarantor ID format' },
           { status: 400 }
         )
       }
-
-      const guarantorUserId = parts[1]
       const guarantorUser = await getUserById(guarantorUserId)
       if (!guarantorUser) {
         return NextResponse.json<ApiResponse>(

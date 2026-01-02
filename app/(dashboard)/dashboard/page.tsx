@@ -8,6 +8,8 @@ import { ChamaList } from '@/components/dashboard/chama-list'
 import { ContributionPaymentButtons } from '@/components/dashboard/contribution-payment-buttons'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
 import { LoanFormDrawer } from '@/components/loan/loan-form-drawer'
+import { LoanConfirmationList } from '@/components/loan/loan-confirmation-list'
+import { UserLoanList } from '@/components/loan/user-loan-list'
 import { formatCurrency } from '@/lib/utils/format'
 import type { ChamaWithMember } from '@/lib/db/queries/chamas'
 import type { User } from '@/lib/types/user'
@@ -60,11 +62,60 @@ interface UnconfirmedContribution {
   custom_savings_amount: number | null
 }
 
+interface PendingGuarantorLoan {
+  loanId: string
+  guaranteeId: string
+  loanAmount: number
+  borrowerName: string
+  borrowerPhone: string
+  chamaId: string
+  chamaName: string
+  createdAt: string
+}
+
+interface PendingAdminLoan {
+  loanId: string
+  loanAmount: number
+  borrowerName: string
+  borrowerPhone: string
+  chamaId: string
+  chamaName: string
+  guarantors: Array<{
+    id: string
+    userId: string
+    userName: string
+    status: string
+  }>
+  createdAt: string
+}
+
+interface UserLoan {
+  loanId: string
+  loanAmount: number
+  status: 'pending' | 'approved' | 'active' | 'paid' | 'defaulted' | 'cancelled'
+  chamaId: string
+  chamaName: string
+  guarantors: Array<{
+    id: string
+    userName: string
+    status: string
+  }>
+  amountPaid: number
+  dueDate: string | null
+  approvedAt: string | null
+  disbursedAt: string | null
+  paidAt: string | null
+  createdAt: string
+}
+
 interface DashboardData {
   chamas: ChamaWithMember[]
   pendingContributions?: PendingContribution[]
   unconfirmedContributions?: Record<string, UnconfirmedContribution[]>
   chamaStats?: ChamaStat[]
+  pendingGuarantorLoans?: PendingGuarantorLoan[]
+  pendingAdminLoans?: PendingAdminLoan[]
+  userLoans?: UserLoan[]
   stats: {
     activeChamas: number
     totalReceived: number
@@ -336,34 +387,79 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Loan Request Section */}
-      <div className="mb-6 px-4 md:px-0">
-        <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-4 md:p-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-md">
-                <HandCoins className="h-5 w-5 text-white" />
+      {/* My Loans Section - Show if user has any loans */}
+      {data.userLoans && data.userLoans.length > 0 && (
+        <div className="mb-6 px-4 md:px-0">
+          <div className="mb-3 flex items-center gap-2">
+            <h2 className="text-[8px] md:text-[9px] font-semibold uppercase tracking-wider text-muted-foreground relative">
+              MY LOANS
+              {data.userLoans.length > 0 && (
+                <sup className="ml-0.5 text-[6px] md:text-[7px] font-bold text-primary align-super">
+                  {data.userLoans.length}
+                </sup>
+              )}
+            </h2>
+            <div className="h-px flex-1 bg-gradient-to-r from-muted to-transparent" />
+          </div>
+          <UserLoanList userLoans={data.userLoans} />
+        </div>
+      )}
+
+      {/* Loan Request Section - Only show if user has no pending or active loans */}
+      {(!data.userLoans || 
+        data.userLoans.length === 0 || 
+        !data.userLoans.some(loan => loan.status === 'pending' || loan.status === 'active' || loan.status === 'approved')) && (
+        <div className="mb-6 px-4 md:px-0">
+          <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-4 md:p-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-md">
+                  <HandCoins className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-sm md:text-base font-semibold text-foreground">
+                    Need a Loan?
+                  </h3>
+                  <p className="text-xs md:text-sm text-muted-foreground">
+                    Request a loan based on your savings balance
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-sm md:text-base font-semibold text-foreground">
-                  Need a Loan?
-                </h3>
-                <p className="text-xs md:text-sm text-muted-foreground">
-                  Request a loan based on your savings balance
-                </p>
-              </div>
+              <button
+                onClick={() => setLoanDrawerOpen(true)}
+                className="group relative flex items-center gap-2 overflow-hidden rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
+                <HandCoins className="relative h-4 w-4 transition-transform group-hover:scale-110" />
+                <span className="relative">Request Loan</span>
+              </button>
             </div>
-            <button
-              onClick={() => setLoanDrawerOpen(true)}
-              className="group relative flex items-center gap-2 overflow-hidden rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
-              <HandCoins className="relative h-4 w-4 transition-transform group-hover:scale-110" />
-              <span className="relative">Request Loan</span>
-            </button>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Loan Confirmations Section */}
+      {(data.pendingGuarantorLoans && data.pendingGuarantorLoans.length > 0) ||
+      (data.pendingAdminLoans && data.pendingAdminLoans.length > 0) ? (
+        <div className="mb-6 px-4 md:px-0">
+          <div className="mb-3 flex items-center gap-2">
+            <h2 className="text-[8px] md:text-[9px] font-semibold uppercase tracking-wider text-muted-foreground relative">
+              LOAN REQUESTS
+              {((data.pendingGuarantorLoans?.length || 0) + (data.pendingAdminLoans?.length || 0)) > 0 && (
+                <sup className="ml-0.5 text-[6px] md:text-[7px] font-bold text-primary align-super">
+                  {(data.pendingGuarantorLoans?.length || 0) + (data.pendingAdminLoans?.length || 0)}
+                </sup>
+              )}
+            </h2>
+            <div className="h-px flex-1 bg-gradient-to-r from-muted to-transparent" />
+          </div>
+          <LoanConfirmationList
+            pendingGuarantorLoans={data.pendingGuarantorLoans || []}
+            pendingAdminLoans={data.pendingAdminLoans || []}
+            onUpdate={handleUpdate}
+          />
+        </div>
+      ) : null}
 
       {/* Contributions Section */}
       <div className="mb-6 px-4 md:px-0">

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth/middleware'
 import { getUserChamas } from '@/lib/db/queries/chamas'
+import { getActiveGuaranteesByUser } from '@/lib/db/queries/loans'
+import { getChamaMember } from '@/lib/db/queries/chama-members'
 import db from '@/lib/db/client'
 import type { ApiResponse } from '@/lib/types/api'
 
@@ -18,6 +20,9 @@ export async function GET(request: NextRequest) {
       pendingContributionsResult,
       unconfirmedContributionsResult,
       adminTotalSavingsResult,
+      pendingGuarantorLoansResult,
+      pendingAdminLoansResult,
+      userLoansResult,
     ] = await Promise.all([
       getUserChamas(user.id),
       db.execute({
@@ -127,10 +132,40 @@ export async function GET(request: NextRequest) {
                 AND (ch.chama_type = 'savings' OR ch.chama_type = 'hybrid')`,
         args: [user.id],
       }),
+      // Get pending loan requests where user is a guarantor
+      (async () => {
+        const guarantees = await getActiveGuaranteesByUser(user.id)
+        const pendingGuarantees = guarantees.filter((g) => g.status === 'pending')
+        return { rows: pendingGuarantees }
+      })(),
+      // Get pending loan requests where user is an admin (will process after chamas is available)
+      Promise.resolve({ rows: [] }),
+      // Get user's own loans
+      (async () => {
+        const { getUserLoans } = await import('@/lib/db/queries/loans')
+        const userLoans = await getUserLoans(user.id)
+        return { rows: userLoans }
+      })(),
     ])
 
     const totalReceivedValue = totalContributionsResult.rows[0]?.total
     const totalReceived = totalReceivedValue != null ? Number(totalReceivedValue) : 0
+
+    // Get pending admin loans now that we have chamas
+    const adminChamas = chamas.filter((c: any) => c.member_role === 'admin')
+    let actualPendingAdminLoansResult: { rows: any[] } = { rows: [] }
+    if (adminChamas.length > 0) {
+      const chamaIds = adminChamas.map((c: any) => c.id)
+      const placeholders = chamaIds.map(() => '?').join(',')
+      const result = await db.execute({
+        sql: `SELECT l.* FROM loans l
+              WHERE l.chama_id IN (${placeholders})
+              AND l.status = 'pending'
+              ORDER BY l.created_at DESC`,
+        args: chamaIds,
+      })
+      actualPendingAdminLoansResult = result as { rows: any[] }
+    }
 
     // Calculate total savings collected across all chamas where user is admin
     let adminTotalSavingsCollected = 0
@@ -274,6 +309,99 @@ export async function GET(request: NextRequest) {
       unconfirmedByChama.set(contrib.chama_id, existing)
     })
 
+    // Process pending guarantor loans
+    const { getUserById } = await import('@/lib/db/queries/users')
+    const { getLoanById } = await import('@/lib/db/queries/loans')
+    const { getChamaById } = await import('@/lib/db/queries/chamas')
+    
+    const pendingGuarantorLoans = await Promise.all(
+      (pendingGuarantorLoansResult.rows as any[]).map(async (guarantee: any) => {
+        const loan = await getLoanById(guarantee.loan_id)
+        if (!loan) return null
+
+        const chama = await getChamaById(loan.chama_id)
+        if (!chama) return null
+
+        const borrower = await getUserById(loan.user_id)
+        if (!borrower) return null
+
+        return {
+          loanId: loan.id,
+          guaranteeId: guarantee.id,
+          loanAmount: loan.amount,
+          borrowerName: borrower.full_name,
+          borrowerPhone: borrower.phone_number,
+          chamaId: chama.id,
+          chamaName: chama.name,
+          createdAt: loan.created_at,
+        }
+      })
+    )
+
+    // Process pending admin loans
+    const { getLoanGuarantors } = await import('@/lib/db/queries/loans')
+    const pendingAdminLoans = await Promise.all(
+      (actualPendingAdminLoansResult.rows as any[]).map(async (loan: any) => {
+        const borrower = await getUserById(loan.user_id)
+        const guarantors = await getLoanGuarantors(loan.id)
+        const guarantorDetails = await Promise.all(
+          guarantors.map(async (g) => {
+            const guarantorUser = await getUserById(g.guarantor_user_id)
+            return {
+              id: g.id,
+              userId: g.guarantor_user_id,
+              userName: guarantorUser?.full_name || 'Unknown',
+              status: g.status,
+            }
+          })
+        )
+
+        return {
+          loanId: loan.id,
+          loanAmount: loan.amount,
+          borrowerName: borrower?.full_name || 'Unknown',
+          borrowerPhone: borrower?.phone_number || '',
+          chamaId: loan.chama_id,
+          chamaName: chamas.find((c: any) => c.id === loan.chama_id)?.name || 'Unknown',
+          guarantors: guarantorDetails,
+          createdAt: loan.created_at,
+        }
+      })
+    )
+
+    // Process user's own loans
+    const userLoans = await Promise.all(
+      ((userLoansResult as any).rows || []).map(async (loan: any) => {
+        const chama = chamas.find((c: any) => c.id === loan.chama_id)
+        const guarantors = await getLoanGuarantors(loan.id)
+        const guarantorDetails = await Promise.all(
+          guarantors.map(async (g) => {
+            const guarantorUser = await getUserById(g.guarantor_user_id)
+            return {
+              id: g.id,
+              userName: guarantorUser?.full_name || 'Unknown',
+              status: g.status,
+            }
+          })
+        )
+
+        return {
+          loanId: loan.id,
+          loanAmount: loan.amount,
+          status: loan.status,
+          chamaId: loan.chama_id,
+          chamaName: chama?.name || 'Unknown',
+          guarantors: guarantorDetails,
+          amountPaid: loan.amount_paid || 0,
+          dueDate: loan.due_date,
+          approvedAt: loan.approved_at,
+          disbursedAt: loan.disbursed_at,
+          paidAt: loan.paid_at,
+          createdAt: loan.created_at,
+        }
+      })
+    )
+
     return NextResponse.json<ApiResponse>({
       success: true,
       data: {
@@ -281,6 +409,9 @@ export async function GET(request: NextRequest) {
         pendingContributions,
         unconfirmedContributions: Object.fromEntries(unconfirmedByChama),
         chamaStats,
+        pendingGuarantorLoans: pendingGuarantorLoans.filter((item): item is NonNullable<typeof item> => item !== null),
+        pendingAdminLoans,
+        userLoans,
         stats: {
           activeChamas: chamas.length,
           totalReceived,

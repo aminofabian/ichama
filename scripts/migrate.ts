@@ -98,6 +98,7 @@ async function runMigrations() {
                 errorMsg.includes('already exists') ||
                 errorMsg.includes('duplicate column') ||
                 errorMsg.includes('UNIQUE constraint failed') ||
+                errorMsg.includes('no such column') ||
                 errorCode === 'SQLITE_CONSTRAINT'
               ) {
                 console.log(`  ⚠️  Skipping statement (constraint violation): ${statement.substring(0, 50)}...`)
