@@ -407,7 +407,7 @@ export function LoanConfirmationList({
                       <Button
                         key={rate}
                         type="button"
-                        variant={interestRate === rate.toString() ? 'default' : 'outline'}
+                        variant={interestRate === rate.toString() ? 'primary' : 'outline'}
                         size="sm"
                         onClick={() => setInterestRate(rate.toString())}
                         className="text-xs"
