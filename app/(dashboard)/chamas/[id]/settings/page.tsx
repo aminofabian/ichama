@@ -272,7 +272,7 @@ export default function ChamaSettingsPage() {
                         <Button
                           key={rate}
                           type="button"
-                          variant={defaultInterestRate === rate.toString() ? 'default' : 'outline'}
+                          variant={defaultInterestRate === rate.toString() ? 'primary' : 'outline'}
                           size="sm"
                           onClick={() => setDefaultInterestRate(rate.toString())}
                           className="text-xs"
