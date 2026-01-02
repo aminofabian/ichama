@@ -230,73 +230,6 @@ export function LoanFormDrawer({
 
         <div className="flex-1 overflow-y-auto px-6 pb-6">
           <div className="space-y-6">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">
-                      {selectedChamaId ? 'Your Savings in Selected Chama' : 'Your Total Savings Balance'}
-                    </p>
-                    <p className="text-2xl font-bold text-foreground">
-                      {selectedChamaId
-                        ? formatCurrency(chamaSavingsBalance)
-                        : formatCurrency(savingsBalance)}
-                    </p>
-                    {selectedChamaId && chamaSavingsBalance === 0 && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        No savings in this chama yet
-                      </p>
-                    )}
-                  </div>
-                  <div className="h-px bg-border" />
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">
-                      Base Loan Limit
-                    </p>
-                    {baseLoanLimit > 0 ? (
-                      <div className="flex items-center gap-2">
-                        <p className="text-2xl font-bold text-foreground">
-                          {formatCurrency(baseLoanLimit)}
-                        </p>
-                        <span className="text-xs text-muted-foreground">
-                          (110% of savings)
-                        </span>
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        Minimum savings of {formatCurrency(LOAN_LIMIT_THRESHOLD)} required
-                      </p>
-                    )}
-                  </div>
-                  {selectedGuarantors.size > 0 && (
-                    <>
-                      <div className="h-px bg-border" />
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground mb-1">
-                          Guarantor Contribution
-                        </p>
-                        <p className="text-lg font-semibold text-foreground">
-                          +{formatCurrency(guarantorContribution)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          From {selectedGuarantors.size} guarantor{selectedGuarantors.size > 1 ? 's' : ''}
-                        </p>
-                      </div>
-                      <div className="h-px bg-border" />
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground mb-1">
-                          Total Loan Limit
-                        </p>
-                        <p className="text-2xl font-bold text-primary">
-                          {formatCurrency(totalLoanLimit)}
-                        </p>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
             {chamas.length > 0 && (
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-foreground">
@@ -314,27 +247,75 @@ export function LoanFormDrawer({
                     </option>
                   ))}
                 </select>
+                {!selectedChamaId && (
+                  <p className="text-xs text-muted-foreground">
+                    Please select a chama to see your loan limit
+                  </p>
+                )}
               </div>
             )}
 
-            <div className="space-y-2">
-              <Input
-                label="Loan Amount"
-                type="number"
-                placeholder="Enter amount"
-                value={loanAmount}
-                onChange={(e) => setLoanAmount(e.target.value)}
-                leftIcon={<HandCoins className="h-4 w-4" />}
-                min="0"
-                step="100"
-                disabled={!selectedChamaId}
-              />
-              {requestedAmount > 0 && (
-                <div className="text-xs text-muted-foreground">
-                  You are requesting {formatCurrency(requestedAmount)}
-                </div>
-              )}
-            </div>
+            {selectedChamaId && (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground mb-1">
+                        Your Savings in Selected Chama
+                      </p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {formatCurrency(chamaSavingsBalance)}
+                      </p>
+                      {chamaSavingsBalance === 0 && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          No savings in this chama yet
+                        </p>
+                      )}
+                    </div>
+                    <div className="h-px bg-border" />
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground mb-1">
+                        Loan Limit
+                      </p>
+                      {baseLoanLimit > 0 ? (
+                        <div className="flex items-center gap-2">
+                          <p className="text-2xl font-bold text-foreground">
+                            {formatCurrency(totalLoanLimit)}
+                          </p>
+                          <span className="text-xs text-muted-foreground">
+                            (110% of savings{selectedGuarantors.size > 0 ? ' + guarantors' : ''})
+                          </span>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          Minimum savings of {formatCurrency(LOAN_LIMIT_THRESHOLD)} required
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {selectedChamaId && (
+              <div className="space-y-2">
+                <Input
+                  label="Loan Amount"
+                  type="number"
+                  placeholder="Enter amount"
+                  value={loanAmount}
+                  onChange={(e) => setLoanAmount(e.target.value)}
+                  leftIcon={<HandCoins className="h-4 w-4" />}
+                  min="0"
+                  step="100"
+                />
+                {requestedAmount > 0 && (
+                  <div className="text-xs text-muted-foreground">
+                    You are requesting {formatCurrency(requestedAmount)}
+                  </div>
+                )}
+              </div>
+            )}
 
             {needsGuarantors && (
               <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-900 dark:bg-amber-950/20">
@@ -410,11 +391,6 @@ export function LoanFormDrawer({
                                 <p className="text-xs text-muted-foreground">
                                   {guarantor.userPhone}
                                 </p>
-                                {guarantor.loanLimit > 0 && (
-                                  <p className="text-xs font-medium text-primary mt-1">
-                                    Adds {formatCurrency(guarantor.loanLimit)} to limit
-                                  </p>
-                                )}
                               </div>
                               <div
                                 className={`flex h-6 w-6 items-center justify-center rounded-full border-2 transition-colors ${
