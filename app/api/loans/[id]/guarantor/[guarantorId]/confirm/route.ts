@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/auth/middleware'
 import { getLoanGuarantorById, updateLoanGuarantorStatus, getLoanById, getLoanGuarantors, updateLoanStatus } from '@/lib/db/queries/loans'
 import { notifyUser } from '@/lib/services/notification-service'
 import { formatCurrency } from '@/lib/utils/format'
+import db from '@/lib/db/client'
 import type { ApiResponse } from '@/lib/types/api'
 
 export async function POST(
@@ -67,6 +68,19 @@ export async function POST(
       const allApproved = allGuarantors.every((g) => g.status === 'approved')
 
       if (allApproved) {
+        // Set due date if not already set (30 days from now)
+        let dueDate = loan.due_date
+        if (!dueDate) {
+          const newDueDate = new Date()
+          newDueDate.setDate(newDueDate.getDate() + 30)
+          dueDate = newDueDate.toISOString()
+          
+          await db.execute({
+            sql: `UPDATE loans SET due_date = ?, updated_at = ? WHERE id = ?`,
+            args: [dueDate, new Date().toISOString(), loanId],
+          })
+        }
+
         await updateLoanStatus(loanId, 'approved')
         
         await notifyUser(loan.user_id, 'loan_requested', {

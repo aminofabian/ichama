@@ -4,6 +4,7 @@ import { getLoanById, updateLoanStatus, getLoanGuarantors } from '@/lib/db/queri
 import { getChamaMember } from '@/lib/db/queries/chama-members'
 import { notifyUser } from '@/lib/services/notification-service'
 import { formatCurrency } from '@/lib/utils/format'
+import db from '@/lib/db/client'
 import type { ApiResponse } from '@/lib/types/api'
 
 export async function POST(
@@ -57,7 +58,22 @@ export async function POST(
         )
       }
 
-      await updateLoanStatus(loanId, 'approved', user.id)
+      // Set or update due date when approving (30 days from approval if not already set)
+      let dueDate = loan.due_date
+      if (!dueDate) {
+        const newDueDate = new Date()
+        newDueDate.setDate(newDueDate.getDate() + 30)
+        dueDate = newDueDate.toISOString()
+        
+        // Update loan with due date
+        await db.execute({
+          sql: `UPDATE loans SET due_date = ?, updated_at = ? WHERE id = ?`,
+          args: [dueDate, new Date().toISOString(), loanId],
+        })
+      }
+
+      // When admin approves, set loan to active (disbursed)
+      await updateLoanStatus(loanId, 'active', user.id)
 
       await notifyUser(loan.user_id, 'loan_requested', {
         title: 'Loan Approved',

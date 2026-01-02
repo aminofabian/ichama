@@ -374,6 +374,10 @@ export async function GET(request: NextRequest) {
       ((userLoansResult as any).rows || []).map(async (loan: any) => {
         const chama = chamas.find((c: any) => c.id === loan.chama_id)
         const guarantors = await getLoanGuarantors(loan.id)
+        const { getLoanPayments } = await import('@/lib/db/queries/loans')
+        const allPayments = await getLoanPayments(loan.id)
+        const pendingPayments = allPayments.filter(p => p.status === 'pending')
+        
         const guarantorDetails = await Promise.all(
           guarantors.map(async (g) => {
             const guarantorUser = await getUserById(g.guarantor_user_id)
@@ -398,6 +402,11 @@ export async function GET(request: NextRequest) {
           disbursedAt: loan.disbursed_at,
           paidAt: loan.paid_at,
           createdAt: loan.created_at,
+          pendingPayments: pendingPayments.map(p => ({
+            paymentId: p.id,
+            amount: p.amount,
+            createdAt: p.created_at,
+          })),
         }
       })
     )

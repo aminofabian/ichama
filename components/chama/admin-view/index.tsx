@@ -4,6 +4,7 @@ import { AdminActions } from './admin-actions'
 import { QuickStats } from './quick-stats'
 import { MemberList } from '../member-list'
 import { CyclesList } from '../cycles-list'
+import { LoansSection } from '../loans-section'
 import type { Chama, ChamaMember } from '@/lib/types/chama'
 import type { Cycle, CycleMember } from '@/lib/types/cycle'
 import type { User } from '@/lib/types/user'
@@ -53,6 +54,8 @@ export function AdminView({
         pendingCycle={pendingCycle}
         pendingCycleMembers={pendingCycleMembers}
       />
+
+      <LoansSection chamaId={chama.id} />
 
       <CyclesList cycles={cycles} chamaId={chama.id} isAdmin={true} />
 

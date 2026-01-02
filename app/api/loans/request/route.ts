@@ -186,10 +186,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Calculate default due date: 30 days from now (or can be customized)
+    const defaultRepaymentDays = 30
+    const dueDate = new Date()
+    dueDate.setDate(dueDate.getDate() + defaultRepaymentDays)
+
     const loan = await createLoan({
       user_id: user.id,
       chama_id: chamaId,
       amount,
+      repayment_period_days: defaultRepaymentDays,
+      due_date: dueDate.toISOString(),
       notes: `Loan request with ${guarantorIds.length} guarantor${guarantorIds.length > 1 ? 's' : ''}`,
     })
 

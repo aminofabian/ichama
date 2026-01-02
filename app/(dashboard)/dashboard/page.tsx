@@ -401,7 +401,7 @@ export default function DashboardPage() {
             </h2>
             <div className="h-px flex-1 bg-gradient-to-r from-muted to-transparent" />
           </div>
-          <UserLoanList userLoans={data.userLoans} />
+          <UserLoanList userLoans={data.userLoans} onUpdate={handleUpdate} />
         </div>
       )}
 

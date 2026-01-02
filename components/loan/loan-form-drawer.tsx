@@ -14,7 +14,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
-import { formatCurrency } from '@/lib/utils/format'
+import { formatCurrency, formatDate } from '@/lib/utils/format'
+import { Calendar } from 'lucide-react'
 
 interface Guarantor {
   id: string
@@ -65,6 +66,15 @@ export function LoanFormDrawer({
 
   const baseLoanLimit = calculateLoanLimit(chamaSavingsBalance)
   const requestedAmount = parseFloat(loanAmount) || 0
+
+  // Calculate due date (30 days from now)
+  const calculateDueDate = () => {
+    const dueDate = new Date()
+    dueDate.setDate(dueDate.getDate() + 30)
+    return dueDate
+  }
+
+  const dueDate = requestedAmount > 0 ? calculateDueDate() : null
 
   const selectedGuarantorList = Array.from(selectedGuarantors)
     .map((id) => guarantors.find((g) => g.id === id))
@@ -310,8 +320,26 @@ export function LoanFormDrawer({
                   step="100"
                 />
                 {requestedAmount > 0 && (
-                  <div className="text-xs text-muted-foreground">
-                    You are requesting {formatCurrency(requestedAmount)}
+                  <div className="space-y-2">
+                    <div className="text-xs text-muted-foreground">
+                      You are requesting {formatCurrency(requestedAmount)}
+                    </div>
+                    {dueDate && (
+                      <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-950/20 px-3 py-2">
+                        <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-xs font-medium text-blue-900 dark:text-blue-100">
+                            Expected Due Date
+                          </p>
+                          <p className="text-sm font-semibold text-blue-800 dark:text-blue-200">
+                            {formatDate(dueDate.toISOString())}
+                          </p>
+                          <p className="text-xs text-blue-700 dark:text-blue-300 mt-0.5">
+                            (30 days from approval)
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
