@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Modal, ModalContent, ModalHeader, ModalTitle, ModalDescription, ModalClose, ModalFooter } from '@/components/ui/modal'
 import { useToast } from '@/components/ui/toast'
 import { formatCurrency } from '@/lib/utils/format'
 import { formatDate } from '@/lib/utils/format'
@@ -100,6 +101,10 @@ export function LoansSection({ chamaId }: LoansSectionProps) {
   const [paymentNotes, setPaymentNotes] = useState('')
   const [processingPayment, setProcessingPayment] = useState(false)
   const [processingPaymentId, setProcessingPaymentId] = useState<string | null>(null)
+  const [processingLoanId, setProcessingLoanId] = useState<string | null>(null)
+  const [interestModalOpen, setInterestModalOpen] = useState(false)
+  const [selectedLoanForApproval, setSelectedLoanForApproval] = useState<{ loanId: string; loanAmount: number } | null>(null)
+  const [interestRate, setInterestRate] = useState('0')
 
   useEffect(() => {
     fetchLoans()
@@ -208,6 +213,58 @@ export function LoansSection({ chamaId }: LoansSectionProps) {
     } finally {
       setProcessingPaymentId(null)
     }
+  }
+
+  const handleApproveLoan = async (loanId: string, action: 'approve' | 'reject', interestRateValue?: number) => {
+    try {
+      setProcessingLoanId(loanId)
+      const response = await fetch(`/api/loans/${loanId}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action,
+          interestRate: action === 'approve' && interestRateValue !== undefined ? interestRateValue : undefined,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || `Failed to ${action} loan`)
+      }
+
+      addToast({
+        variant: 'success',
+        title: `Loan ${action === 'approve' ? 'Approved' : 'Rejected'}`,
+        description: action === 'approve' 
+          ? `Loan approved with ${interestRateValue || 0}% interest rate`
+          : 'Loan has been rejected',
+      })
+
+      setInterestModalOpen(false)
+      setSelectedLoanForApproval(null)
+      setInterestRate('0')
+
+      // Refresh loans
+      await fetchLoans()
+    } catch (err) {
+      addToast({
+        variant: 'error',
+        title: 'Action Failed',
+        description: err instanceof Error ? err.message : `Failed to ${action} loan`,
+      })
+    } finally {
+      setProcessingLoanId(null)
+    }
+  }
+
+  const openInterestModal = (loanId: string, loanAmount: number) => {
+    setSelectedLoanForApproval({ loanId, loanAmount })
+    setInterestModalOpen(true)
+  }
+
+  const calculateTotalWithInterest = (principal: number, rate: number): number => {
+    return principal + (principal * rate / 100)
   }
 
   if (loading) {
@@ -509,7 +566,8 @@ export function LoansSection({ chamaId }: LoansSectionProps) {
           </Button>
         </div>
 
-        <div className="space-y-3">
+        {/* Mobile View - Cards */}
+        <div className="block md:hidden space-y-3">
           {loans.map((loan) => {
             const dueDateStatus = calculateDueDateStatus(loan.dueDate)
             const showDueDate = loan.status === 'active' || loan.status === 'approved'
@@ -664,6 +722,62 @@ export function LoansSection({ chamaId }: LoansSectionProps) {
                 </div>
                 </div>
 
+                {/* Approve/Reject Loan Button for Pending Loans */}
+                {loan.status === 'pending' && (() => {
+                  const hasGuarantors = loan.guarantors.length > 0
+                  const allGuarantorsApproved = hasGuarantors && loan.guarantors.every((g) => g.status === 'approved')
+                  const pendingGuarantors = loan.guarantors.filter((g) => g.status === 'pending')
+                  
+                  // Show approve/reject if: no guarantors OR all guarantors approved
+                  if (!hasGuarantors || allGuarantorsApproved) {
+                    return (
+                      <div className="pt-2 border-t">
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleApproveLoan(loan.loanId, 'reject')}
+                            disabled={processingLoanId === loan.loanId}
+                            className="flex-1"
+                          >
+                            {processingLoanId === loan.loanId ? (
+                              <>
+                                <LoadingSpinner size="sm" />
+                                <span className="ml-2">Processing...</span>
+                              </>
+                            ) : (
+                              <>
+                                <XCircle className="h-3.5 w-3.5 mr-1" />
+                                Reject
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => openInterestModal(loan.loanId, loan.loanAmount)}
+                            disabled={processingLoanId === loan.loanId}
+                            className="flex-1"
+                          >
+                            <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                            Approve
+                          </Button>
+                        </div>
+                      </div>
+                    )
+                  } else {
+                    return (
+                      <div className="pt-2 border-t">
+                        <div className="flex items-center gap-2 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 px-3 py-2">
+                          <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                          <p className="text-xs text-yellow-800 dark:text-yellow-300">
+                            Waiting for {pendingGuarantors.length} guarantor{pendingGuarantors.length !== 1 ? 's' : ''} to approve
+                          </p>
+                        </div>
+                      </div>
+                    )
+                  }
+                })()}
+
                 {/* Record Payment Button */}
                 {(loan.status === 'active' || loan.status === 'approved') && (
                   <div className="pt-2 border-t">
@@ -812,6 +926,444 @@ export function LoansSection({ chamaId }: LoansSectionProps) {
             )
           })}
         </div>
+
+        {/* Desktop View - Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <div className="border border-border rounded-lg bg-card shadow-sm">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-muted/50 border-b-2 border-border">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-foreground/70 uppercase tracking-wide border-r border-border/50">
+                    Borrower
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-foreground/70 uppercase tracking-wide border-r border-border/50">
+                    Principal
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-foreground/70 uppercase tracking-wide border-r border-border/50">
+                    Interest
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-foreground/70 uppercase tracking-wide border-r border-border/50">
+                    Total
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-foreground/70 uppercase tracking-wide border-r border-border/50">
+                    Paid
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-foreground/70 uppercase tracking-wide border-r border-border/50">
+                    Remaining
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-foreground/70 uppercase tracking-wide border-r border-border/50">
+                    Due Date
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-foreground/70 uppercase tracking-wide border-r border-border/50">
+                    Actions
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-foreground/70 uppercase tracking-wide">
+                    Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {loans.map((loan, index) => {
+                  const dueDateStatus = calculateDueDateStatus(loan.dueDate)
+                  const showDueDate = loan.status === 'active' || loan.status === 'approved'
+                  const isOverdue = dueDateStatus.isOverdue && showDueDate
+                  const breakdown = calculateLoanBreakdown(
+                    loan.loanAmount,
+                    loan.interestRate,
+                    loan.amountPaid,
+                    loan.dueDate
+                  )
+
+                  return (
+                    <tr
+                      key={loan.loanId}
+                      className={`border-b border-border/50 transition-colors ${
+                        isOverdue
+                          ? 'bg-red-50/30 dark:bg-red-950/10'
+                          : dueDateStatus.urgency === 'soon' && showDueDate
+                          ? 'bg-amber-50/30 dark:bg-amber-950/10'
+                          : index % 2 === 0
+                          ? 'bg-card'
+                          : 'bg-muted/20'
+                      } hover:bg-muted/40`}
+                    >
+                      <td className="px-4 py-3 border-r border-border/50">
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <p className="font-medium text-sm text-foreground">{loan.borrowerName}</p>
+                            {loan.guarantors.length > 0 && (
+                              <p className="text-xs text-muted-foreground">
+                                {loan.guarantors.length} guarantor{loan.guarantors.length > 1 ? 's' : ''}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-right border-r border-border/50">
+                        <div className="flex flex-col items-end gap-1">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <span className="text-xs font-medium text-foreground">
+                              {formatCurrency(breakdown.principal)}
+                            </span>
+                            {loan.interestRate > 0 && (
+                              <Badge className={`text-[10px] flex items-center gap-0.5 px-1.5 py-0.5 ${
+                                loan.interestRate > 0 
+                                  ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' 
+                                  : 'bg-muted text-muted-foreground'
+                              }`}>
+                                <Percent className="h-2.5 w-2.5" />
+                                {loan.interestRate}%
+                              </Badge>
+                            )}
+                          </div>
+                          {breakdown.penaltyInterest > 0 && (
+                            <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 text-[10px] flex items-center gap-0.5 px-1.5 py-0.5">
+                              <AlertCircle className="h-2.5 w-2.5" />
+                              +{formatCurrency(breakdown.penaltyInterest)}
+                            </Badge>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-right border-r border-border/50">
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="text-xs font-medium text-foreground">
+                            {formatCurrency(breakdown.originalInterest)}
+                          </span>
+                          {breakdown.penaltyInterest > 0 && (
+                            <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 text-[10px] px-1.5 py-0.5">
+                              +{formatCurrency(breakdown.penaltyInterest)}
+                            </Badge>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-right border-r border-border/50">
+                        <span className={`text-xs font-semibold ${
+                          breakdown.penaltyInterest > 0 
+                            ? 'text-red-600 dark:text-red-400' 
+                            : 'text-foreground'
+                        }`}>
+                          {formatCurrency(breakdown.penaltyInterest > 0 ? breakdown.totalWithPenalty : breakdown.originalTotal)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right border-r border-border/50">
+                        <span className="text-xs font-medium text-green-600 dark:text-green-400">
+                          {formatCurrency(loan.amountPaid)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right border-r border-border/50">
+                        <span className={`text-xs font-medium ${
+                          breakdown.totalOutstanding > 0
+                            ? 'text-foreground'
+                            : 'text-muted-foreground'
+                        }`}>
+                          {formatCurrency(breakdown.totalOutstanding)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 border-r border-border/50">
+                        {loan.dueDate ? (
+                          <div className="flex items-center gap-1.5">
+                            <Calendar className={`h-3.5 w-3.5 ${
+                              isOverdue
+                                ? 'text-red-600 dark:text-red-400'
+                                : dueDateStatus.urgency === 'soon'
+                                ? 'text-amber-600 dark:text-amber-400'
+                                : 'text-muted-foreground'
+                            }`} />
+                            <span className={`text-xs ${
+                              isOverdue
+                                ? 'text-red-600 dark:text-red-400 font-semibold'
+                                : dueDateStatus.urgency === 'soon'
+                                ? 'text-amber-600 dark:text-amber-400 font-medium'
+                                : 'text-muted-foreground'
+                            }`}>
+                              {!isOverdue ? (
+                                dueDateStatus.daysUntil === 0
+                                  ? 'Due today'
+                                  : `${dueDateStatus.daysUntil} day${dueDateStatus.daysUntil === 1 ? '' : 's'}`
+                              ) : (
+                                dueDateStatus.message
+                              )}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center border-r border-border/50">
+                        <div className="flex flex-col items-center gap-2">
+                          {loan.status === 'pending' && (() => {
+                            const hasGuarantors = loan.guarantors && loan.guarantors.length > 0
+                            const allGuarantorsApproved = hasGuarantors ? loan.guarantors.every((g) => g.status === 'approved') : true
+                            const pendingGuarantors = hasGuarantors ? loan.guarantors.filter((g) => g.status === 'pending') : []
+                            
+                            // Show approve/reject if: no guarantors OR all guarantors approved
+                            if (!hasGuarantors || allGuarantorsApproved) {
+                              return (
+                                <div className="flex gap-1.5">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleApproveLoan(loan.loanId, 'reject')}
+                                    disabled={processingLoanId === loan.loanId}
+                                    className="h-7 text-xs font-medium px-2 whitespace-nowrap"
+                                  >
+                                    {processingLoanId === loan.loanId ? (
+                                      <LoadingSpinner size="sm" />
+                                    ) : (
+                                      <>
+                                        <XCircle className="h-3 w-3 mr-1" />
+                                        Reject
+                                      </>
+                                    )}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => openInterestModal(loan.loanId, loan.loanAmount)}
+                                    disabled={processingLoanId === loan.loanId}
+                                    className="h-7 text-xs font-medium px-2 whitespace-nowrap"
+                                  >
+                                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                                    Approve
+                                  </Button>
+                                </div>
+                              )
+                            } else {
+                              return (
+                                <div className="text-center">
+                                  <Badge className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300 text-xs px-2 py-0.5">
+                                    {pendingGuarantors.length} guarantor{pendingGuarantors.length !== 1 ? 's' : ''} pending
+                                  </Badge>
+                                </div>
+                              )
+                            }
+                          })()}
+                          {(loan.status === 'active' || loan.status === 'approved') && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setSelectedLoanId(loan.loanId)}
+                                className="h-7 text-xs font-medium px-2 whitespace-nowrap"
+                              >
+                                <Plus className="h-3 w-3 mr-1" />
+                                Record
+                              </Button>
+                              {loan.pendingPayments && loan.pendingPayments.length > 0 && (
+                                <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 text-xs px-2 py-0.5">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  {loan.pendingPayments.length} pending
+                                </Badge>
+                              )}
+                            </>
+                          )}
+                          {loan.status !== 'pending' && loan.status !== 'active' && loan.status !== 'approved' && (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          {getStatusIcon(loan.status)}
+                          {getStatusBadge(loan.status)}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Payment Modal/Form for Desktop */}
+        {selectedLoanId && (
+          <div className="hidden md:block mt-4 p-4 border rounded-lg bg-muted/20">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-semibold">Record Payment</h4>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    setSelectedLoanId(null)
+                    setPaymentAmount('')
+                    setPaymentNotes('')
+                  }}
+                >
+                  <XCircle className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-foreground">
+                    Payment Amount (KES)
+                  </label>
+                  <Input
+                    type="number"
+                    placeholder="Enter amount"
+                    value={paymentAmount}
+                    onChange={(e) => setPaymentAmount(e.target.value)}
+                    min="0"
+                    step="100"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-foreground">
+                    Notes (Optional)
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="Payment notes"
+                    value={paymentNotes}
+                    onChange={(e) => setPaymentNotes(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => selectedLoanId && handlePaymentSubmit(selectedLoanId)}
+                  disabled={processingPayment || !paymentAmount}
+                  className="flex-1"
+                >
+                  {processingPayment ? (
+                    <>
+                      <LoadingSpinner size="sm" />
+                      <span className="ml-2">Recording...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="h-3.5 w-3.5 mr-1" />
+                      Record Payment
+                    </>
+                  )}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedLoanId(null)
+                    setPaymentAmount('')
+                    setPaymentNotes('')
+                  }}
+                  disabled={processingPayment}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Interest Rate Modal for Loan Approval */}
+        <Modal open={interestModalOpen} onOpenChange={setInterestModalOpen}>
+          <ModalContent className="max-w-md">
+            <ModalClose onClose={() => {
+              setInterestModalOpen(false)
+              setSelectedLoanForApproval(null)
+              setInterestRate('0')
+            }} />
+            <ModalHeader>
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-purple-600">
+                  <Percent className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <ModalTitle>Set Interest Rate</ModalTitle>
+                  <ModalDescription>
+                    Set the interest rate for this loan of {selectedLoanForApproval ? formatCurrency(selectedLoanForApproval.loanAmount) : '0'}.
+                  </ModalDescription>
+                </div>
+              </div>
+            </ModalHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label htmlFor="interestRate" className="text-sm font-medium text-foreground">
+                  Interest Rate (%)
+                </label>
+                <Input
+                  id="interestRate"
+                  type="number"
+                  placeholder="e.g., 5"
+                  value={interestRate}
+                  onChange={(e) => {
+                    const value = e.target.value
+                    if (value === '' || (parseFloat(value) >= 0 && parseFloat(value) <= 100)) {
+                      setInterestRate(value)
+                    }
+                  }}
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  className="h-10 text-base"
+                />
+              </div>
+              <div className="flex gap-2">
+                {[0, 5, 10, 15].map((rate) => (
+                  <Button
+                    key={rate}
+                    variant={interestRate === rate.toString() ? 'primary' : 'outline'}
+                    onClick={() => setInterestRate(rate.toString())}
+                    size="sm"
+                    className="flex-1"
+                  >
+                    {rate}%
+                  </Button>
+                ))}
+              </div>
+              {selectedLoanForApproval && interestRate && parseFloat(interestRate) > 0 && (
+                <Card className="bg-purple-50/50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900">
+                  <CardContent className="pt-4">
+                    <p className="text-sm font-medium text-purple-900 dark:text-purple-100 mb-2">
+                      Loan Summary
+                    </p>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Principal:</span>
+                        <span className="font-medium">{formatCurrency(selectedLoanForApproval.loanAmount)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Interest ({interestRate}%):</span>
+                        <span className="font-medium">{formatCurrency(selectedLoanForApproval.loanAmount * parseFloat(interestRate) / 100)}</span>
+                      </div>
+                      <div className="flex justify-between font-semibold text-base pt-2 border-t border-purple-200 dark:border-purple-800">
+                        <span>Total to Repay:</span>
+                        <span className="text-purple-600 dark:text-purple-400">{formatCurrency(calculateTotalWithInterest(selectedLoanForApproval.loanAmount, parseFloat(interestRate)))}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+            <ModalFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setInterestModalOpen(false)
+                  setSelectedLoanForApproval(null)
+                  setInterestRate('0')
+                }}
+                disabled={processingLoanId !== null}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  if (selectedLoanForApproval) {
+                    handleApproveLoan(selectedLoanForApproval.loanId, 'approve', parseFloat(interestRate || '0'))
+                  }
+                }}
+                disabled={processingLoanId !== null || interestRate === '' || parseFloat(interestRate) < 0 || parseFloat(interestRate) > 100}
+                loading={processingLoanId !== null}
+                className="bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800"
+              >
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                Approve Loan
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
       </CardContent>
     </Card>
   )
