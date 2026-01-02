@@ -57,12 +57,13 @@ export function LoanFormDrawer({
 }: LoanFormDrawerProps) {
   const [loanAmount, setLoanAmount] = useState('')
   const [selectedChamaId, setSelectedChamaId] = useState('')
+  const [chamaSavingsBalance, setChamaSavingsBalance] = useState(0)
   const [guarantors, setGuarantors] = useState<Guarantor[]>([])
   const [selectedGuarantors, setSelectedGuarantors] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const baseLoanLimit = calculateLoanLimit(savingsBalance)
+  const baseLoanLimit = calculateLoanLimit(chamaSavingsBalance)
   const requestedAmount = parseFloat(loanAmount) || 0
 
   const selectedGuarantorList = Array.from(selectedGuarantors)
@@ -86,15 +87,36 @@ export function LoanFormDrawer({
     : 0
 
   useEffect(() => {
-    if (open) {
+    if (open && selectedChamaId) {
+      fetchChamaSavings()
       fetchGuarantors()
+    } else if (open && !selectedChamaId) {
+      setChamaSavingsBalance(0)
+      setGuarantors([])
     }
-  }, [open])
+  }, [open, selectedChamaId])
+
+  const fetchChamaSavings = async () => {
+    if (!selectedChamaId) return
+
+    try {
+      const response = await fetch(`/api/loans/chama-savings?chamaId=${selectedChamaId}`)
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        setChamaSavingsBalance(result.data.savingsBalance || 0)
+      }
+    } catch (err) {
+      console.error('Failed to fetch chama savings:', err)
+    }
+  }
 
   const fetchGuarantors = async () => {
+    if (!selectedChamaId) return
+
     try {
       setLoading(true)
-      const response = await fetch('/api/loans/guarantors')
+      const response = await fetch(`/api/loans/guarantors?chamaId=${selectedChamaId}`)
       const result = await response.json()
 
       if (!response.ok || !result.success) {
@@ -182,6 +204,7 @@ export function LoanFormDrawer({
   const handleClose = () => {
     setLoanAmount('')
     setSelectedChamaId('')
+    setChamaSavingsBalance(0)
     setSelectedGuarantors(new Set())
     setError(null)
     onOpenChange(false)
@@ -212,11 +235,18 @@ export function LoanFormDrawer({
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-1">
-                      Your Savings Balance
+                      {selectedChamaId ? 'Your Savings in Selected Chama' : 'Your Total Savings Balance'}
                     </p>
                     <p className="text-2xl font-bold text-foreground">
-                      {formatCurrency(savingsBalance)}
+                      {selectedChamaId
+                        ? formatCurrency(chamaSavingsBalance)
+                        : formatCurrency(savingsBalance)}
                     </p>
+                    {selectedChamaId && chamaSavingsBalance === 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        No savings in this chama yet
+                      </p>
+                    )}
                   </div>
                   <div className="h-px bg-border" />
                   <div>

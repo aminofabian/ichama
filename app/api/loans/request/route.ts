@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth/middleware'
-import { getSavingsAccount } from '@/lib/db/queries/savings'
+import { getUserSavingsForChama } from '@/lib/db/queries/savings'
 import { getActiveGuaranteesByUser, getActiveLoansByUser } from '@/lib/db/queries/loans'
 import { createLoan, addLoanGuarantor } from '@/lib/db/queries/loans'
 import { getUserById } from '@/lib/db/queries/users'
@@ -75,19 +75,19 @@ export async function POST(request: NextRequest) {
     }
 
     const activeLoans = await getActiveLoansByUser(user.id)
-    if (activeLoans.length > 0) {
+    const activeLoanInChama = activeLoans.find((loan) => loan.chama_id === chamaId)
+    if (activeLoanInChama) {
       return NextResponse.json<ApiResponse>(
         {
           success: false,
-          error: 'You already have an active loan. Please pay it off before requesting a new one.',
+          error: 'You already have an active loan in this chama. Please pay it off before requesting a new one.',
         },
         { status: 400 }
       )
     }
 
-    const savingsAccount = await getSavingsAccount(user.id)
-    const savingsBalance = savingsAccount?.balance || 0
-    const baseLoanLimit = calculateLoanLimit(savingsBalance)
+    const chamaSavingsBalance = await getUserSavingsForChama(user.id, chamaId)
+    const baseLoanLimit = calculateLoanLimit(chamaSavingsBalance)
 
     if (baseLoanLimit === 0) {
       return NextResponse.json<ApiResponse>(
@@ -133,6 +133,17 @@ export async function POST(request: NextRequest) {
         )
       }
 
+      const guarantorMember = await getChamaMember(chamaId, guarantorUserId)
+      if (!guarantorMember) {
+        return NextResponse.json<ApiResponse>(
+          {
+            success: false,
+            error: `${guarantorUser.full_name} is not a member of this chama`,
+          },
+          { status: 400 }
+        )
+      }
+
       const guarantorGuarantees = await getActiveGuaranteesByUser(guarantorUserId)
       if (guarantorGuarantees.length > 0) {
         return NextResponse.json<ApiResponse>(
@@ -144,9 +155,8 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const guarantorSavings = await getSavingsAccount(guarantorUserId)
-      const guarantorSavingsBalance = guarantorSavings?.balance || 0
-      const guarantorLoanLimit = calculateLoanLimit(guarantorSavingsBalance)
+      const guarantorChamaSavings = await getUserSavingsForChama(guarantorUserId, chamaId)
+      const guarantorLoanLimit = calculateLoanLimit(guarantorChamaSavings)
       guarantorContribution += guarantorLoanLimit
       guarantorUserIds.push(guarantorUserId)
     }

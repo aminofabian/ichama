@@ -87,10 +87,10 @@ async function runMigrations() {
       console.log(`Running migration: ${file} (${statements.length} statements)`)
 
       try {
-        for (const statement of statements) {
-          if (statement.trim()) {
+      for (const statement of statements) {
+        if (statement.trim()) {
             try {
-              await db.execute(statement)
+          await db.execute(statement)
             } catch (stmtError: any) {
               const errorMsg = stmtError.message || ''
               const errorCode = stmtError.code || ''

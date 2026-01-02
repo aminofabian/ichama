@@ -143,3 +143,53 @@ export async function getSavingsTransactionByReference(
 
   return result.rows[0] as unknown as SavingsTransaction
 }
+
+export async function getUserSavingsForChama(
+  userId: string,
+  chamaId: string
+): Promise<number> {
+  const result = await db.execute({
+    sql: `SELECT 
+            ch.id as chama_id,
+            ch.chama_type,
+            c.amount_paid,
+            cy.payout_amount,
+            cy.service_fee,
+            COALESCE(cm.custom_savings_amount, cy.savings_amount) as member_savings_amount
+          FROM contributions c
+          INNER JOIN cycles cy ON c.cycle_id = cy.id
+          INNER JOIN chamas ch ON cy.chama_id = ch.id
+          LEFT JOIN cycle_members cm ON c.cycle_member_id = cm.id
+          WHERE c.user_id = ? 
+            AND c.status = 'confirmed'
+            AND ch.id = ?`,
+    args: [userId, chamaId],
+  })
+
+  let totalSavings = 0
+
+  result.rows.forEach((row: any) => {
+    const chamaType = row.chama_type
+    const amountPaid = Number(row.amount_paid) || 0
+    const payoutAmount = Number(row.payout_amount) || 0
+    const serviceFee = Number(row.service_fee) || 0
+    const memberSavingsAmount = Number(row.member_savings_amount) || 0
+
+    const amountAfterFee = Math.max(0, amountPaid - serviceFee)
+
+    if (chamaType === 'savings' || chamaType === 'hybrid') {
+      let savingsAmount = 0
+
+      if (chamaType === 'savings') {
+        savingsAmount = amountAfterFee
+      } else if (chamaType === 'hybrid') {
+        const savingsFromPayment = Math.max(0, amountAfterFee - payoutAmount)
+        savingsAmount = Math.min(memberSavingsAmount, savingsFromPayment)
+      }
+
+      totalSavings += savingsAmount
+    }
+  })
+
+  return totalSavings
+}
