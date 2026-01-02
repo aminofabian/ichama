@@ -50,6 +50,17 @@ function calculateLoanLimit(savings: number): number {
   return 0
 }
 
+interface ActiveGuarantee {
+  loanId: string
+  borrowerName: string
+  borrowerPhone: string
+  chamaName: string
+  loanAmount: number
+  amountPaid: number
+  remainingAmount: number
+  loanStatus: string
+}
+
 export function LoanFormDrawer({
   open,
   onOpenChange,
@@ -63,6 +74,8 @@ export function LoanFormDrawer({
   const [selectedGuarantors, setSelectedGuarantors] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [activeGuarantees, setActiveGuarantees] = useState<ActiveGuarantee[]>([])
+  const [checkingGuarantees, setCheckingGuarantees] = useState(false)
 
   const baseLoanLimit = calculateLoanLimit(chamaSavingsBalance)
   const requestedAmount = parseFloat(loanAmount) || 0
@@ -97,6 +110,16 @@ export function LoanFormDrawer({
     : 0
 
   useEffect(() => {
+    if (open) {
+      checkActiveGuarantees()
+    } else {
+      setActiveGuarantees([])
+      setChamaSavingsBalance(0)
+      setGuarantors([])
+    }
+  }, [open])
+
+  useEffect(() => {
     if (open && selectedChamaId) {
       fetchChamaSavings()
       fetchGuarantors()
@@ -105,6 +128,22 @@ export function LoanFormDrawer({
       setGuarantors([])
     }
   }, [open, selectedChamaId])
+
+  const checkActiveGuarantees = async () => {
+    try {
+      setCheckingGuarantees(true)
+      const response = await fetch('/api/loans/check-guarantees')
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        setActiveGuarantees(result.data.guarantees || [])
+      }
+    } catch (err) {
+      console.error('Failed to check active guarantees:', err)
+    } finally {
+      setCheckingGuarantees(false)
+    }
+  }
 
   const fetchChamaSavings = async () => {
     if (!selectedChamaId) return
@@ -240,6 +279,56 @@ export function LoanFormDrawer({
 
         <div className="flex-1 overflow-y-auto px-6 pb-6">
           <div className="space-y-6">
+            {/* Active Guarantees Warning */}
+            {activeGuarantees.length > 0 && (
+              <div className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:border-amber-900 dark:bg-amber-950/30 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500">
+                    <AlertCircle className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">
+                      Cannot Request Loan
+                    </p>
+                    <p className="text-sm text-amber-800 dark:text-amber-200">
+                      You cannot request a loan because you are a guarantor for the following loan{activeGuarantees.length > 1 ? 's' : ''} that {activeGuarantees.length > 1 ? 'have' : 'has'} not been fully paid:
+                    </p>
+                    <div className="space-y-2 mt-3">
+                      {activeGuarantees.map((guarantee) => (
+                        <div
+                          key={guarantee.loanId}
+                          className="rounded-lg border border-amber-300 bg-white/50 dark:border-amber-800 dark:bg-amber-950/20 p-3"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1">
+                              <p className="text-sm font-semibold text-foreground">
+                                {guarantee.borrowerName}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {guarantee.chamaName}
+                              </p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-xs text-muted-foreground">
+                                  Loan: {formatCurrency(guarantee.loanAmount)}
+                                </span>
+                                <span className="text-xs text-muted-foreground">•</span>
+                                <span className="text-xs text-amber-700 dark:text-amber-300 font-medium">
+                                  Remaining: {formatCurrency(guarantee.remainingAmount)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-amber-700 dark:text-amber-300 mt-2 font-medium">
+                      Please wait until these loans are fully paid before requesting a new loan.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {chamas.length > 0 && (
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-foreground">
@@ -265,7 +354,7 @@ export function LoanFormDrawer({
               </div>
             )}
 
-            {selectedChamaId && (
+            {selectedChamaId && activeGuarantees.length === 0 && (
               <Card>
                 <CardContent className="pt-6">
                   <div className="space-y-4">
@@ -307,7 +396,7 @@ export function LoanFormDrawer({
               </Card>
             )}
 
-            {selectedChamaId && (
+            {selectedChamaId && activeGuarantees.length === 0 && (
               <div className="space-y-2">
                 <Input
                   label="Loan Amount"
@@ -345,7 +434,7 @@ export function LoanFormDrawer({
               </div>
             )}
 
-            {needsGuarantors && (
+            {needsGuarantors && activeGuarantees.length === 0 && (
               <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-900 dark:bg-amber-950/20">
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-3">
@@ -372,7 +461,7 @@ export function LoanFormDrawer({
               </Card>
             )}
 
-            {(needsGuarantors || selectedGuarantors.size > 0) && (
+            {(needsGuarantors || selectedGuarantors.size > 0) && activeGuarantees.length === 0 && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-muted-foreground" />
@@ -455,7 +544,7 @@ export function LoanFormDrawer({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={loading || !loanAmount || requestedAmount <= 0}
+            disabled={loading || !loanAmount || requestedAmount <= 0 || activeGuarantees.length > 0}
             loading={loading}
           >
             Request Loan

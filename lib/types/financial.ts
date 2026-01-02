@@ -94,5 +94,9 @@ export interface LoanPayment {
   reference_id: string | null
   notes: string | null
   created_at: string
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled'
+  recorded_by: string | null
+  approved_by: string | null
+  approved_at: string | null
 }
 
