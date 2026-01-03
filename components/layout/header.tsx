@@ -17,32 +17,53 @@ export interface HeaderProps {
 
 export function Header({ user }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
+  const [scrolled, setScrolled] = React.useState(false)
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background">
-      <div className="container flex h-16 items-center justify-between px-4">
-        <Link href="/" className="flex items-center space-x-2">
-          <span className="text-xl font-bold">Merry</span>
+    <header className={cn(
+      "sticky top-0 z-40 w-full transition-all duration-300",
+      scrolled ? "border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-md" : "bg-transparent"
+    )}>
+      <div className="container flex h-20 items-center justify-between px-4">
+        <Link href="/" className="flex items-center space-x-2 group">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/60 shadow-lg group-hover:scale-110 transition-transform duration-300">
+            <span className="text-xl font-bold text-white">M</span>
+          </div>
+          <span className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">Merry</span>
         </Link>
 
-        <nav className="hidden md:flex md:items-center md:space-x-6">
+        <nav className="hidden md:flex md:items-center md:space-x-8">
           <Link
-            href="/"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            href="#features"
+            className="text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground hover:underline underline-offset-4"
           >
-            Home
+            Features
+          </Link>
+          <Link
+            href="#how-it-works"
+            className="text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground hover:underline underline-offset-4"
+          >
+            How It Works
           </Link>
           {user ? (
             <>
               <Link
                 href="/dashboard"
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                className="text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground hover:underline underline-offset-4"
               >
                 Dashboard
               </Link>
               <Link
                 href="/wallet"
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                className="text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground hover:underline underline-offset-4"
               >
                 Wallet
               </Link>
@@ -51,12 +72,12 @@ export function Header({ user }: HeaderProps) {
             <>
               <Link
                 href="/signin"
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                className="text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground hover:underline underline-offset-4"
               >
                 Sign In
               </Link>
               <Link href="/signup">
-                <Button variant="primary" size="sm">Sign Up</Button>
+                <Button variant="primary" size="default" className="shadow-md hover:shadow-lg transition-all">Get Started</Button>
               </Link>
             </>
           )}
@@ -65,42 +86,49 @@ export function Header({ user }: HeaderProps) {
         {user && (
           <div className="hidden md:flex md:items-center md:space-x-4">
             <Avatar name={user.full_name} size="sm" />
-            <span className="text-sm font-medium">{user.full_name}</span>
+            <span className="text-sm font-semibold">{user.full_name}</span>
           </div>
         )}
 
         <Button
           variant="ghost"
-          size="sm"
+          size="default"
           className="md:hidden"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
-          {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </Button>
       </div>
 
       {mobileMenuOpen && (
-        <div className="border-t md:hidden">
-          <nav className="container flex flex-col space-y-4 px-4 py-4">
+        <div className="border-t bg-background md:hidden">
+          <nav className="container flex flex-col space-y-4 px-4 py-6">
             <Link
-              href="/"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              href="#features"
+              className="text-base font-semibold text-muted-foreground transition-colors hover:text-foreground"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Home
+              Features
+            </Link>
+            <Link
+              href="#how-it-works"
+              className="text-base font-semibold text-muted-foreground transition-colors hover:text-foreground"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              How It Works
             </Link>
             {user ? (
               <>
                 <Link
                   href="/dashboard"
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                  className="text-base font-semibold text-muted-foreground transition-colors hover:text-foreground"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/wallet"
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                  className="text-base font-semibold text-muted-foreground transition-colors hover:text-foreground"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Wallet
@@ -110,13 +138,13 @@ export function Header({ user }: HeaderProps) {
               <>
                 <Link
                   href="/signin"
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                  className="text-base font-semibold text-muted-foreground transition-colors hover:text-foreground"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Sign In
                 </Link>
                 <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="primary" size="sm">Sign Up</Button>
+                  <Button variant="primary" size="lg" className="w-full">Get Started</Button>
                 </Link>
               </>
             )}

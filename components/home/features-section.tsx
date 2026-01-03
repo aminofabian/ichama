@@ -24,28 +24,29 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section className="container mx-auto px-4 py-20">
-      <div className="mb-12 text-center">
-        <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
+    <section id="features" className="container mx-auto px-4 py-24 bg-muted/30 -mx-4 sm:mx-0">
+      <div className="mb-16 text-center">
+        <h2 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl">
           Three Ways to Save
         </h2>
-        <p className="mx-auto max-w-2xl text-muted-foreground">
+        <p className="mx-auto max-w-2xl text-xl text-muted-foreground">
           Choose the chama type that works best for your group
         </p>
       </div>
-      <div className="grid gap-6 md:grid-cols-3">
-        {features.map((feature) => {
+      <div className="grid gap-8 md:grid-cols-3">
+        {features.map((feature, index) => {
           const Icon = feature.icon
           return (
-            <Card key={feature.title}>
-              <CardHeader>
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                  <Icon className="h-6 w-6 text-primary" />
+            <Card key={feature.title} className="group relative overflow-hidden border-2 hover:border-primary transition-all duration-300 hover:shadow-xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <CardHeader className="relative">
+                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/60 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <Icon className="h-8 w-8 text-white" />
                 </div>
-                <CardTitle>{feature.title}</CardTitle>
+                <CardTitle className="text-2xl">{feature.title}</CardTitle>
               </CardHeader>
-              <CardContent>
-                <CardDescription className="text-base">
+              <CardContent className="relative">
+                <CardDescription className="text-lg leading-relaxed">
                   {feature.description}
                 </CardDescription>
               </CardContent>
