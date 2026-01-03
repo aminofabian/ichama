@@ -25,6 +25,12 @@ export function HeroSection() {
             <Button size="lg" variant="primary">Join Chama</Button>
           </Link>
         </div>
+        <p className="text-sm text-muted-foreground">
+          Already have an account?{' '}
+          <Link href="/signin" className="text-primary underline-offset-4 hover:underline">
+            Sign in
+          </Link>
+        </p>
       </div>
     </section>
   )

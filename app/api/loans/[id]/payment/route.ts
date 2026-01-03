@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/auth/middleware'
 import { getLoanById, addLoanPayment } from '@/lib/db/queries/loans'
 import { getChamaMember } from '@/lib/db/queries/chama-members'
 import { formatCurrency } from '@/lib/utils/format'
+import { calculateLoanBreakdown } from '@/lib/utils/loan-utils'
 import type { ApiResponse } from '@/lib/types/api'
 
 export async function POST(
@@ -46,17 +47,34 @@ export async function POST(
       )
     }
 
-    const currentPaid = loan.amount_paid || 0
-    const totalAmount = loan.amount
-    const remainingAmount = totalAmount - currentPaid
+    // Get interest rate - use loan's interest_rate if set, otherwise get chama's default
+    let interestRate: number
+    if (loan.interest_rate !== null && loan.interest_rate !== undefined && loan.interest_rate > 0) {
+      interestRate = loan.interest_rate
+    } else {
+      // Fetch chama's default interest rate for loans without interest set or with 0 interest
+      const { getChamaById } = await import('@/lib/db/queries/chamas')
+      const chama = await getChamaById(loan.chama_id)
+      interestRate = chama?.default_interest_rate || 0
+    }
 
-    // Allow partial payments - just check that we don't exceed the total
-    // Amounts are stored in KES (not cents)
-    if (amount > remainingAmount) {
+    const principalAmount = loan.amount
+    const currentPaid = loan.amount_paid || 0
+
+    // Calculate complete breakdown including penalty interest if overdue
+    const breakdown = calculateLoanBreakdown(
+      principalAmount,
+      interestRate,
+      currentPaid,
+      loan.due_date
+    )
+
+    // Allow partial payments - check that we don't exceed the total outstanding (including interest and penalties)
+    if (amount > breakdown.totalOutstanding) {
       return NextResponse.json<ApiResponse>(
         { 
           success: false, 
-          error: `Payment of ${formatCurrency(amount)} exceeds remaining amount of ${formatCurrency(remainingAmount)}. Maximum payment: ${formatCurrency(remainingAmount)}` 
+          error: `Payment of ${formatCurrency(amount)} exceeds remaining amount of ${formatCurrency(breakdown.totalOutstanding)}. Maximum payment: ${formatCurrency(breakdown.totalOutstanding)}${breakdown.penaltyInterest > 0 ? ` (includes ${formatCurrency(breakdown.penaltyInterest)} penalty)` : ''}` 
         },
         { status: 400 }
       )
@@ -73,12 +91,20 @@ export async function POST(
     const updatedLoan = await getLoanById(loanId)
     const newPaid = updatedLoan?.amount_paid || 0
 
+    // Calculate updated breakdown after payment
+    const updatedBreakdown = calculateLoanBreakdown(
+      principalAmount,
+      interestRate,
+      newPaid,
+      loan.due_date
+    )
+
     return NextResponse.json<ApiResponse>({
       success: true,
       data: {
         message: 'Payment recorded successfully',
         amountPaid: newPaid,
-        remainingAmount: totalAmount - newPaid,
+        remainingAmount: updatedBreakdown.totalOutstanding,
       },
     })
   } catch (error) {

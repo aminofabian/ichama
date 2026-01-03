@@ -193,3 +193,16 @@ export async function getUserSavingsForChama(
 
   return totalSavings
 }
+
+export async function getTotalSavingsForChama(chamaId: string): Promise<number> {
+  const { getChamaMembers } = await import('./chama-members')
+  const members = await getChamaMembers(chamaId)
+  
+  let totalSavings = 0
+  for (const member of members) {
+    const memberSavings = await getUserSavingsForChama(member.user_id, chamaId)
+    totalSavings += memberSavings
+  }
+  
+  return totalSavings
+}

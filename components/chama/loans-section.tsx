@@ -99,6 +99,7 @@ export function LoansSection({ chamaId }: LoansSectionProps) {
   const [selectedLoanId, setSelectedLoanId] = useState<string | null>(null)
   const [paymentAmount, setPaymentAmount] = useState('')
   const [paymentNotes, setPaymentNotes] = useState('')
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false)
   const [processingPayment, setProcessingPayment] = useState(false)
   const [processingPaymentId, setProcessingPaymentId] = useState<string | null>(null)
   const [processingLoanId, setProcessingLoanId] = useState<string | null>(null)
@@ -159,6 +160,7 @@ export function LoansSection({ chamaId }: LoansSectionProps) {
       setPaymentAmount('')
       setPaymentNotes('')
       setSelectedLoanId(null)
+      setPaymentModalOpen(false)
 
       // Show success toast
       // result.data.remainingAmount is already in KES
@@ -779,80 +781,30 @@ export function LoansSection({ chamaId }: LoansSectionProps) {
                 })()}
 
                 {/* Record Payment Button */}
-                {(loan.status === 'active' || loan.status === 'approved') && (
-                  <div className="pt-2 border-t">
-                    {selectedLoanId === loan.loanId ? (
-                      <div className="space-y-3">
-                        <div className="space-y-2">
-                          <label className="text-xs font-medium text-foreground">
-                            Payment Amount (KES)
-                          </label>
-                          <Input
-                            type="number"
-                            placeholder="Enter amount"
-                            value={paymentAmount}
-                            onChange={(e) => setPaymentAmount(e.target.value)}
-                            min="0"
-                            step="100"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-xs font-medium text-foreground">
-                            Notes (Optional)
-                          </label>
-                          <Input
-                            type="text"
-                            placeholder="Payment notes"
-                            value={paymentNotes}
-                            onChange={(e) => setPaymentNotes(e.target.value)}
-                          />
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            onClick={() => handlePaymentSubmit(loan.loanId)}
-                            disabled={processingPayment || !paymentAmount}
-                            className="flex-1"
-                          >
-                            {processingPayment ? (
-                              <>
-                                <LoadingSpinner size="sm" />
-                                <span className="ml-2">Recording...</span>
-                              </>
-                            ) : (
-                              <>
-                                <Plus className="h-3.5 w-3.5 mr-1" />
-                                Record Payment
-                              </>
-                            )}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setSelectedLoanId(null)
-                              setPaymentAmount('')
-                              setPaymentNotes('')
-                            }}
-                            disabled={processingPayment}
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
+                {(() => {
+                  const loanBreakdown = calculateLoanBreakdown(
+                    loan.loanAmount,
+                    loan.interestRate,
+                    loan.amountPaid,
+                    loan.dueDate
+                  )
+                  return (loan.status === 'active' || loan.status === 'approved') && loanBreakdown.totalOutstanding > 0 ? (
+                    <div className="pt-2 border-t">
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => setSelectedLoanId(loan.loanId)}
+                        onClick={() => {
+                          setSelectedLoanId(loan.loanId)
+                          setPaymentModalOpen(true)
+                        }}
                         className="w-full"
                       >
                         <Plus className="h-3.5 w-3.5 mr-1" />
                         Record Payment
                       </Button>
-                    )}
-                  </div>
-                )}
+                    </div>
+                  ) : null
+                })()}
 
                 {/* Pending Payments Section */}
               {loan.pendingPayments && loan.pendingPayments.length > 0 && (
@@ -1143,7 +1095,10 @@ export function LoansSection({ chamaId }: LoansSectionProps) {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => setSelectedLoanId(loan.loanId)}
+                                onClick={() => {
+                                  setSelectedLoanId(loan.loanId)
+                                  setPaymentModalOpen(true)
+                                }}
                                 className="h-7 text-xs font-medium px-2 whitespace-nowrap"
                               >
                                 <Plus className="h-3 w-3 mr-1" />
@@ -1176,85 +1131,81 @@ export function LoansSection({ chamaId }: LoansSectionProps) {
           </div>
         </div>
 
-        {/* Payment Modal/Form for Desktop */}
-        {selectedLoanId && (
-          <div className="hidden md:block mt-4 p-4 border rounded-lg bg-muted/20">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-semibold">Record Payment</h4>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    setSelectedLoanId(null)
-                    setPaymentAmount('')
-                    setPaymentNotes('')
-                  }}
-                >
-                  <XCircle className="h-4 w-4" />
-                </Button>
+        {/* Payment Modal */}
+        <Modal open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
+          <ModalContent className="max-w-md">
+            <ModalClose onClose={() => {
+              setPaymentModalOpen(false)
+              setSelectedLoanId(null)
+              setPaymentAmount('')
+              setPaymentNotes('')
+            }} />
+            <ModalHeader>
+              <ModalTitle>Record Payment</ModalTitle>
+            </ModalHeader>
+            
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label htmlFor="paymentAmount" className="text-sm font-medium text-foreground">
+                  Payment Amount (KES)
+                </label>
+                <Input
+                  id="paymentAmount"
+                  type="number"
+                  placeholder="Enter amount"
+                  value={paymentAmount}
+                  onChange={(e) => setPaymentAmount(e.target.value)}
+                  min="0"
+                  step="100"
+                  autoFocus
+                  className="h-10"
+                />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-foreground">
-                    Payment Amount (KES)
-                  </label>
-                  <Input
-                    type="number"
-                    placeholder="Enter amount"
-                    value={paymentAmount}
-                    onChange={(e) => setPaymentAmount(e.target.value)}
-                    min="0"
-                    step="100"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-foreground">
-                    Notes (Optional)
-                  </label>
-                  <Input
-                    type="text"
-                    placeholder="Payment notes"
-                    value={paymentNotes}
-                    onChange={(e) => setPaymentNotes(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => selectedLoanId && handlePaymentSubmit(selectedLoanId)}
-                  disabled={processingPayment || !paymentAmount}
-                  className="flex-1"
-                >
-                  {processingPayment ? (
-                    <>
-                      <LoadingSpinner size="sm" />
-                      <span className="ml-2">Recording...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="h-3.5 w-3.5 mr-1" />
-                      Record Payment
-                    </>
-                  )}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    setSelectedLoanId(null)
-                    setPaymentAmount('')
-                    setPaymentNotes('')
-                  }}
-                  disabled={processingPayment}
-                >
-                  Cancel
-                </Button>
+
+              <div className="space-y-2">
+                <label htmlFor="paymentNotes" className="text-sm font-medium text-foreground">
+                  Notes (Optional)
+                </label>
+                <Input
+                  id="paymentNotes"
+                  type="text"
+                  placeholder="Payment notes"
+                  value={paymentNotes}
+                  onChange={(e) => setPaymentNotes(e.target.value)}
+                  className="h-10"
+                />
               </div>
             </div>
-          </div>
-        )}
+
+            <ModalFooter className="gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setPaymentModalOpen(false)
+                  setSelectedLoanId(null)
+                  setPaymentAmount('')
+                  setPaymentNotes('')
+                }}
+                disabled={processingPayment}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => selectedLoanId && handlePaymentSubmit(selectedLoanId)}
+                disabled={processingPayment || !paymentAmount || parseFloat(paymentAmount) <= 0}
+              >
+                {processingPayment ? (
+                  <>
+                    <LoadingSpinner size="sm" />
+                    <span className="ml-2">Recording...</span>
+                  </>
+                ) : (
+                  'Record Payment'
+                )}
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
 
         {/* Interest Rate Modal for Loan Approval */}
         <Modal open={interestModalOpen} onOpenChange={setInterestModalOpen}>

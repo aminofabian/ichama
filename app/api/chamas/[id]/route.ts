@@ -5,6 +5,7 @@ import { getChamaMember, getChamaMembers } from '@/lib/db/queries/chama-members'
 import { getUserById } from '@/lib/db/queries/users'
 import { getActiveCycle } from '@/lib/db/queries/cycles'
 import { getCycleMembers } from '@/lib/db/queries/cycle-members'
+import { getTotalSavingsForChama } from '@/lib/db/queries/savings'
 import db from '@/lib/db/client'
 import type { ApiResponse } from '@/lib/types/api'
 
@@ -58,6 +59,9 @@ export async function GET(
       cycleMember = cycleMembers.find((cm) => cm.user_id === user.id) || null
     }
 
+    // Calculate total savings pot for the chama
+    const totalSavingsPot = await getTotalSavingsForChama(id)
+
     return NextResponse.json<ApiResponse>({
       success: true,
       data: {
@@ -67,6 +71,7 @@ export async function GET(
         isAdmin: member.role === 'admin',
         activeCycle: activeCycle || null,
         cycleMember: cycleMember || null,
+        totalSavingsPot,
       },
     })
   } catch (error) {

@@ -28,6 +28,7 @@ interface ChamaData {
   cycles?: Cycle[]
   pendingCycle?: Cycle | null
   pendingCycleMembers?: (CycleMember & { user?: { full_name: string } })[] | null
+  totalSavingsPot?: number
 }
 
 export default function ChamaDetailPage() {
@@ -117,7 +118,7 @@ export default function ChamaDetailPage() {
           members={members}
           activeCycle={data.activeCycle}
           collectionRate={0}
-          savingsPot={0}
+          savingsPot={data.totalSavingsPot || 0}
           cycles={cycles}
           pendingCycle={pendingCycle}
           pendingCycleMembers={pendingCycleMembers}

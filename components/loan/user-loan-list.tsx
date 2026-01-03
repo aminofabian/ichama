@@ -88,6 +88,7 @@ export function UserLoanList({ userLoans, onUpdate }: UserLoanListProps) {
   const [paymentModalOpen, setPaymentModalOpen] = useState(false)
   const [selectedLoanId, setSelectedLoanId] = useState<string | null>(null)
   const [paymentAmount, setPaymentAmount] = useState('')
+  const [paymentNotes, setPaymentNotes] = useState('')
   const [processingPayment, setProcessingPayment] = useState(false)
 
   if (userLoans.length === 0) {
@@ -111,6 +112,7 @@ export function UserLoanList({ userLoans, onUpdate }: UserLoanListProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           amount: parseFloat(paymentAmount),
+          notes: paymentNotes || null,
         }),
       })
 
@@ -122,6 +124,7 @@ export function UserLoanList({ userLoans, onUpdate }: UserLoanListProps) {
 
       // Reset form
       setPaymentAmount('')
+      setPaymentNotes('')
       setSelectedLoanId(null)
       setPaymentModalOpen(false)
 
@@ -536,125 +539,61 @@ export function UserLoanList({ userLoans, onUpdate }: UserLoanListProps) {
             setPaymentModalOpen(false)
             setSelectedLoanId(null)
             setPaymentAmount('')
+            setPaymentNotes('')
           }} />
-          <ModalHeader className="space-y-2 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-green-500 to-green-600">
-                <Wallet className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <ModalTitle className="text-xl">Record Payment</ModalTitle>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Enter the payment amount to record
-                </p>
-              </div>
-            </div>
+          <ModalHeader>
+            <ModalTitle>Record Payment</ModalTitle>
           </ModalHeader>
           
-          <div className="space-y-6 py-2">
-            {selectedLoanId && (() => {
-              const loan = userLoans.find(l => l.loanId === selectedLoanId)
-              if (!loan) return null
-              const breakdown = calculateLoanBreakdown(
-                loan.loanAmount,
-                loan.interestRate,
-                loan.amountPaid,
-                loan.dueDate
-              )
-              return (
-                <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                      <Building2 className="h-4 w-4 text-primary" />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Loan Details
-                      </p>
-                      <p className="text-sm font-semibold text-foreground">
-                        {loan?.chamaName}
-                      </p>
-                      <div className="space-y-1 pt-1">
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-xs text-muted-foreground">Remaining:</span>
-                          <span className={`text-lg font-bold ${
-                            breakdown.penaltyInterest > 0 
-                              ? 'text-red-600 dark:text-red-400' 
-                              : 'text-primary'
-                          }`}>
-                            {formatCurrency(breakdown.totalOutstanding)}
-                          </span>
-                        </div>
-                        {breakdown.penaltyInterest > 0 && (
-                          <div className="flex items-center gap-2 text-xs">
-                            <span className="text-muted-foreground line-through">
-                              {formatCurrency(breakdown.outstandingAmount)}
-                            </span>
-                            <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 text-xs">
-                              +{formatCurrency(breakdown.penaltyInterest)} penalty
-                            </Badge>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )
-            })()}
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="paymentAmount" className="text-sm font-medium text-foreground">
+                Payment Amount (KES)
+              </label>
+              <Input
+                id="paymentAmount"
+                type="number"
+                placeholder="Enter amount"
+                value={paymentAmount}
+                onChange={(e) => setPaymentAmount(e.target.value)}
+                min="0"
+                step="100"
+                autoFocus
+                className="h-10"
+              />
+            </div>
 
-            <div className="space-y-3">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  Payment Amount (KES)
-                  <span className="text-destructive">*</span>
-                </label>
-                <Input
-                  type="number"
-                  placeholder="0.00"
-                  value={paymentAmount}
-                  onChange={(e) => setPaymentAmount(e.target.value)}
-                  min="0"
-                  step="100"
-                  autoFocus
-                  className="h-12 text-lg font-semibold"
-                />
-                {selectedLoanId && (() => {
-                  const loan = userLoans.find(l => l.loanId === selectedLoanId)
-                  if (!loan) return null
-                  const breakdown = calculateLoanBreakdown(
-                    loan.loanAmount,
-                    loan.interestRate,
-                    loan.amountPaid,
-                    loan.dueDate
-                  )
-                  return (
-                    <p className="text-xs text-muted-foreground pl-6">
-                      Maximum: {formatCurrency(breakdown.totalOutstanding)}
-                    </p>
-                  )
-                })()}
-              </div>
+            <div className="space-y-2">
+              <label htmlFor="paymentNotes" className="text-sm font-medium text-foreground">
+                Notes (Optional)
+              </label>
+              <Input
+                id="paymentNotes"
+                type="text"
+                placeholder="Payment notes"
+                value={paymentNotes}
+                onChange={(e) => setPaymentNotes(e.target.value)}
+                className="h-10"
+              />
             </div>
           </div>
 
-          <ModalFooter className="gap-2 pt-4 border-t">
+          <ModalFooter className="gap-2">
             <Button
               variant="outline"
               onClick={() => {
                 setPaymentModalOpen(false)
                 setSelectedLoanId(null)
                 setPaymentAmount('')
+                setPaymentNotes('')
               }}
               disabled={processingPayment}
-              className="flex-1"
             >
               Cancel
             </Button>
             <Button
               onClick={() => selectedLoanId && handleRecordPayment(selectedLoanId)}
               disabled={processingPayment || !paymentAmount || parseFloat(paymentAmount) <= 0}
-              className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
             >
               {processingPayment ? (
                 <>
@@ -662,10 +601,7 @@ export function UserLoanList({ userLoans, onUpdate }: UserLoanListProps) {
                   <span className="ml-2">Recording...</span>
                 </>
               ) : (
-                <>
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Record Payment
-                </>
+                'Record Payment'
               )}
             </Button>
           </ModalFooter>

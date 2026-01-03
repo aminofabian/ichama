@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth/middleware'
 import { getLoanById } from '@/lib/db/queries/loans'
 import { calculateLoanBreakdown } from '@/lib/utils/loan-utils'
+import { formatCurrency } from '@/lib/utils/format'
 import db from '@/lib/db/client'
 import { nanoid } from 'nanoid'
 import type { ApiResponse } from '@/lib/types/api'
@@ -39,12 +40,37 @@ export async function POST(
       )
     }
 
-    // Calculate total loan amount with interest
-    const interestRate = loan.interest_rate || 0
+    // Get interest rate - use loan's interest_rate if set and > 0, otherwise get chama's default
+    let interestRate: number
+    if (loan.interest_rate !== null && loan.interest_rate !== undefined && loan.interest_rate > 0) {
+      interestRate = loan.interest_rate
+    } else {
+      // Fetch chama's default interest rate for loans without interest set or with 0 interest
+      const { getChamaById } = await import('@/lib/db/queries/chamas')
+      const chama = await getChamaById(loan.chama_id)
+      interestRate = chama?.default_interest_rate || 0
+      console.log('[Record Payment] Using chama default interest rate:', {
+        loanInterestRate: loan.interest_rate,
+        chamaDefaultInterestRate: chama?.default_interest_rate,
+        finalInterestRate: interestRate,
+      })
+    }
+    
     const principalAmount = loan.amount
     const interestAmount = (principalAmount * interestRate) / 100
     const totalLoanAmount = principalAmount + interestAmount
     const currentPaid = loan.amount_paid || 0
+    
+    console.log('[Record Payment] Interest calculation:', {
+      loanId: loan.id,
+      loanInterestRate: loan.interest_rate,
+      calculatedInterestRate: interestRate,
+      principalAmount,
+      interestAmount,
+      totalLoanAmount,
+      currentPaid,
+      loanStatus: loan.status,
+    })
     
     // Check if loan is actually fully paid (including interest)
     const isFullyPaid = currentPaid >= totalLoanAmount
@@ -73,12 +99,32 @@ export async function POST(
       loan.due_date
     )
 
+    // Debug logging
+    console.log('[Record Payment] Full breakdown:', {
+      loanId: loan.id,
+      loanStatus: loan.status,
+      loanInterestRateInDB: loan.interest_rate,
+      calculatedInterestRate: interestRate,
+      principalAmount,
+      interestAmount: breakdown.originalInterest,
+      originalTotal: breakdown.originalTotal,
+      currentPaid,
+      totalOutstanding: breakdown.totalOutstanding,
+      requestedAmount: amount,
+      breakdown: {
+        originalInterest: breakdown.originalInterest,
+        originalTotal: breakdown.originalTotal,
+        totalOutstanding: breakdown.totalOutstanding,
+        penaltyInterest: breakdown.penaltyInterest,
+      },
+    })
+
     // Check if payment exceeds remaining amount (including penalty)
     if (amount > breakdown.totalOutstanding) {
       return NextResponse.json<ApiResponse>(
         { 
           success: false, 
-          error: `Payment exceeds remaining amount. Maximum payment: ${breakdown.totalOutstanding.toLocaleString()} KES${breakdown.penaltyInterest > 0 ? ` (includes ${breakdown.penaltyInterest.toLocaleString()} KES penalty)` : ''}` 
+          error: `Payment of ${formatCurrency(amount)} exceeds remaining amount of ${formatCurrency(breakdown.totalOutstanding)}. Maximum payment: ${formatCurrency(breakdown.totalOutstanding)}${breakdown.penaltyInterest > 0 ? ` (includes ${formatCurrency(breakdown.penaltyInterest)} penalty)` : ''}` 
         },
         { status: 400 }
       )

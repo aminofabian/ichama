@@ -45,6 +45,7 @@ export function AdminView({
         activeCycle={activeCycle}
         collectionRate={collectionRate}
         savingsPot={savingsPot}
+        chamaId={chama.id}
       />
 
       <AdminActions
